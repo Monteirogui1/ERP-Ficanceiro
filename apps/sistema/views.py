@@ -48,9 +48,9 @@ class MensagemSucessoMixin:
 
 class TipoPessoaListView(PermissaoModuloMixin, ListView):
     model = TipoPessoa
-    template_name = "cadastros/dominio/tipo_pessoa_list.html"
+    template_name = "sistema/dominio/tipo_pessoa_list.html"
     context_object_name = "objetos"
-    modulo = "cadastros"
+    modulo = "sistema"
     acao = "ver"
 
     def get_queryset(self):
@@ -60,9 +60,9 @@ class TipoPessoaListView(PermissaoModuloMixin, ListView):
 class TipoPessoaCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = TipoPessoa
     form_class = TipoPessoaForm
-    template_name = "cadastros/dominio/form.html"
-    success_url = reverse_lazy("cadastros:tipo_pessoa_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/form.html"
+    success_url = reverse_lazy("sistema:tipo_pessoa_list")
+    modulo = "sistema"
     acao = "criar"
     extra_context = {"titulo": "Novo Tipo de Pessoa"}
 
@@ -70,9 +70,9 @@ class TipoPessoaCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateVie
 class TipoPessoaUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
     model = TipoPessoa
     form_class = TipoPessoaForm
-    template_name = "cadastros/dominio/form.html"
-    success_url = reverse_lazy("cadastros:tipo_pessoa_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/form.html"
+    success_url = reverse_lazy("sistema:tipo_pessoa_list")
+    modulo = "sistema"
     acao = "editar"
     extra_context = {"titulo": "Editar Tipo de Pessoa"}
 
@@ -82,9 +82,9 @@ class TipoPessoaUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateVie
 
 class TipoPessoaDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = TipoPessoa
-    template_name = "cadastros/dominio/confirmar_exclusao.html"
-    success_url = reverse_lazy("cadastros:tipo_pessoa_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/confirmar_exclusao.html"
+    success_url = reverse_lazy("sistema:tipo_pessoa_list")
+    modulo = "sistema"
     acao = "excluir"
 
     def get_queryset(self):
@@ -95,18 +95,18 @@ class TipoPessoaDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteVie
 
 class CategoriaFornecedorListView(PermissaoModuloMixin, ListView):
     model = CategoriaFornecedor
-    template_name = "cadastros/dominio/categoria_fornecedor_list.html"
+    template_name = "sistema/dominio/categoria_fornecedor_list.html"
     context_object_name = "objetos"
-    modulo = "cadastros"
+    modulo = "sistema"
     acao = "ver"
 
 
 class CategoriaFornecedorCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = CategoriaFornecedor
     form_class = CategoriaFornecedorForm
-    template_name = "cadastros/dominio/form.html"
-    success_url = reverse_lazy("cadastros:categoria_fornecedor_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/form.html"
+    success_url = reverse_lazy("sistema:categoria_fornecedor_list")
+    modulo = "sistema"
     acao = "criar"
     extra_context = {"titulo": "Nova Categoria de Fornecedor"}
 
@@ -114,18 +114,18 @@ class CategoriaFornecedorCreateView(MensagemSucessoMixin, PermissaoModuloMixin, 
 class CategoriaFornecedorUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
     model = CategoriaFornecedor
     form_class = CategoriaFornecedorForm
-    template_name = "cadastros/dominio/form.html"
-    success_url = reverse_lazy("cadastros:categoria_fornecedor_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/form.html"
+    success_url = reverse_lazy("sistema:categoria_fornecedor_list")
+    modulo = "sistema"
     acao = "editar"
     extra_context = {"titulo": "Editar Categoria de Fornecedor"}
 
 
 class CategoriaFornecedorDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = CategoriaFornecedor
-    template_name = "cadastros/dominio/confirmar_exclusao.html"
-    success_url = reverse_lazy("cadastros:categoria_fornecedor_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/confirmar_exclusao.html"
+    success_url = reverse_lazy("sistema:categoria_fornecedor_list")
+    modulo = "sistema"
     acao = "excluir"
 
 
@@ -133,18 +133,18 @@ class CategoriaFornecedorDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, 
 
 class CategoriaClienteListView(PermissaoModuloMixin, ListView):
     model = CategoriaCliente
-    template_name = "cadastros/dominio/categoria_cliente_list.html"
+    template_name = "sistema/dominio/categoria_cliente_list.html"
     context_object_name = "objetos"
-    modulo = "cadastros"
+    modulo = "sistema"
     acao = "ver"
 
 
 class CategoriaClienteCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = CategoriaCliente
     form_class = CategoriaClienteForm
-    template_name = "cadastros/dominio/form.html"
-    success_url = reverse_lazy("cadastros:categoria_cliente_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/form.html"
+    success_url = reverse_lazy("sistema:categoria_cliente_list")
+    modulo = "sistema"
     acao = "criar"
     extra_context = {"titulo": "Nova Categoria de Cliente"}
 
@@ -152,18 +152,18 @@ class CategoriaClienteCreateView(MensagemSucessoMixin, PermissaoModuloMixin, Cre
 class CategoriaClienteUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
     model = CategoriaCliente
     form_class = CategoriaClienteForm
-    template_name = "cadastros/dominio/form.html"
-    success_url = reverse_lazy("cadastros:categoria_cliente_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/form.html"
+    success_url = reverse_lazy("sistema:categoria_cliente_list")
+    modulo = "sistema"
     acao = "editar"
     extra_context = {"titulo": "Editar Categoria de Cliente"}
 
 
 class CategoriaClienteDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = CategoriaCliente
-    template_name = "cadastros/dominio/confirmar_exclusao.html"
-    success_url = reverse_lazy("cadastros:categoria_cliente_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/confirmar_exclusao.html"
+    success_url = reverse_lazy("sistema:categoria_cliente_list")
+    modulo = "sistema"
     acao = "excluir"
 
 
@@ -171,9 +171,9 @@ class CategoriaClienteDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, Del
 
 class TipoContaListView(PermissaoModuloMixin, ListView):
     model = TipoConta
-    template_name = "cadastros/dominio/tipo_conta_list.html"
+    template_name = "sistema/dominio/tipo_conta_list.html"
     context_object_name = "objetos"
-    modulo = "cadastros"
+    modulo = "sistema"
     acao = "ver"
 
     def get_queryset(self):
@@ -183,9 +183,9 @@ class TipoContaListView(PermissaoModuloMixin, ListView):
 class TipoContaCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = TipoConta
     form_class = TipoContaForm
-    template_name = "cadastros/dominio/form.html"
-    success_url = reverse_lazy("cadastros:tipo_conta_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/form.html"
+    success_url = reverse_lazy("sistema:tipo_conta_list")
+    modulo = "sistema"
     acao = "criar"
     extra_context = {"titulo": "Novo Tipo de Conta"}
 
@@ -193,9 +193,9 @@ class TipoContaCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView
 class TipoContaUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
     model = TipoConta
     form_class = TipoContaForm
-    template_name = "cadastros/dominio/form.html"
-    success_url = reverse_lazy("cadastros:tipo_conta_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/form.html"
+    success_url = reverse_lazy("sistema:tipo_conta_list")
+    modulo = "sistema"
     acao = "editar"
     extra_context = {"titulo": "Editar Tipo de Conta"}
 
@@ -205,9 +205,9 @@ class TipoContaUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView
 
 class TipoContaDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = TipoConta
-    template_name = "cadastros/dominio/confirmar_exclusao.html"
-    success_url = reverse_lazy("cadastros:tipo_conta_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/confirmar_exclusao.html"
+    success_url = reverse_lazy("sistema:tipo_conta_list")
+    modulo = "sistema"
     acao = "excluir"
 
     def get_queryset(self):
@@ -218,9 +218,9 @@ class TipoContaDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView
 
 class TipoChavePixListView(PermissaoModuloMixin, ListView):
     model = TipoChavePix
-    template_name = "cadastros/dominio/tipo_chave_pix_list.html"
+    template_name = "sistema/dominio/tipo_chave_pix_list.html"
     context_object_name = "objetos"
-    modulo = "cadastros"
+    modulo = "sistema"
     acao = "ver"
 
     def get_queryset(self):
@@ -230,9 +230,9 @@ class TipoChavePixListView(PermissaoModuloMixin, ListView):
 class TipoChavePixCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = TipoChavePix
     form_class = TipoChavePixForm
-    template_name = "cadastros/dominio/form.html"
-    success_url = reverse_lazy("cadastros:tipo_chave_pix_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/form.html"
+    success_url = reverse_lazy("sistema:tipo_chave_pix_list")
+    modulo = "sistema"
     acao = "criar"
     extra_context = {"titulo": "Novo Tipo de Chave PIX"}
 
@@ -240,9 +240,9 @@ class TipoChavePixCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateV
 class TipoChavePixUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
     model = TipoChavePix
     form_class = TipoChavePixForm
-    template_name = "cadastros/dominio/form.html"
-    success_url = reverse_lazy("cadastros:tipo_chave_pix_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/form.html"
+    success_url = reverse_lazy("sistema:tipo_chave_pix_list")
+    modulo = "sistema"
     acao = "editar"
     extra_context = {"titulo": "Editar Tipo de Chave PIX"}
 
@@ -252,9 +252,9 @@ class TipoChavePixUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateV
 
 class TipoChavePixDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = TipoChavePix
-    template_name = "cadastros/dominio/confirmar_exclusao.html"
-    success_url = reverse_lazy("cadastros:tipo_chave_pix_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/confirmar_exclusao.html"
+    success_url = reverse_lazy("sistema:tipo_chave_pix_list")
+    modulo = "sistema"
     acao = "excluir"
 
     def get_queryset(self):
@@ -265,9 +265,9 @@ class TipoChavePixDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteV
 
 class TipoPlanoContasListView(PermissaoModuloMixin, ListView):
     model = TipoPlanoContas
-    template_name = "cadastros/dominio/tipo_plano_contas_list.html"
+    template_name = "sistema/dominio/tipo_plano_contas_list.html"
     context_object_name = "objetos"
-    modulo = "cadastros"
+    modulo = "sistema"
     acao = "ver"
 
     def get_queryset(self):
@@ -277,9 +277,9 @@ class TipoPlanoContasListView(PermissaoModuloMixin, ListView):
 class TipoPlanoContasCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = TipoPlanoContas
     form_class = TipoPlanoContasForm
-    template_name = "cadastros/dominio/form.html"
-    success_url = reverse_lazy("cadastros:tipo_plano_contas_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/form.html"
+    success_url = reverse_lazy("sistema:tipo_plano_contas_list")
+    modulo = "sistema"
     acao = "criar"
     extra_context = {"titulo": "Novo Tipo de Plano de Contas"}
 
@@ -287,9 +287,9 @@ class TipoPlanoContasCreateView(MensagemSucessoMixin, PermissaoModuloMixin, Crea
 class TipoPlanoContasUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
     model = TipoPlanoContas
     form_class = TipoPlanoContasForm
-    template_name = "cadastros/dominio/form.html"
-    success_url = reverse_lazy("cadastros:tipo_plano_contas_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/form.html"
+    success_url = reverse_lazy("sistema:tipo_plano_contas_list")
+    modulo = "sistema"
     acao = "editar"
     extra_context = {"titulo": "Editar Tipo de Plano de Contas"}
 
@@ -299,9 +299,9 @@ class TipoPlanoContasUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, Upda
 
 class TipoPlanoContasDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = TipoPlanoContas
-    template_name = "cadastros/dominio/confirmar_exclusao.html"
-    success_url = reverse_lazy("cadastros:tipo_plano_contas_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/confirmar_exclusao.html"
+    success_url = reverse_lazy("sistema:tipo_plano_contas_list")
+    modulo = "sistema"
     acao = "excluir"
 
     def get_queryset(self):
@@ -312,9 +312,9 @@ class TipoPlanoContasDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, Dele
 
 class TipoCentroCustoListView(PermissaoModuloMixin, ListView):
     model = TipoCentroCusto
-    template_name = "cadastros/dominio/tipo_centro_custo_list.html"
+    template_name = "sistema/dominio/tipo_centro_custo_list.html"
     context_object_name = "objetos"
-    modulo = "cadastros"
+    modulo = "sistema"
     acao = "ver"
 
     def get_queryset(self):
@@ -324,9 +324,9 @@ class TipoCentroCustoListView(PermissaoModuloMixin, ListView):
 class TipoCentroCustoCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = TipoCentroCusto
     form_class = TipoCentroCustoForm
-    template_name = "cadastros/dominio/form.html"
-    success_url = reverse_lazy("cadastros:tipo_centro_custo_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/form.html"
+    success_url = reverse_lazy("sistema:tipo_centro_custo_list")
+    modulo = "sistema"
     acao = "criar"
     extra_context = {"titulo": "Novo Tipo de Centro de Custo"}
 
@@ -334,9 +334,9 @@ class TipoCentroCustoCreateView(MensagemSucessoMixin, PermissaoModuloMixin, Crea
 class TipoCentroCustoUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
     model = TipoCentroCusto
     form_class = TipoCentroCustoForm
-    template_name = "cadastros/dominio/form.html"
-    success_url = reverse_lazy("cadastros:tipo_centro_custo_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/form.html"
+    success_url = reverse_lazy("sistema:tipo_centro_custo_list")
+    modulo = "sistema"
     acao = "editar"
     extra_context = {"titulo": "Editar Tipo de Centro de Custo"}
 
@@ -346,9 +346,9 @@ class TipoCentroCustoUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, Upda
 
 class TipoCentroCustoDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = TipoCentroCusto
-    template_name = "cadastros/dominio/confirmar_exclusao.html"
-    success_url = reverse_lazy("cadastros:tipo_centro_custo_list")
-    modulo = "cadastros"
+    template_name = "sistema/dominio/confirmar_exclusao.html"
+    success_url = reverse_lazy("sistema:tipo_centro_custo_list")
+    modulo = "sistema"
     acao = "excluir"
 
     def get_queryset(self):
@@ -361,10 +361,10 @@ class TipoCentroCustoDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, Dele
 
 class FornecedorListView(PermissaoModuloMixin, ListView):
     model = Fornecedor
-    template_name = "cadastros/fornecedor/list.html"
+    template_name = "sistema/fornecedor/list.html"
     context_object_name = "objetos"
     paginate_by = 25
-    modulo = "cadastros"
+    modulo = "sistema"
     acao = "ver"
 
     def get_queryset(self):
@@ -381,9 +381,9 @@ class FornecedorListView(PermissaoModuloMixin, ListView):
 class FornecedorCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = Fornecedor
     form_class = FornecedorForm
-    template_name = "cadastros/fornecedor/form.html"
-    success_url = reverse_lazy("cadastros:fornecedor_list")
-    modulo = "cadastros"
+    template_name = "sistema/fornecedor/form.html"
+    success_url = reverse_lazy("sistema:fornecedor_list")
+    modulo = "sistema"
     acao = "criar"
     extra_context = {"titulo": "Novo Fornecedor"}
 
@@ -396,9 +396,9 @@ class FornecedorCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateVie
 class FornecedorUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
     model = Fornecedor
     form_class = FornecedorForm
-    template_name = "cadastros/fornecedor/form.html"
-    success_url = reverse_lazy("cadastros:fornecedor_list")
-    modulo = "cadastros"
+    template_name = "sistema/fornecedor/form.html"
+    success_url = reverse_lazy("sistema:fornecedor_list")
+    modulo = "sistema"
     acao = "editar"
     extra_context = {"titulo": "Editar Fornecedor"}
 
@@ -410,18 +410,18 @@ class FornecedorUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateVie
 
 class FornecedorDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = Fornecedor
-    template_name = "cadastros/fornecedor/confirmar_exclusao.html"
-    success_url = reverse_lazy("cadastros:fornecedor_list")
-    modulo = "cadastros"
+    template_name = "sistema/fornecedor/confirmar_exclusao.html"
+    success_url = reverse_lazy("sistema:fornecedor_list")
+    modulo = "sistema"
     acao = "excluir"
 
 
 class FornecedorDetailView(PermissaoModuloMixin, ListView):
     """Lista contatos do fornecedor na tela de detalhe."""
     model = ContatoFornecedor
-    template_name = "cadastros/fornecedor/detail.html"
+    template_name = "sistema/fornecedor/detail.html"
     context_object_name = "contatos"
-    modulo = "cadastros"
+    modulo = "sistema"
     acao = "ver"
 
     def get_queryset(self):
@@ -441,12 +441,12 @@ class FornecedorDetailView(PermissaoModuloMixin, ListView):
 class ContatoFornecedorCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = ContatoFornecedor
     form_class = ContatoFornecedorForm
-    template_name = "cadastros/fornecedor/contato_form.html"
-    modulo = "cadastros"
+    template_name = "sistema/fornecedor/contato_form.html"
+    modulo = "sistema"
     acao = "editar"
 
     def get_success_url(self):
-        return reverse_lazy("cadastros:fornecedor_detail", kwargs={"pk": self.kwargs["fornecedor_pk"]})
+        return reverse_lazy("sistema:fornecedor_detail", kwargs={"pk": self.kwargs["fornecedor_pk"]})
 
     def form_valid(self, form):
         form.instance.fornecedor = Fornecedor.objects.get(
@@ -462,12 +462,12 @@ class ContatoFornecedorCreateView(MensagemSucessoMixin, PermissaoModuloMixin, Cr
 
 class ContatoFornecedorDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = ContatoFornecedor
-    template_name = "cadastros/fornecedor/confirmar_exclusao_contato.html"
-    modulo = "cadastros"
+    template_name = "sistema/fornecedor/confirmar_exclusao_contato.html"
+    modulo = "sistema"
     acao = "editar"
 
     def get_success_url(self):
-        return reverse_lazy("cadastros:fornecedor_detail", kwargs={"pk": self.object.fornecedor_id})
+        return reverse_lazy("sistema:fornecedor_detail", kwargs={"pk": self.object.fornecedor_id})
 
     def get_queryset(self):
         return ContatoFornecedor.objects.filter(fornecedor__empresa=self.get_empresa())
@@ -479,10 +479,10 @@ class ContatoFornecedorDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, De
 
 class ClienteListView(PermissaoModuloMixin, ListView):
     model = Cliente
-    template_name = "cadastros/cliente/list.html"
+    template_name = "sistema/cliente/list.html"
     context_object_name = "objetos"
     paginate_by = 25
-    modulo = "cadastros"
+    modulo = "sistema"
     acao = "ver"
 
     def get_queryset(self):
@@ -502,9 +502,9 @@ class ClienteListView(PermissaoModuloMixin, ListView):
 class ClienteCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = Cliente
     form_class = ClienteForm
-    template_name = "cadastros/cliente/form.html"
-    success_url = reverse_lazy("cadastros:cliente_list")
-    modulo = "cadastros"
+    template_name = "sistema/cliente/form.html"
+    success_url = reverse_lazy("sistema:cliente_list")
+    modulo = "sistema"
     acao = "criar"
     extra_context = {"titulo": "Novo Cliente"}
 
@@ -517,9 +517,9 @@ class ClienteCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
 class ClienteUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
     model = Cliente
     form_class = ClienteForm
-    template_name = "cadastros/cliente/form.html"
-    success_url = reverse_lazy("cadastros:cliente_list")
-    modulo = "cadastros"
+    template_name = "sistema/cliente/form.html"
+    success_url = reverse_lazy("sistema:cliente_list")
+    modulo = "sistema"
     acao = "editar"
     extra_context = {"titulo": "Editar Cliente"}
 
@@ -531,17 +531,17 @@ class ClienteUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
 
 class ClienteDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = Cliente
-    template_name = "cadastros/cliente/confirmar_exclusao.html"
-    success_url = reverse_lazy("cadastros:cliente_list")
-    modulo = "cadastros"
+    template_name = "sistema/cliente/confirmar_exclusao.html"
+    success_url = reverse_lazy("sistema:cliente_list")
+    modulo = "sistema"
     acao = "excluir"
 
 
 class ClienteDetailView(PermissaoModuloMixin, ListView):
     model = ContatoCliente
-    template_name = "cadastros/cliente/detail.html"
+    template_name = "sistema/cliente/detail.html"
     context_object_name = "contatos"
-    modulo = "cadastros"
+    modulo = "sistema"
     acao = "ver"
 
     def get_queryset(self):
@@ -559,12 +559,12 @@ class ClienteDetailView(PermissaoModuloMixin, ListView):
 class ContatoClienteCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = ContatoCliente
     form_class = ContatoClienteForm
-    template_name = "cadastros/cliente/contato_form.html"
-    modulo = "cadastros"
+    template_name = "sistema/cliente/contato_form.html"
+    modulo = "sistema"
     acao = "editar"
 
     def get_success_url(self):
-        return reverse_lazy("cadastros:cliente_detail", kwargs={"pk": self.kwargs["cliente_pk"]})
+        return reverse_lazy("sistema:cliente_detail", kwargs={"pk": self.kwargs["cliente_pk"]})
 
     def form_valid(self, form):
         form.instance.cliente = Cliente.objects.get(
@@ -580,12 +580,12 @@ class ContatoClienteCreateView(MensagemSucessoMixin, PermissaoModuloMixin, Creat
 
 class ContatoClienteDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = ContatoCliente
-    template_name = "cadastros/cliente/confirmar_exclusao_contato.html"
-    modulo = "cadastros"
+    template_name = "sistema/cliente/confirmar_exclusao_contato.html"
+    modulo = "sistema"
     acao = "editar"
 
     def get_success_url(self):
-        return reverse_lazy("cadastros:cliente_detail", kwargs={"pk": self.object.cliente_id})
+        return reverse_lazy("sistema:cliente_detail", kwargs={"pk": self.object.cliente_id})
 
     def get_queryset(self):
         return ContatoCliente.objects.filter(cliente__empresa=self.get_empresa())
@@ -597,10 +597,10 @@ class ContatoClienteDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, Delet
 
 class BancoListView(PermissaoModuloMixin, ListView):
     model = Banco
-    template_name = "cadastros/banco/list.html"
+    template_name = "sistema/banco/list.html"
     context_object_name = "objetos"
     paginate_by = 25
-    modulo = "cadastros"
+    modulo = "sistema"
     acao = "ver"
 
     def get_queryset(self):
@@ -609,10 +609,10 @@ class BancoListView(PermissaoModuloMixin, ListView):
 
 class ContaBancariaListView(PermissaoModuloMixin, ListView):
     model = ContaBancaria
-    template_name = "cadastros/conta_bancaria/list.html"
+    template_name = "sistema/conta_bancaria/list.html"
     context_object_name = "objetos"
     paginate_by = 25
-    modulo = "cadastros"
+    modulo = "sistema"
     acao = "ver"
 
     def get_queryset(self):
@@ -622,9 +622,9 @@ class ContaBancariaListView(PermissaoModuloMixin, ListView):
 class ContaBancariaCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = ContaBancaria
     form_class = ContaBancariaForm
-    template_name = "cadastros/conta_bancaria/form.html"
-    success_url = reverse_lazy("cadastros:conta_bancaria_list")
-    modulo = "cadastros"
+    template_name = "sistema/conta_bancaria/form.html"
+    success_url = reverse_lazy("sistema:conta_bancaria_list")
+    modulo = "sistema"
     acao = "criar"
     extra_context = {"titulo": "Nova Conta Bancária"}
 
@@ -637,9 +637,9 @@ class ContaBancariaCreateView(MensagemSucessoMixin, PermissaoModuloMixin, Create
 class ContaBancariaUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
     model = ContaBancaria
     form_class = ContaBancariaForm
-    template_name = "cadastros/conta_bancaria/form.html"
-    success_url = reverse_lazy("cadastros:conta_bancaria_list")
-    modulo = "cadastros"
+    template_name = "sistema/conta_bancaria/form.html"
+    success_url = reverse_lazy("sistema:conta_bancaria_list")
+    modulo = "sistema"
     acao = "editar"
     extra_context = {"titulo": "Editar Conta Bancária"}
 
@@ -651,9 +651,9 @@ class ContaBancariaUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, Update
 
 class ContaBancariaDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = ContaBancaria
-    template_name = "cadastros/conta_bancaria/confirmar_exclusao.html"
-    success_url = reverse_lazy("cadastros:conta_bancaria_list")
-    modulo = "cadastros"
+    template_name = "sistema/conta_bancaria/confirmar_exclusao.html"
+    success_url = reverse_lazy("sistema:conta_bancaria_list")
+    modulo = "sistema"
     acao = "excluir"
 
 
@@ -663,9 +663,9 @@ class ContaBancariaDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, Delete
 
 class PlanoContasListView(PermissaoModuloMixin, ListView):
     model = PlanoContas
-    template_name = "cadastros/plano_contas/list.html"
+    template_name = "sistema/plano_contas/list.html"
     context_object_name = "objetos"
-    modulo = "cadastros"
+    modulo = "sistema"
     acao = "ver"
 
     def get_queryset(self):
@@ -675,9 +675,9 @@ class PlanoContasListView(PermissaoModuloMixin, ListView):
 class PlanoContasCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = PlanoContas
     form_class = PlanoContasForm
-    template_name = "cadastros/plano_contas/form.html"
-    success_url = reverse_lazy("cadastros:plano_contas_list")
-    modulo = "cadastros"
+    template_name = "sistema/plano_contas/form.html"
+    success_url = reverse_lazy("sistema:plano_contas_list")
+    modulo = "sistema"
     acao = "criar"
     extra_context = {"titulo": "Nova Conta"}
 
@@ -690,9 +690,9 @@ class PlanoContasCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateVi
 class PlanoContasUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
     model = PlanoContas
     form_class = PlanoContasForm
-    template_name = "cadastros/plano_contas/form.html"
-    success_url = reverse_lazy("cadastros:plano_contas_list")
-    modulo = "cadastros"
+    template_name = "sistema/plano_contas/form.html"
+    success_url = reverse_lazy("sistema:plano_contas_list")
+    modulo = "sistema"
     acao = "editar"
     extra_context = {"titulo": "Editar Conta"}
 
@@ -704,9 +704,9 @@ class PlanoContasUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateVi
 
 class PlanoContasDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = PlanoContas
-    template_name = "cadastros/plano_contas/confirmar_exclusao.html"
-    success_url = reverse_lazy("cadastros:plano_contas_list")
-    modulo = "cadastros"
+    template_name = "sistema/plano_contas/confirmar_exclusao.html"
+    success_url = reverse_lazy("sistema:plano_contas_list")
+    modulo = "sistema"
     acao = "excluir"
 
 
@@ -716,9 +716,9 @@ class PlanoContasDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteVi
 
 class CentroCustoListView(PermissaoModuloMixin, ListView):
     model = CentroCusto
-    template_name = "cadastros/centro_custo/list.html"
+    template_name = "sistema/centro_custo/list.html"
     context_object_name = "objetos"
-    modulo = "cadastros"
+    modulo = "sistema"
     acao = "ver"
 
     def get_queryset(self):
@@ -728,9 +728,9 @@ class CentroCustoListView(PermissaoModuloMixin, ListView):
 class CentroCustoCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = CentroCusto
     form_class = CentroCustoForm
-    template_name = "cadastros/centro_custo/form.html"
-    success_url = reverse_lazy("cadastros:centro_custo_list")
-    modulo = "cadastros"
+    template_name = "sistema/centro_custo/form.html"
+    success_url = reverse_lazy("sistema:centro_custo_list")
+    modulo = "sistema"
     acao = "criar"
     extra_context = {"titulo": "Novo Centro de Custo"}
 
@@ -743,9 +743,9 @@ class CentroCustoCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateVi
 class CentroCustoUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
     model = CentroCusto
     form_class = CentroCustoForm
-    template_name = "cadastros/centro_custo/form.html"
-    success_url = reverse_lazy("cadastros:centro_custo_list")
-    modulo = "cadastros"
+    template_name = "sistema/centro_custo/form.html"
+    success_url = reverse_lazy("sistema:centro_custo_list")
+    modulo = "sistema"
     acao = "editar"
     extra_context = {"titulo": "Editar Centro de Custo"}
 
@@ -757,7 +757,7 @@ class CentroCustoUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateVi
 
 class CentroCustoDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = CentroCusto
-    template_name = "cadastros/centro_custo/confirmar_exclusao.html"
-    success_url = reverse_lazy("cadastros:centro_custo_list")
-    modulo = "cadastros"
+    template_name = "sistema/centro_custo/confirmar_exclusao.html"
+    success_url = reverse_lazy("sistema:centro_custo_list")
+    modulo = "sistema"
     acao = "excluir"
