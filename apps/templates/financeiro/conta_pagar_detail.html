@@ -1,0 +1,267 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}Conta a Pagar — {{ conta.descricao }}{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+
+  <!-- Cabeçalho -->
+  <div class="page-header">
+    <h1>{{ conta.descricao }}</h1>
+    <div style="display:flex;gap:8px">
+      <a href="{% url 'financeiro:conta_pagar_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Voltar
+      </a>
+      <a href="{% url 'financeiro:conta_pagar_update' conta.pk %}" class="btn btn-edit">
+        <i class="bi bi-pencil"></i> Editar
+      </a>
+      <a href="{% url 'financeiro:conta_pagar_delete' conta.pk %}" class="btn btn-delete">
+        <i class="bi bi-trash3"></i> Excluir
+      </a>
+    </div>
+  </div>
+
+  {% if messages %}{% for msg in messages %}
+    <div style="padding:10px 16px;border-radius:5px;margin-bottom:16px;font-size:13px;
+      background:{% if 'success' in msg.tags %}#d4edda{% else %}#f8d7da{% endif %};
+      color:{% if 'success' in msg.tags %}#155724{% else %}#721c24{% endif %};
+      border:1px solid {% if 'success' in msg.tags %}#c3e6cb{% else %}#f5c6cb{% endif %};">
+      {{ msg }}
+    </div>
+  {% endfor %}{% endif %}
+
+  <!-- Dados principais -->
+  <div class="detail-card">
+    <h2><i class="bi bi-file-text"></i> Identificação</h2>
+    <div class="detail-content">
+      <div class="detail-info" style="flex:1">
+        <div class="detail-row">
+          <span class="detail-label">Status</span>
+          <span class="detail-value">
+            <span style="background:#e8f0fe;color:#1a73e8;border-radius:4px;padding:3px 10px;font-size:12px">
+              {{ conta.status.nome|default:"—" }}
+            </span>
+          </span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Fornecedor</span>
+          <span class="detail-value">{{ conta.fornecedor.razao_social|default:"—" }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Tipo de Documento</span>
+          <span class="detail-value">{{ conta.tipo_documento.nome|default:"—" }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Nº do Documento</span>
+          <span class="detail-value">{{ conta.numero_documento|default:"—" }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Forma de Pagamento</span>
+          <span class="detail-value">{{ conta.forma_pagamento.nome|default:"—" }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Plano de Contas</span>
+          <span class="detail-value">{{ conta.plano_contas.nome|default:"—" }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Centro de Custo</span>
+          <span class="detail-value">{{ conta.centro_custo.nome|default:"—" }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Conta Bancária</span>
+          <span class="detail-value">{{ conta.conta_bancaria.nome|default:"—" }}</span>
+        </div>
+        {% if conta.observacoes %}
+        <div class="detail-row">
+          <span class="detail-label">Observações</span>
+          <span class="detail-value">{{ conta.observacoes }}</span>
+        </div>
+        {% endif %}
+        <div class="detail-row">
+          <span class="detail-label">Criado por</span>
+          <span class="detail-value">{{ conta.criado_por.nome|default:"—" }} em {{ conta.criado_em|date:"d/m/Y H:i" }}</span>
+        </div>
+      </div>
+
+      <!-- Resumo financeiro -->
+      <div class="metrics" style="flex-direction:column;min-width:220px">
+        <div class="metric-card">
+          <h3>Valor Original</h3>
+          <p>R$ {{ conta.valor_original|floatformat:2 }}</p>
+        </div>
+        <div class="metric-card">
+          <h3>Valor Pago</h3>
+          <p>R$ {{ conta.valor_pago|floatformat:2 }}</p>
+        </div>
+        <div class="metric-card">
+          <h3>Emissão</h3>
+          <p style="font-size:16px">{{ conta.data_emissao|date:"d/m/Y" }}</p>
+        </div>
+        <div class="metric-card">
+          <h3>Vencimento</h3>
+          <p style="font-size:16px;{% if conta.data_vencimento < today and not conta.data_pagamento %}color:#dc3545{% endif %}">
+            {{ conta.data_vencimento|date:"d/m/Y" }}
+          </p>
+        </div>
+        {% if conta.data_pagamento %}
+        <div class="metric-card">
+          <h3>Pago em</h3>
+          <p style="font-size:16px;color:#28a745">{{ conta.data_pagamento|date:"d/m/Y" }}</p>
+        </div>
+        {% endif %}
+        <div class="metric-card">
+          <h3>Parcela</h3>
+          <p style="font-size:16px">{{ conta.numero_parcela_atual }}/{{ conta.numero_parcelas }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aprovação -->
+  {% if conta.requer_aprovacao %}
+  <div class="detail-card">
+    <h2><i class="bi bi-shield-check"></i> Aprovação</h2>
+    {% if conta.aprovado_por %}
+    <div class="detail-row">
+      <span class="detail-label">Aprovado por</span>
+      <span class="detail-value">{{ conta.aprovado_por.nome }} em {{ conta.data_aprovacao|date:"d/m/Y H:i" }}</span>
+    </div>
+    {% else %}
+    <p style="color:#f5a623;font-size:13px">
+      <i class="bi bi-clock-history"></i> Aguardando aprovação.
+    </p>
+    <a href="{% url 'financeiro:aprovacao_conta_pagar' conta.pk %}" class="btn btn-primary btn-sm" style="margin-top:10px">
+      <i class="bi bi-check2-circle"></i> Registrar Aprovação / Rejeição
+    </a>
+    {% endif %}
+
+    {% if aprovacoes %}
+    <table class="table" style="margin-top:16px">
+      <thead>
+        <tr><th>Usuário</th><th>Decisão</th><th>Nível</th><th>Data</th><th>Obs.</th></tr>
+      </thead>
+      <tbody>
+        {% for ap in aprovacoes %}
+        <tr>
+          <td>{{ ap.usuario.nome }}</td>
+          <td>
+            {% if ap.aprovado %}
+              <span style="color:#28a745"><i class="bi bi-check-circle-fill"></i> Aprovado</span>
+            {% else %}
+              <span style="color:#dc3545"><i class="bi bi-x-circle-fill"></i> Rejeitado</span>
+            {% endif %}
+          </td>
+          <td>{{ ap.nivel }}</td>
+          <td>{{ ap.criado_em|date:"d/m/Y H:i" }}</td>
+          <td>{{ ap.observacao|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Parcelas vinculadas -->
+  {% if parcelas %}
+  <div class="detail-card">
+    <h2><i class="bi bi-calendar3-range"></i> Parcelas</h2>
+    <table class="table">
+      <thead>
+        <tr><th>Parcela</th><th>Vencimento</th><th>Valor</th><th>Status</th><th>Ações</th></tr>
+      </thead>
+      <tbody>
+        {% for p in parcelas %}
+        <tr>
+          <td>{{ p.numero_parcela_atual }}/{{ p.numero_parcelas }}</td>
+          <td>{{ p.data_vencimento|date:"d/m/Y" }}</td>
+          <td>R$ {{ p.valor_original|floatformat:2 }}</td>
+          <td>{{ p.status.nome|default:"—" }}</td>
+          <td>
+            <a href="{% url 'financeiro:conta_pagar_detail' p.pk %}" class="btn btn-secondary btn-sm">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- Encargos -->
+  <div class="detail-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h2 style="margin:0;border:none;padding:0"><i class="bi bi-percent"></i> Encargos</h2>
+      <a href="{% url 'financeiro:encargo_conta_pagar_create' conta.pk %}" class="btn btn-secondary btn-sm">
+        <i class="bi bi-plus-lg"></i> Adicionar
+      </a>
+    </div>
+    {% if encargos %}
+    <table class="table">
+      <thead>
+        <tr><th>Tipo</th><th>%</th><th>Valor</th><th>Data</th><th>Obs.</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for e in encargos %}
+        <tr>
+          <td>{{ e.tipo_encargo.nome }}</td>
+          <td>{% if e.percentual %}{{ e.percentual }}%{% else %}—{% endif %}</td>
+          <td>R$ {{ e.valor|floatformat:2 }}</td>
+          <td>{{ e.data_aplicacao|date:"d/m/Y" }}</td>
+          <td>{{ e.observacao|default:"—" }}</td>
+          <td>
+            <a href="{% url 'financeiro:encargo_conta_pagar_delete' e.pk %}" class="btn btn-delete btn-sm">
+              <i class="bi bi-trash3"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#999;font-size:13px">Nenhum encargo registrado.</p>
+    {% endif %}
+  </div>
+
+  <!-- Documentos -->
+  <div class="detail-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h2 style="margin:0;border:none;padding:0"><i class="bi bi-paperclip"></i> Documentos</h2>
+      <a href="{% url 'financeiro:documento_conta_pagar_create' conta.pk %}" class="btn btn-secondary btn-sm">
+        <i class="bi bi-plus-lg"></i> Anexar
+      </a>
+    </div>
+    {% if documentos %}
+    <table class="table">
+      <thead>
+        <tr><th>Nome</th><th>Tipo</th><th>Enviado por</th><th>Data</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for d in documentos %}
+        <tr>
+          <td>
+            <a href="{{ d.arquivo.url }}" target="_blank" style="color:#1a73e8">
+              <i class="bi bi-download"></i> {{ d.nome }}
+            </a>
+          </td>
+          <td>{{ d.tipo_arquivo|upper|default:"—" }}</td>
+          <td>{{ d.enviado_por.nome|default:"—" }}</td>
+          <td>{{ d.criado_em|date:"d/m/Y" }}</td>
+          <td>
+            <a href="{% url 'financeiro:documento_conta_pagar_delete' d.pk %}" class="btn btn-delete btn-sm">
+              <i class="bi bi-trash3"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#999;font-size:13px">Nenhum documento anexado.</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

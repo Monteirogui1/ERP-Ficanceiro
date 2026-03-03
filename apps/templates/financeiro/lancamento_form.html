@@ -1,0 +1,140 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }} — Financeiro{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+
+  <div class="page-header">
+    <h1>{{ titulo }}</h1>
+    <a href="{% url 'financeiro:lancamento_list' %}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+  </div>
+
+  <div class="detail-card">
+    <form method="post" id="form-lancamento">
+      {% csrf_token %}
+
+      <!-- ── Identificação ───────────────────────────── -->
+      <h2><i class="bi bi-journal-text"></i> Identificação</h2>
+      <div class="form-grid">
+
+        <div class="form-group full-width">
+          <label for="{{ form.descricao.id_for_label }}">Descrição <span style="color:#dc3545">*</span></label>
+          {{ form.descricao }}
+          {% if form.descricao.errors %}<span class="error-message">{{ form.descricao.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.tipo_lancamento.id_for_label }}">Tipo de Lançamento <span style="color:#dc3545">*</span></label>
+          {{ form.tipo_lancamento }}
+          {% if form.tipo_lancamento.errors %}<span class="error-message">{{ form.tipo_lancamento.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.numero_documento.id_for_label }}">Nº do Documento</label>
+          {{ form.numero_documento }}
+          {% if form.numero_documento.errors %}<span class="error-message">{{ form.numero_documento.errors|join:", " }}</span>{% endif %}
+        </div>
+
+      </div>
+
+      <!-- ── Classificação Contábil ─────────────────── -->
+      <h2 style="margin-top:24px"><i class="bi bi-diagram-3"></i> Classificação Contábil</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.conta_bancaria.id_for_label }}">Conta Bancária <span style="color:#dc3545">*</span></label>
+          {{ form.conta_bancaria }}
+          {% if form.conta_bancaria.errors %}<span class="error-message">{{ form.conta_bancaria.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.plano_contas.id_for_label }}">Plano de Contas</label>
+          {{ form.plano_contas }}
+          {% if form.plano_contas.errors %}<span class="error-message">{{ form.plano_contas.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.centro_custo.id_for_label }}">Centro de Custo</label>
+          {{ form.centro_custo }}
+          {% if form.centro_custo.errors %}<span class="error-message">{{ form.centro_custo.errors|join:", " }}</span>{% endif %}
+        </div>
+
+      </div>
+
+      <!-- ── Vínculo com Contas ──────────────────────── -->
+      <h2 style="margin-top:24px"><i class="bi bi-link-45deg"></i> Vínculo com Contas</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.conta_pagar.id_for_label }}">Conta a Pagar (opcional)</label>
+          {{ form.conta_pagar }}
+          {% if form.conta_pagar.errors %}<span class="error-message">{{ form.conta_pagar.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.conta_receber.id_for_label }}">Conta a Receber (opcional)</label>
+          {{ form.conta_receber }}
+          {% if form.conta_receber.errors %}<span class="error-message">{{ form.conta_receber.errors|join:", " }}</span>{% endif %}
+        </div>
+
+      </div>
+
+      <!-- ── Valor e Datas ───────────────────────────── -->
+      <h2 style="margin-top:24px"><i class="bi bi-currency-dollar"></i> Valor e Datas</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.valor.id_for_label }}">Valor <span style="color:#dc3545">*</span></label>
+          {{ form.valor }}
+          {% if form.valor.errors %}<span class="error-message">{{ form.valor.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.data_lancamento.id_for_label }}">Data do Lançamento <span style="color:#dc3545">*</span></label>
+          {{ form.data_lancamento }}
+          {% if form.data_lancamento.errors %}<span class="error-message">{{ form.data_lancamento.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.data_competencia.id_for_label }}">Data de Competência</label>
+          {{ form.data_competencia }}
+          {% if form.data_competencia.errors %}<span class="error-message">{{ form.data_competencia.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
+          {{ form.conciliado }}
+          <label for="{{ form.conciliado.id_for_label }}" style="margin:0;font-weight:500">Já Conciliado</label>
+        </div>
+
+      </div>
+
+      <!-- ── Observações ────────────────────────────── -->
+      <h2 style="margin-top:24px"><i class="bi bi-chat-left-text"></i> Observações</h2>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          {{ form.observacoes }}
+          {% if form.observacoes.errors %}<span class="error-message">{{ form.observacoes.errors|join:", " }}</span>{% endif %}
+        </div>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url 'financeiro:lancamento_list' %}" class="btn btn-secondary" style="margin-right:10px">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg"></i>
+          {% if object %}Salvar Alterações{% else %}Registrar{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}

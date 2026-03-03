@@ -1,0 +1,156 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }} — Orçamento{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+
+  <div class="page-header">
+    <h1>{{ titulo }}</h1>
+    <a href="{% url 'orcamento:orcamento_list' %}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+  </div>
+
+  <div class="detail-card">
+    <form method="post" id="form-orcamento">
+      {% csrf_token %}
+
+      <!-- ── Identificação ───────────────────────────── -->
+      <h2><i class="bi bi-clipboard2-data"></i> Identificação do Orçamento</h2>
+      <div class="form-grid">
+
+        <div class="form-group full-width">
+          <label for="{{ form.nome.id_for_label }}">Nome do Orçamento <span style="color:#dc3545">*</span></label>
+          {{ form.nome }}
+          {% if form.nome.errors %}<span class="error-message">{{ form.nome.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.ano.id_for_label }}">Ano de Referência <span style="color:#dc3545">*</span></label>
+          {{ form.ano }}
+          {% if form.ano.errors %}<span class="error-message">{{ form.ano.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.status.id_for_label }}">Status <span style="color:#dc3545">*</span></label>
+          {{ form.status }}
+          {% if form.status.errors %}<span class="error-message">{{ form.status.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group full-width">
+          <label for="{{ form.descricao.id_for_label }}">Descrição</label>
+          {{ form.descricao }}
+          {% if form.descricao.errors %}<span class="error-message">{{ form.descricao.errors|join:", " }}</span>{% endif %}
+        </div>
+
+      </div>
+
+      <!-- ── Itens do Orçamento (formset) ───────────── -->
+      {% if formset %}
+      <h2 style="margin-top:24px"><i class="bi bi-table"></i> Itens Orçamentários</h2>
+
+      {{ formset.management_form }}
+
+      <div style="overflow-x:auto">
+        <table class="table" id="tabela-itens">
+          <thead>
+            <tr>
+              <th>Plano de Contas</th>
+              <th>Centro de Custo</th>
+              <th>Jan</th><th>Fev</th><th>Mar</th><th>Abr</th>
+              <th>Mai</th><th>Jun</th><th>Jul</th><th>Ago</th>
+              <th>Set</th><th>Out</th><th>Nov</th><th>Dez</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="itens-container">
+            {% for item_form in formset %}
+            <tr class="item-orcamento">
+              <td>{{ item_form.plano_contas }}</td>
+              <td>{{ item_form.centro_custo }}</td>
+              <td>{{ item_form.jan }}</td><td>{{ item_form.fev }}</td>
+              <td>{{ item_form.mar }}</td><td>{{ item_form.abr }}</td>
+              <td>{{ item_form.mai }}</td><td>{{ item_form.jun }}</td>
+              <td>{{ item_form.jul }}</td><td>{{ item_form.ago }}</td>
+              <td>{{ item_form.set }}</td><td>{{ item_form.out }}</td>
+              <td>{{ item_form.nov }}</td><td>{{ item_form.dez }}</td>
+              <td>
+                {% if item_form.DELETE %}
+                  <label style="color:#dc3545;cursor:pointer" title="Remover">
+                    {{ item_form.DELETE }}
+                    <i class="bi bi-trash"></i>
+                  </label>
+                {% endif %}
+                {{ item_form.id }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:10px">
+        <button type="button" class="btn btn-secondary" id="btn-add-item">
+          <i class="bi bi-plus-circle"></i> Adicionar Item
+        </button>
+      </div>
+      {% endif %}
+
+      {% if form.non_field_errors %}
+        <div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url 'orcamento:orcamento_list' %}" class="btn btn-secondary" style="margin-right:10px">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg"></i>
+          {% if object %}Salvar Alterações{% else %}Criar Orçamento{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Adicionar nova linha de item ao formset
+  (function () {
+    const btn       = document.getElementById('btn-add-item');
+    const container = document.getElementById('itens-container');
+    const totalForms = document.querySelector('[name="form-TOTAL_FORMS"]');
+    if (!btn || !container || !totalForms) return;
+
+    btn.addEventListener('click', function () {
+      const count   = parseInt(totalForms.value);
+      const template = container.querySelector('tr.item-orcamento');
+      if (!template) return;
+      const clone   = template.cloneNode(true);
+
+      // Atualiza índices dos inputs clonados
+      clone.querySelectorAll('input, select, textarea').forEach(el => {
+        ['name', 'id'].forEach(attr => {
+          if (el.getAttribute(attr)) {
+            el.setAttribute(attr, el.getAttribute(attr).replace(/-\d+-/, `-${count}-`));
+          }
+        });
+        if (el.type !== 'hidden') el.value = '';
+      });
+
+      container.appendChild(clone);
+      totalForms.value = count + 1;
+    });
+
+    // Marcar item para exclusão visualmente
+    container.addEventListener('change', function (e) {
+      if (e.target.type === 'checkbox' && e.target.name.includes('-DELETE')) {
+        e.target.closest('tr').style.opacity = e.target.checked ? '0.35' : '1';
+      }
+    });
+  })();
+</script>
+{% endblock %}

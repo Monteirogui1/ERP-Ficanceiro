@@ -1,0 +1,140 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }} — Sistema{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+
+  <div class="page-header">
+    <h1>{{ titulo }}</h1>
+    <a href="{% url 'sistema:conta_bancaria_list' %}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+  </div>
+
+  <div class="detail-card">
+    <form method="post" id="form-conta-bancaria">
+      {% csrf_token %}
+
+      <!-- ── Identificação ───────────────────────────── -->
+      <h2><i class="bi bi-bank"></i> Dados Bancários</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.nome.id_for_label }}">Nome / Apelido <span style="color:#dc3545">*</span></label>
+          {{ form.nome }}
+          {% if form.nome.errors %}<span class="error-message">{{ form.nome.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.banco.id_for_label }}">Banco <span style="color:#dc3545">*</span></label>
+          {{ form.banco }}
+          {% if form.banco.errors %}<span class="error-message">{{ form.banco.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.tipo_conta.id_for_label }}">Tipo de Conta <span style="color:#dc3545">*</span></label>
+          {{ form.tipo_conta }}
+          {% if form.tipo_conta.errors %}<span class="error-message">{{ form.tipo_conta.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.filial.id_for_label }}">Filial</label>
+          {{ form.filial }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.agencia.id_for_label }}">Agência <span style="color:#dc3545">*</span></label>
+          {{ form.agencia }}
+          {% if form.agencia.errors %}<span class="error-message">{{ form.agencia.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.agencia_dv.id_for_label }}">Dígito da Agência</label>
+          {{ form.agencia_dv }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.conta.id_for_label }}">Nº da Conta <span style="color:#dc3545">*</span></label>
+          {{ form.conta }}
+          {% if form.conta.errors %}<span class="error-message">{{ form.conta.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.conta_dv.id_for_label }}">Dígito da Conta</label>
+          {{ form.conta_dv }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.convenio.id_for_label }}">Convênio</label>
+          {{ form.convenio }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.carteira.id_for_label }}">Carteira</label>
+          {{ form.carteira }}
+        </div>
+
+      </div>
+
+      <!-- ── Saldo ───────────────────────────────────── -->
+      <h2 style="margin-top:24px"><i class="bi bi-currency-dollar"></i> Saldo Inicial</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.saldo_inicial.id_for_label }}">Saldo Inicial</label>
+          {{ form.saldo_inicial }}
+          {% if form.saldo_inicial.errors %}<span class="error-message">{{ form.saldo_inicial.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.data_saldo_inicial.id_for_label }}">Data do Saldo Inicial</label>
+          {{ form.data_saldo_inicial }}
+        </div>
+
+      </div>
+
+      <!-- ── PIX ────────────────────────────────────── -->
+      <h2 style="margin-top:24px"><i class="bi bi-qr-code"></i> Chave PIX</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.tipo_chave_pix.id_for_label }}">Tipo de Chave PIX</label>
+          {{ form.tipo_chave_pix }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.chave_pix.id_for_label }}">Chave PIX</label>
+          {{ form.chave_pix }}
+          {% if form.chave_pix.errors %}<span class="error-message">{{ form.chave_pix.errors|join:", " }}</span>{% endif %}
+        </div>
+
+      </div>
+
+      <!-- ── Status ─────────────────────────────────── -->
+      <h2 style="margin-top:24px"><i class="bi bi-toggle-on"></i> Status</h2>
+      <div class="form-grid">
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
+          {{ form.ativo }}
+          <label for="{{ form.ativo.id_for_label }}" style="margin:0;font-weight:500">Conta Ativa</label>
+        </div>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url 'sistema:conta_bancaria_list' %}" class="btn btn-secondary" style="margin-right:10px">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg"></i>
+          {% if object %}Salvar Alterações{% else %}Cadastrar{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "layouts/base.html" %}
+{% block title %}Clientes{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>Clientes</h1>
+    <a href="{% url 'sistema:cliente_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Cliente</a>
+  </div>
+  {% include "_includes/messages.html" %}
+  <form method="get" class="filter-form">
+    <div class="form-group"><label>Buscar</label><input type="text" name="q" value="{{ request.GET.q }}" placeholder="Razão social..." class="form-control"></div>
+    <div class="form-group"><label>Inadimplente</label><select name="inadimplente" class="form-control"><option value="">Todos</option><option value="true" {% if request.GET.inadimplente == "true" %}selected{% endif %}>Sim</option><option value="false" {% if request.GET.inadimplente == "false" %}selected{% endif %}>Não</option></select></div>
+    <div class="form-group"><label>Situação</label><select name="ativo" class="form-control"><option value="">Todos</option><option value="true" {% if request.GET.ativo == "true" %}selected{% endif %}>Ativo</option><option value="false" {% if request.GET.ativo == "false" %}selected{% endif %}>Inativo</option></select></div>
+    <div class="filter-buttons"><button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrar</button><a href="{% url 'sistema:cliente_list' %}" class="btn btn-secondary"><i class="bi bi-x-lg"></i> Limpar</a></div>
+  </form>
+  <div class="detail-card" style="padding:0;overflow:hidden">
+    <table class="table">
+      <thead><tr><th>Razão Social</th><th>CPF/CNPJ</th><th>Cidade/UF</th><th>Limite de Crédito</th><th class="text-center">Inadimplente</th><th class="text-center">Ativo</th><th class="text-center">Ações</th></tr></thead>
+      <tbody>
+        {% for c in objetos %}
+        <tr>
+          <td><a href="{% url 'sistema:cliente_detail' c.pk %}" style="color:#1a73e8;font-weight:500">{{ c.razao_social }}</a></td>
+          <td style="font-family:monospace;font-size:13px">{{ c.cpf_cnpj|default:"—" }}</td>
+          <td>{{ c.cidade|default:"—" }}{% if c.estado %} / {{ c.estado }}{% endif %}</td>
+          <td>R$ {{ c.limite_credito|floatformat:2 }}</td>
+          <td class="text-center">{% if c.inadimplente %}<span style="color:#dc3545;font-weight:600"><i class="bi bi-exclamation-triangle-fill"></i></span>{% else %}—{% endif %}</td>
+          <td class="text-center">{% if c.ativo %}<span style="color:#28a745"><i class="bi bi-check-circle-fill"></i></span>{% else %}<span style="color:#dc3545"><i class="bi bi-x-circle-fill"></i></span>{% endif %}</td>
+          <td class="text-center" style="white-space:nowrap">
+            <a href="{% url 'sistema:cliente_detail' c.pk %}" class="btn btn-secondary btn-sm"><i class="bi bi-eye"></i></a>
+            <a href="{% url 'sistema:cliente_update' c.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'sistema:cliente_delete' c.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
+          </td>
+        </tr>
+        {% empty %}<tr><td colspan="7" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum cliente encontrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "_includes/paginacao.html" %}
+</div>
+{% endblock %}

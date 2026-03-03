@@ -17,6 +17,16 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# 
+# MODELO DE USUÁRIO CUSTOMIZADO
+# Deve ser declarado ANTES de qualquer migrate.
+# 
+AUTH_USER_MODEL = "authentication.Usuario"
+
+LOGIN_URL = "authentication:login"
+LOGIN_REDIRECT_URL = "authentication:dashboard"
+LOGOUT_REDIRECT_URL = "authentication:login"
+
 
 # Application definition
 
@@ -27,6 +37,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "django.contrib.humanize",
+
+
+    'apps',
+    'apps.authentication',
+    'apps.bancario',
+    'apps.financeiro',
+    'apps.fiscal',
+    'apps.home',
+    'apps.orcamento',
+    'apps.sistema'
 ]
 
 SITE_ID = 1
@@ -96,6 +117,16 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+#
+# VALIDAÇÕES DE SENHA
+#
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
+
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
@@ -111,7 +142,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "apps" / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

@@ -5,10 +5,11 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", include("authentication.urls", namespace="authentication")),
-    path("cadastros/", include("cadastros.urls", namespace="cadastros")),
-    path("financeiro/", include("financeiro.urls", namespace="financeiro")),
-    path("bancario/", include("bancario.urls", namespace="bancario")),
-    path("orcamento/", include("orcamento.urls", namespace="orcamento")),
-    path("fiscal/", include("fiscal.urls", namespace="fiscal")),
+    path("", include("apps.authentication.urls", namespace="authentication")),
+    path("home/", include("apps.home.urls", namespace="home")),
+    path("sistema/", include("apps.sistema.urls", namespace="sistema")),
+    path("financeiro/", include("apps.financeiro.urls", namespace="financeiro")),
+    path("bancario/", include("apps.bancario.urls", namespace="bancario")),
+    path("orcamento/", include("apps.orcamento.urls", namespace="orcamento")),
+    path("fiscal/", include("apps.fiscal.urls", namespace="fiscal")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

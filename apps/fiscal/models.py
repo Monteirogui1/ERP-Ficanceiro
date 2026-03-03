@@ -1,6 +1,6 @@
 from django.db import models
 from apps.authentication.models import ModeloBase, Empresa, Usuario
-from cadastros.models import PlanoContas
+from apps.sistema.models import PlanoContas
 
 
 # ══════════════════════════════════════════════

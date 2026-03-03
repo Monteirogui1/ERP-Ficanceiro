@@ -1,0 +1,60 @@
+{% extends "layouts/base.html" %}
+{% block title %}{{ orcamento.nome }} — {{ orcamento.ano }}{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>{{ orcamento.nome }} — {{ orcamento.ano }}</h1>
+    <div style="display:flex;gap:8px">
+      <a href="{% url 'orcamento:orcamento_list' %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+      <a href="{% url 'orcamento:orcamento_update' orcamento.pk %}" class="btn btn-edit"><i class="bi bi-pencil"></i> Editar</a>
+      <a href="{% url 'orcamento:item_create' orcamento.pk %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Adicionar Item</a>
+      <a href="{% url 'orcamento:orcamento_delete' orcamento.pk %}" class="btn btn-delete"><i class="bi bi-trash3"></i></a>
+    </div>
+  </div>
+  {% include "_includes/messages.html" %}
+  <div class="detail-card">
+    <h2><i class="bi bi-bar-chart-line"></i> Resumo</h2>
+    <div class="detail-content">
+      <div class="detail-info" style="flex:1">
+        <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value">{% if orcamento.status %}<span style="background:#e8f0fe;color:#1a73e8;border-radius:4px;padding:3px 10px;font-size:12px">{{ orcamento.status.nome }}</span>{% else %}—{% endif %}</span></div>
+        <div class="detail-row"><span class="detail-label">Aprovado por</span><span class="detail-value">{{ orcamento.aprovado_por.nome|default:"—" }}</span></div>
+        <div class="detail-row"><span class="detail-label">Data Aprovação</span><span class="detail-value">{{ orcamento.data_aprovacao|date:"d/m/Y"|default:"—" }}</span></div>
+        <div class="detail-row"><span class="detail-label">Criado por</span><span class="detail-value">{{ orcamento.criado_por.nome|default:"—" }} em {{ orcamento.criado_em|date:"d/m/Y" }}</span></div>
+        {% if orcamento.descricao %}<div class="detail-row"><span class="detail-label">Descrição</span><span class="detail-value">{{ orcamento.descricao }}</span></div>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="detail-card">
+    <h2><i class="bi bi-table"></i> Itens Orçamentários</h2>
+    {% if alertas %}<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:5px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#856404"><i class="bi bi-exclamation-triangle-fill"></i> <strong>{{ alertas|length }} alerta(s) de estouro</strong> neste orçamento.</div>{% endif %}
+    {% if itens %}
+    <div style="overflow-x:auto">
+    <table class="table" style="font-size:13px;min-width:900px">
+      <thead><tr><th>Conta</th><th>C.Custo</th><th>Mês</th><th>Previsto</th><th>Realizado</th><th>Revisado</th><th style="text-align:right">Execução %</th><th class="text-center">Ações</th></tr></thead>
+      <tbody>
+        {% for item in itens %}
+        <tr {% if item.percentual_execucao > 100 %}style="background:#fff3cd"{% endif %}>
+          <td style="font-size:12px">{{ item.plano_contas.codigo }} — {{ item.plano_contas.nome|truncatechars:30 }}</td>
+          <td style="font-size:12px">{{ item.centro_custo.nome|default:"—"|truncatechars:20 }}</td>
+          <td class="text-center"><span style="background:#e8f0fe;color:#1a73e8;border-radius:4px;padding:2px 7px;font-size:11px">{{ item.mes|stringformat:"02d" }}</span></td>
+          <td>R$ {{ item.valor_previsto|floatformat:2 }}</td>
+          <td>R$ {{ item.valor_realizado|floatformat:2 }}</td>
+          <td>{% if item.valor_revisado %}R$ {{ item.valor_revisado|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td style="text-align:right">
+            <span style="font-weight:600;{% if item.percentual_execucao > 100 %}color:#dc3545{% elif item.percentual_execucao > 80 %}color:#f5a623{% else %}color:#28a745{% endif %}">
+              {{ item.percentual_execucao|floatformat:1 }}%
+            </span>
+          </td>
+          <td class="text-center" style="white-space:nowrap">
+            <a href="{% url 'orcamento:item_update' item.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'orcamento:item_delete' item.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}<p style="color:#999;font-size:13px">Nenhum item adicionado ainda. <a href="{% url 'orcamento:item_create' orcamento.pk %}" style="color:#1a73e8">Adicionar primeiro item</a>.</p>{% endif %}
+  </div>
+</div>
+{% endblock %}

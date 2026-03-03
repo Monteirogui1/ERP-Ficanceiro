@@ -1,0 +1,153 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }} — Administração{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+
+  <div class="page-header">
+    <h1>{{ titulo }}</h1>
+    <a href="{% url 'authentication:perfil_list' %}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+  </div>
+
+  <div class="detail-card">
+    <form method="post" id="form-perfil">
+      {% csrf_token %}
+
+      <!-- ── Identificação ───────────────────────────── -->
+      <h2><i class="bi bi-person-lock"></i> Identificação do Perfil</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.nome.id_for_label }}">Nome do Perfil <span style="color:#dc3545">*</span></label>
+          {{ form.nome }}
+          {% if form.nome.errors %}<span class="error-message">{{ form.nome.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group full-width">
+          <label for="{{ form.descricao.id_for_label }}">Descrição</label>
+          {{ form.descricao }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.nivel_aprovacao.id_for_label }}">Nível de Aprovação</label>
+          {{ form.nivel_aprovacao }}
+          <small style="color:#666;font-size:12px">Nível na cadeia de aprovação multinível de pagamentos</small>
+        </div>
+
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
+          {{ form.pode_aprovar_pagamentos }}
+          <label for="{{ form.pode_aprovar_pagamentos.id_for_label }}" style="margin:0;font-weight:500">
+            Pode Aprovar Pagamentos
+          </label>
+        </div>
+
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
+          {{ form.ativo }}
+          <label for="{{ form.ativo.id_for_label }}" style="margin:0;font-weight:500">Perfil Ativo</label>
+        </div>
+
+      </div>
+
+      <!-- ── Permissões por Módulo ───────────────────── -->
+      <h2 style="margin-top:24px"><i class="bi bi-shield-lock"></i> Permissões por Módulo</h2>
+      <p style="color:#666;font-size:13px;margin-bottom:16px">
+        Marque as ações que este perfil pode realizar em cada módulo do sistema.
+      </p>
+
+      <div style="overflow-x:auto">
+        <table class="table" id="tabela-permissoes">
+          <thead>
+            <tr>
+              <th>Módulo</th>
+              <th class="text-center">Ver</th>
+              <th class="text-center">Criar</th>
+              <th class="text-center">Editar</th>
+              <th class="text-center">Excluir</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for modulo in modulos_disponiveis %}
+            <tr>
+              <td><strong>{{ modulo.label }}</strong></td>
+              <td class="text-center">
+                <input type="checkbox" name="perm_{{ modulo.key }}_ver"
+                  {% if permissoes|get_perm:modulo.key|get_perm:'ver' %}checked{% endif %}>
+              </td>
+              <td class="text-center">
+                <input type="checkbox" name="perm_{{ modulo.key }}_criar"
+                  {% if permissoes|get_perm:modulo.key|get_perm:'criar' %}checked{% endif %}>
+              </td>
+              <td class="text-center">
+                <input type="checkbox" name="perm_{{ modulo.key }}_editar"
+                  {% if permissoes|get_perm:modulo.key|get_perm:'editar' %}checked{% endif %}>
+              </td>
+              <td class="text-center">
+                <input type="checkbox" name="perm_{{ modulo.key }}_excluir"
+                  {% if permissoes|get_perm:modulo.key|get_perm:'excluir' %}checked{% endif %}>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:10px;display:flex;gap:10px">
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-marcar-todos">
+          <i class="bi bi-check2-all"></i> Marcar Todos
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-desmarcar-todos">
+          <i class="bi bi-x-circle"></i> Desmarcar Todos
+        </button>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url 'authentication:perfil_list' %}" class="btn btn-secondary" style="margin-right:10px">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg"></i>
+          {% if object %}Salvar Alterações{% else %}Criar Perfil{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Marcar / desmarcar todos os checkboxes de permissão
+  document.getElementById('btn-marcar-todos')?.addEventListener('click', function () {
+    document.querySelectorAll('#tabela-permissoes input[type="checkbox"]').forEach(cb => cb.checked = true);
+  });
+  document.getElementById('btn-desmarcar-todos')?.addEventListener('click', function () {
+    document.querySelectorAll('#tabela-permissoes input[type="checkbox"]').forEach(cb => cb.checked = false);
+  });
+
+  // Se "Ver" for desmarcado, desmarca os demais da linha
+  document.querySelectorAll('#tabela-permissoes tbody tr').forEach(row => {
+    const cbVer = row.querySelector('input[name$="_ver"]');
+    if (!cbVer) return;
+    cbVer.addEventListener('change', function () {
+      if (!this.checked) {
+        row.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+      }
+    });
+    // Se qualquer ação for marcada, marca "ver" automaticamente
+    row.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      if (cb === cbVer) return;
+      cb.addEventListener('change', function () {
+        if (this.checked) cbVer.checked = true;
+      });
+    });
+  });
+</script>
+{% endblock %}

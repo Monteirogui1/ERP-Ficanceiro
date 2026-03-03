@@ -1,0 +1,34 @@
+{% extends "layouts/base.html" %}
+{% block title %}Usuários{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>Usuários</h1>
+    <a href="{% url 'authentication:usuario_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Usuário</a>
+  </div>
+  {% include "_includes/messages.html" %}
+  <div class="detail-card" style="padding:0;overflow:hidden">
+    <table class="table">
+      <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil de Acesso</th><th>Empresa Principal</th><th class="text-center">2FA</th><th class="text-center">Ativo</th><th class="text-center">Ações</th></tr></thead>
+      <tbody>
+        {% for u in objetos %}
+        <tr>
+          <td><strong>{{ u.nome }}</strong></td>
+          <td>{{ u.email }}</td>
+          <td>{{ u.perfil_acesso.nome|default:"—" }}</td>
+          <td>{{ u.empresa_principal.razao_social|default:"—" }}</td>
+          <td class="text-center">{% if u.dois_fatores_ativo %}<i class="bi bi-shield-lock-fill" style="color:#28a745" title="2FA ativo"></i>{% else %}—{% endif %}</td>
+          <td class="text-center">{% if u.is_active %}<i class="bi bi-check-circle-fill" style="color:#28a745"></i>{% else %}<i class="bi bi-x-circle-fill" style="color:#dc3545"></i>{% endif %}</td>
+          <td class="text-center" style="white-space:nowrap">
+            <a href="{% url 'authentication:usuario_update' u.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'authentication:usuario_delete' u.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
+          </td>
+        </tr>
+        {% empty %}<tr><td colspan="7" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum usuário encontrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "_includes/paginacao.html" %}
+</div>
+{% endblock %}

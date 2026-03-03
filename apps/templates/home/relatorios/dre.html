@@ -1,0 +1,171 @@
+{% extends 'layouts/base.html' %}
+{% block title %}DRE — Demonstrativo de Resultado{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <div>
+      <a href="{% url 'home:dashboard' %}" style="font-size:13px;color:#666;text-decoration:none"><i class="bi bi-arrow-left"></i> Dashboard</a>
+      <h1><i class="bi bi-receipt-cutoff"></i> DRE — Demonstrativo de Resultado</h1>
+    </div>
+    <button onclick="window.print()" class="btn btn-sm" style="background:#f0f0f0;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">
+      <i class="bi bi-printer"></i> Imprimir
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <form method="get" class="filtros-card">
+    <div>
+      <label>Ano</label>
+      <select name="ano">
+        {% for a in anos %}<option value="{{ a }}" {% if a == ano %}selected{% endif %}>{{ a }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>Mês Início</label>
+      <select name="mes_ini">
+        {% for m in meses %}<option value="{{ m }}" {% if m == mes_ini %}selected{% endif %}>{{ m|stringformat:"02d" }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>Mês Fim</label>
+      <select name="mes_fim">
+        {% for m in meses %}<option value="{{ m }}" {% if m == mes_fim %}selected{% endif %}>{{ m|stringformat:"02d" }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit">Filtrar</button>
+  </form>
+
+  <!-- KPIs DRE -->
+  <div class="relatorio-resumo">
+    <div class="resumo-item verde">
+      <label>Total de Receitas</label>
+      <strong>R$ {{ total_receitas|floatformat:2 }}</strong>
+    </div>
+    <div class="resumo-item vermelho">
+      <label>Total de Despesas</label>
+      <strong>R$ {{ total_despesas|floatformat:2 }}</strong>
+    </div>
+    <div class="resumo-item {% if resultado >= 0 %}verde{% else %}vermelho{% endif %}">
+      <label>Resultado Líquido</label>
+      <strong>R$ {{ resultado|floatformat:2 }}</strong>
+    </div>
+    {% if total_receitas > 0 %}
+    <div class="resumo-item amarelo">
+      <label>Margem Líquida</label>
+      <strong>{% widthratio resultado total_receitas 100 %}%</strong>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Gráfico resultado mensal -->
+  <div class="relatorio-card">
+    <h3><i class="bi bi-bar-chart"></i> Resultado Mensal — {{ ano }}</h3>
+    <canvas id="chartDRE" height="80"></canvas>
+  </div>
+
+  <!-- Tabela DRE -->
+  <div class="charts-2col">
+    <!-- Receitas -->
+    <div class="relatorio-card">
+      <h3 style="color:#34a853"><i class="bi bi-arrow-down-circle"></i> Receitas</h3>
+      <table class="table">
+        <thead><tr><th>Código</th><th>Conta</th><th style="text-align:right">Valor (R$)</th></tr></thead>
+        <tbody>
+          {% for item in receitas %}
+          <tr>
+            <td style="font-family:monospace;font-size:12px">{{ item.codigo }}</td>
+            <td>{{ item.nome }}</td>
+            <td style="text-align:right;color:#34a853;font-weight:600">{{ item.total|floatformat:2 }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" style="text-align:center;color:#aaa">Sem lançamentos no período</td></tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr style="background:#f0fff4;font-weight:700">
+            <td colspan="2">Total Receitas</td>
+            <td style="text-align:right;color:#34a853">{{ total_receitas|floatformat:2 }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Despesas -->
+    <div class="relatorio-card">
+      <h3 style="color:#ea4335"><i class="bi bi-arrow-up-circle"></i> Despesas</h3>
+      <table class="table">
+        <thead><tr><th>Código</th><th>Conta</th><th style="text-align:right">Valor (R$)</th></tr></thead>
+        <tbody>
+          {% for item in despesas %}
+          <tr>
+            <td style="font-family:monospace;font-size:12px">{{ item.codigo }}</td>
+            <td>{{ item.nome }}</td>
+            <td style="text-align:right;color:#ea4335;font-weight:600">{{ item.total|floatformat:2 }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" style="text-align:center;color:#aaa">Sem lançamentos no período</td></tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr style="background:#fff5f5;font-weight:700">
+            <td colspan="2">Total Despesas</td>
+            <td style="text-align:right;color:#ea4335">{{ total_despesas|floatformat:2 }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Resultado final -->
+  <div class="relatorio-card" style="border-left: 4px solid {% if resultado >= 0 %}#34a853{% else %}#ea4335{% endif %}">
+    <table class="table">
+      <tr style="font-size:18px;font-weight:700">
+        <td>RESULTADO LÍQUIDO DO PERÍODO</td>
+        <td style="text-align:right;color:{% if resultado >= 0 %}#34a853{% else %}#ea4335{% endif %}">
+          R$ {{ resultado|floatformat:2 }}
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<style>
+.filtros-card { background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap; }
+.filtros-card label { font-size:12px;color:#666;display:block;margin-bottom:4px; }
+.filtros-card select,.filtros-card input { border:1px solid #ddd;border-radius:6px;padding:6px 10px;font-size:13px; }
+.filtros-card button { background:#1a73e8;color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:13px;cursor:pointer; }
+.relatorio-resumo { display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:20px; }
+.resumo-item { background:#fff;border-radius:10px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06);text-align:center;border-top:3px solid #1a73e8; }
+.resumo-item.verde { border-top-color:#34a853; }
+.resumo-item.vermelho { border-top-color:#ea4335; }
+.resumo-item.amarelo { border-top-color:#fbbc04; }
+.resumo-item label { font-size:12px;color:#888;display:block; }
+.resumo-item strong { font-size:18px;color:#333;display:block;margin-top:4px; }
+.relatorio-card { background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px; }
+.relatorio-card h3 { font-size:15px;color:#333;margin-bottom:14px;border-bottom:1px solid #f0f0f0;padding-bottom:8px; }
+.charts-2col { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px; }
+@media print { .sidebar,header,.filtros-card button { display:none!important; } .main-content { margin-left:0!important; } }
+</style>
+
+<script>
+const ctxDRE = document.getElementById('chartDRE').getContext('2d');
+new Chart(ctxDRE, {
+  type: 'bar',
+  data: {
+    labels: {{ dre_labels|safe }},
+    datasets: [{
+      label: 'Resultado (R$)',
+      data: {{ dre_resultado|safe }},
+      backgroundColor: {{ dre_resultado|safe }}.map(v => v >= 0 ? 'rgba(52,168,83,0.75)' : 'rgba(234,67,53,0.75)'),
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true } }
+  }
+});
+</script>
+{% endblock %}

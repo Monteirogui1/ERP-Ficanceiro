@@ -1,0 +1,106 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Centro de Custo — Previsto x Realizado{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <div>
+      <a href="{% url 'home:dashboard' %}" style="font-size:13px;color:#666;text-decoration:none"><i class="bi bi-arrow-left"></i> Dashboard</a>
+      <h1><i class="bi bi-diagram-3"></i> Centro de Custo — Previsto x Realizado</h1>
+    </div>
+    <button onclick="window.print()" class="btn btn-sm" style="background:#f0f0f0;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">
+      <i class="bi bi-printer"></i> Imprimir
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <form method="get" class="filtros-card">
+    <div>
+      <label>Ano</label>
+      <select name="ano">
+        {% for a in anos %}<option value="{{ a }}" {% if a == ano %}selected{% endif %}>{{ a }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit">Filtrar</button>
+    {% if not orcamento %}<span style="color:#fa7b17;font-size:13px;align-self:center"><i class="bi bi-exclamation-circle"></i> Sem orçamento cadastrado para {{ ano }}</span>{% endif %}
+  </form>
+
+  <!-- Gráfico -->
+  <div class="relatorio-card">
+    <h3><i class="bi bi-bar-chart-horizontal"></i> Comparativo por Centro de Custo</h3>
+    <canvas id="chartCC" height="100"></canvas>
+  </div>
+
+  <!-- Tabela -->
+  <div class="relatorio-card">
+    <h3><i class="bi bi-table"></i> Análise Detalhada</h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Centro de Custo</th>
+          <th style="text-align:right">Previsto (R$)</th>
+          <th style="text-align:right">Realizado (R$)</th>
+          <th style="text-align:right">Variação (R$)</th>
+          <th style="text-align:center">% Execução</th>
+          <th style="text-align:center">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in dados_centros %}
+        <tr>
+          <td><strong>{{ d.centro.nome }}</strong><br><span style="font-size:11px;color:#888">{{ d.centro.tipo.nome|default:"" }}</span></td>
+          <td style="text-align:right">R$ {{ d.previsto|floatformat:2 }}</td>
+          <td style="text-align:right">R$ {{ d.realizado|floatformat:2 }}</td>
+          <td style="text-align:right;font-weight:600;color:{% if d.variacao <= 0 %}#34a853{% else %}#ea4335{% endif %}">
+            {% if d.variacao > 0 %}+{% endif %}R$ {{ d.variacao|floatformat:2 }}
+          </td>
+          <td style="text-align:center">
+            <div style="background:#f0f0f0;border-radius:20px;height:8px;width:100%;margin-bottom:4px">
+              <div style="background:{% if d.perc > 100 %}#ea4335{% elif d.perc > 80 %}#fbbc04{% else %}#34a853{% endif %};border-radius:20px;height:8px;width:{% if d.perc > 100 %}100{% else %}{{ d.perc }}{% endif %}%"></div>
+            </div>
+            <span style="font-size:12px">{{ d.perc }}%</span>
+          </td>
+          <td style="text-align:center">
+            {% if d.previsto == 0 %}
+              <span style="font-size:11px;background:#e8f0fe;color:#1a73e8;padding:2px 8px;border-radius:20px">Sem orçamento</span>
+            {% elif d.perc > 100 %}
+              <span style="font-size:11px;background:#fde;color:#c00;padding:2px 8px;border-radius:20px">⚠ Estourado</span>
+            {% elif d.perc > 80 %}
+              <span style="font-size:11px;background:#fff3cd;color:#996;padding:2px 8px;border-radius:20px">Atenção</span>
+            {% else %}
+              <span style="font-size:11px;background:#f0fff4;color:#2a7;padding:2px 8px;border-radius:20px">✓ OK</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center;color:#aaa;padding:30px">Nenhum centro de custo cadastrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+.filtros-card{background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.filtros-card label{font-size:12px;color:#666;display:block;margin-bottom:4px}
+.filtros-card select{border:1px solid #ddd;border-radius:6px;padding:6px 10px;font-size:13px}
+.filtros-card button{background:#1a73e8;color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:13px;cursor:pointer}
+.relatorio-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px}
+.relatorio-card h3{font-size:15px;color:#333;margin-bottom:14px;border-bottom:1px solid #f0f0f0;padding-bottom:8px}
+@media print{.sidebar,header,.filtros-card button{display:none!important}.main-content{margin-left:0!important}}
+</style>
+
+<script>
+new Chart(document.getElementById('chartCC').getContext('2d'), {
+  type: 'bar',
+  data: {
+    labels: {{ cc_labels|safe }},
+    datasets: [
+      { label: 'Previsto', data: {{ cc_previsto|safe }}, backgroundColor: 'rgba(26,115,232,0.6)', borderRadius: 4 },
+      { label: 'Realizado', data: {{ cc_realizado|safe }}, backgroundColor: 'rgba(234,67,53,0.6)', borderRadius: 4 }
+    ]
+  },
+  options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "layouts/base.html" %}
+{% block title %}Lançamentos de Impostos{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>Lançamentos de Impostos</h1>
+    <a href="{% url 'fiscal:lancamento_imposto_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Lançamento</a>
+  </div>
+  {% include "_includes/messages.html" %}
+  <form method="get" class="filter-form">
+    <div class="form-group"><label>Tipo de Imposto</label><select name="tipo_imposto" class="form-control"><option value="">Todos</option>{% for t in tipos_imposto %}<option value="{{ t.pk }}" {% if request.GET.tipo_imposto == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.sigla }}</option>{% endfor %}</select></div>
+    <div class="form-group"><label>Vencimento de</label><input type="date" name="vencimento_de" value="{{ request.GET.vencimento_de }}" class="form-control"></div>
+    <div class="form-group"><label>Vencimento até</label><input type="date" name="vencimento_ate" value="{{ request.GET.vencimento_ate }}" class="form-control"></div>
+    <div class="filter-buttons"><button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrar</button><a href="{% url 'fiscal:lancamento_imposto_list' %}" class="btn btn-secondary"><i class="bi bi-x-lg"></i> Limpar</a></div>
+  </form>
+  <div class="detail-card" style="padding:0;overflow:hidden">
+    <table class="table">
+      <thead><tr><th>Imposto</th><th>Competência</th><th>Vencimento</th><th>Base de Cálculo</th><th>Alíquota</th><th>Valor Calculado</th><th>Valor Pago</th><th>Nº Guia</th><th class="text-center">Ações</th></tr></thead>
+      <tbody>
+        {% for li in objetos %}
+        <tr>
+          <td><strong>{{ li.tipo_imposto.sigla }}</strong></td>
+          <td>{{ li.competencia|date:"m/Y" }}</td>
+          <td><span {% if li.data_vencimento < today and not li.data_pagamento %}style="color:#dc3545;font-weight:600"{% endif %}>{{ li.data_vencimento|date:"d/m/Y" }}</span></td>
+          <td>R$ {{ li.base_calculo|floatformat:2 }}</td>
+          <td>{{ li.aliquota_aplicada }}%</td>
+          <td style="font-weight:600">R$ {{ li.valor_calculado|floatformat:2 }}</td>
+          <td>{% if li.valor_pago %}R$ {{ li.valor_pago|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td style="font-family:monospace;font-size:12px">{{ li.numero_guia|default:"—" }}</td>
+          <td class="text-center" style="white-space:nowrap">
+            <a href="{% url 'fiscal:lancamento_imposto_update' li.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'fiscal:lancamento_imposto_delete' li.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
+          </td>
+        </tr>
+        {% empty %}<tr><td colspan="9" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum lançamento encontrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "_includes/paginacao.html" %}
+</div>
+{% endblock %}

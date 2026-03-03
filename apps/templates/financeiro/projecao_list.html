@@ -1,0 +1,32 @@
+{% extends "layouts/base.html" %}
+{% block title %}Projeção de Fluxo de Caixa{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>Projeção de Fluxo de Caixa</h1>
+    <a href="{% url 'financeiro:projecao_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nova Projeção</a>
+  </div>
+  {% include "_includes/messages.html" %}
+  <div class="detail-card" style="padding:0;overflow:hidden">
+    <table class="table">
+      <thead><tr><th>Cenário</th><th>Tipo</th><th>Data Prevista</th><th>Valor Projetado</th><th>Origem</th><th class="text-center">Ações</th></tr></thead>
+      <tbody>
+        {% for p in objetos %}
+        <tr>
+          <td><span style="background:#e8f0fe;color:#1a73e8;border-radius:4px;padding:3px 8px;font-size:11px">{{ p.cenario.nome }}</span></td>
+          <td>{{ p.tipo_lancamento.nome }}</td>
+          <td>{{ p.data_prevista|date:"d/m/Y" }}</td>
+          <td style="font-weight:600">R$ {{ p.valor_projetado|floatformat:2 }}</td>
+          <td>{{ p.descricao|default:"—" }}</td>
+          <td class="text-center">
+            <a href="{% url 'financeiro:projecao_delete' p.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
+          </td>
+        </tr>
+        {% empty %}<tr><td colspan="6" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhuma projeção encontrada.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "_includes/paginacao.html" %}
+</div>
+{% endblock %}

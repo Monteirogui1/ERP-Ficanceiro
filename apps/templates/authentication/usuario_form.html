@@ -1,0 +1,117 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }} — Administração{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+
+  <div class="page-header">
+    <h1>{{ titulo }}</h1>
+    <a href="{% url 'authentication:usuario_list' %}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+  </div>
+
+  <div class="detail-card" style="max-width:720px">
+    <form method="post" enctype="multipart/form-data" id="form-usuario">
+      {% csrf_token %}
+
+      <!-- Dados Pessoais -->
+      <h2><i class="bi bi-person"></i> Dados Pessoais</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.nome.id_for_label }}">Nome <span style="color:#dc3545">*</span></label>
+          {{ form.nome }}
+          {% if form.nome.errors %}<span class="error-message">{{ form.nome.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.email.id_for_label }}">E-mail <span style="color:#dc3545">*</span></label>
+          {{ form.email }}
+          {% if form.email.errors %}<span class="error-message">{{ form.email.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.telefone.id_for_label }}">Telefone</label>
+          {{ form.telefone }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.avatar.id_for_label }}">Avatar</label>
+          {{ form.avatar }}
+          {% if object.avatar %}
+            <small style="color:#666;font-size:12px;display:block;margin-top:4px">
+              Avatar atual: <a href="{{ object.avatar.url }}" target="_blank">
+                <i class="bi bi-eye"></i> Visualizar
+              </a>
+            </small>
+          {% endif %}
+        </div>
+
+      </div>
+
+      <!-- Acesso -->
+      <h2 style="margin-top:24px"><i class="bi bi-shield-lock"></i> Acesso e Permissões</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.perfil_acesso.id_for_label }}">Perfil de Acesso</label>
+          {{ form.perfil_acesso }}
+          {% if form.perfil_acesso.errors %}<span class="error-message">{{ form.perfil_acesso.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.empresa_principal.id_for_label }}">Empresa Principal</label>
+          {{ form.empresa_principal }}
+        </div>
+
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
+          {{ form.dois_fatores_ativo }}
+          <label for="{{ form.dois_fatores_ativo.id_for_label }}" style="margin:0;font-weight:500">
+            Autenticação em Dois Fatores
+          </label>
+        </div>
+
+      </div>
+
+      <!-- Senha: somente exibida na criação -->
+      {% if not object %}
+      <h2 style="margin-top:24px"><i class="bi bi-key"></i> Senha</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.password1.id_for_label }}">Senha <span style="color:#dc3545">*</span></label>
+          {{ form.password1 }}
+          {% if form.password1.errors %}<span class="error-message">{{ form.password1.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.password2.id_for_label }}">Confirmar Senha <span style="color:#dc3545">*</span></label>
+          {{ form.password2 }}
+          {% if form.password2.errors %}<span class="error-message">{{ form.password2.errors|join:", " }}</span>{% endif %}
+        </div>
+
+      </div>
+      {% endif %}
+
+      {% if form.non_field_errors %}
+        <div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url 'authentication:usuario_list' %}" class="btn btn-secondary" style="margin-right:10px">
+          Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg"></i>
+          {% if object %}Salvar Alterações{% else %}Criar Usuário{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}

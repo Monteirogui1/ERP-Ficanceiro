@@ -1,0 +1,81 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }} — Sistema{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+
+  <div class="page-header">
+    <h1>{{ titulo }}</h1>
+    <a href="{% url 'sistema:centro_custo_list' %}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+  </div>
+
+  <div class="detail-card">
+    <form method="post" id="form-centro-custo">
+      {% csrf_token %}
+
+      <h2><i class="bi bi-building"></i> Dados do Centro de Custo</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.codigo.id_for_label }}">Código <span style="color:#dc3545">*</span></label>
+          {{ form.codigo }}
+          {% if form.codigo.errors %}<span class="error-message">{{ form.codigo.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.nome.id_for_label }}">Nome <span style="color:#dc3545">*</span></label>
+          {{ form.nome }}
+          {% if form.nome.errors %}<span class="error-message">{{ form.nome.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.tipo.id_for_label }}">Tipo</label>
+          {{ form.tipo }}
+          {% if form.tipo.errors %}<span class="error-message">{{ form.tipo.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.centro_pai.id_for_label }}">Centro Pai</label>
+          {{ form.centro_pai }}
+          {% if form.centro_pai.errors %}<span class="error-message">{{ form.centro_pai.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.filial.id_for_label }}">Filial</label>
+          {{ form.filial }}
+          {% if form.filial.errors %}<span class="error-message">{{ form.filial.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group full-width">
+          <label for="{{ form.descricao.id_for_label }}">Descrição</label>
+          {{ form.descricao }}
+        </div>
+
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
+          {{ form.ativo }}
+          <label for="{{ form.ativo.id_for_label }}" style="margin:0;font-weight:500">Ativo</label>
+        </div>
+
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url 'sistema:centro_custo_list' %}" class="btn btn-secondary" style="margin-right:10px">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg"></i>
+          {% if object %}Salvar Alterações{% else %}Cadastrar{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,382 @@
+{% extends 'layouts/base.html' %}
+{% load humanize %}
+{% block title %}Dashboard Financeiro{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+
+  <!-- Cabeçalho -->
+  <div class="page-header">
+    <h1><i class="bi bi-speedometer2"></i> Dashboard Financeiro</h1>
+    <small class="text-muted">{{ hoje|date:"d/m/Y" }}</small>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-icon"><i class="bi bi-bank2"></i></div>
+      <div class="kpi-content">
+        <span class="kpi-label">Saldo Total em Caixa</span>
+        <span class="kpi-value">R$ {{ saldo_total|floatformat:2 }}</span>
+      </div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-icon"><i class="bi bi-arrow-down-circle"></i></div>
+      <div class="kpi-content">
+        <span class="kpi-label">Entradas do Mês</span>
+        <span class="kpi-value">R$ {{ entradas_mes|floatformat:2 }}</span>
+      </div>
+    </div>
+    <div class="kpi-card kpi-red">
+      <div class="kpi-icon"><i class="bi bi-arrow-up-circle"></i></div>
+      <div class="kpi-content">
+        <span class="kpi-label">Saídas do Mês</span>
+        <span class="kpi-value">R$ {{ saidas_mes|floatformat:2 }}</span>
+      </div>
+    </div>
+    <div class="kpi-card {% if resultado_mes >= 0 %}kpi-green{% else %}kpi-red{% endif %}">
+      <div class="kpi-icon"><i class="bi bi-graph-up-arrow"></i></div>
+      <div class="kpi-content">
+        <span class="kpi-label">Resultado do Mês</span>
+        <span class="kpi-value">R$ {{ resultado_mes|floatformat:2 }}</span>
+      </div>
+    </div>
+    <div class="kpi-card kpi-orange">
+      <div class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></div>
+      <div class="kpi-content">
+        <span class="kpi-label">CP Vencidas</span>
+        <span class="kpi-value">R$ {{ cp_vencidas|floatformat:2 }}</span>
+      </div>
+    </div>
+    <div class="kpi-card kpi-yellow">
+      <div class="kpi-icon"><i class="bi bi-clock-history"></i></div>
+      <div class="kpi-content">
+        <span class="kpi-label">CP a Vencer (7 dias)</span>
+        <span class="kpi-value">R$ {{ cp_vencer|floatformat:2 }}</span>
+      </div>
+    </div>
+    <div class="kpi-card kpi-red">
+      <div class="kpi-icon"><i class="bi bi-person-x"></i></div>
+      <div class="kpi-content">
+        <span class="kpi-label">CR Vencidas</span>
+        <span class="kpi-value">R$ {{ cr_vencidas|floatformat:2 }}</span>
+      </div>
+    </div>
+    <div class="kpi-card kpi-teal">
+      <div class="kpi-icon"><i class="bi bi-cash-coin"></i></div>
+      <div class="kpi-content">
+        <span class="kpi-label">CR a Receber (7 dias)</span>
+        <span class="kpi-value">R$ {{ cr_vencer|floatformat:2 }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="charts-row">
+    <div class="chart-card chart-wide">
+      <h3><i class="bi bi-bar-chart-line"></i> Fluxo de Caixa — Últimos 6 Meses</h3>
+      <canvas id="chartFluxo" height="100"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3><i class="bi bi-pie-chart"></i> Contas a Pagar por Status</h3>
+      <canvas id="chartCpStatus" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Contas Bancárias -->
+  {% if contas %}
+  <div class="section-card">
+    <h3><i class="bi bi-credit-card"></i> Contas Bancárias</h3>
+    <div class="contas-grid">
+      {% for conta in contas %}
+      <div class="conta-item">
+        <span class="conta-nome">{{ conta.nome }}</span>
+        <span class="conta-banco">{{ conta.banco.nome }} — Ag {{ conta.agencia }}</span>
+        <span class="conta-saldo {% if conta.saldo_atual >= 0 %}positivo{% else %}negativo{% endif %}">
+          R$ {{ conta.saldo_atual|floatformat:2 }}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Vencimentos -->
+  <div class="vencimentos-row">
+    <!-- Próximos CP -->
+    <div class="venc-card">
+      <div class="venc-header">
+        <h3><i class="bi bi-calendar-x"></i> Próximos Vencimentos — A Pagar</h3>
+        <a href="{% url 'home:relatorio_contas_pagar' %}" class="btn-link">Ver relatório →</a>
+      </div>
+      {% if prox_cp %}
+      <table class="table">
+        <thead><tr><th>Descrição</th><th>Fornecedor</th><th>Vencimento</th><th>Valor</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for cp in prox_cp %}
+          <tr class="{% if cp.data_vencimento <= hoje %}row-danger{% endif %}">
+            <td>{{ cp.descricao|truncatechars:30 }}</td>
+            <td>{{ cp.fornecedor.razao_social|default:"-"|truncatechars:25 }}</td>
+            <td>{{ cp.data_vencimento|date:"d/m/Y" }}</td>
+            <td>R$ {{ cp.valor_original|floatformat:2 }}</td>
+            <td><span class="badge-status">{{ cp.status.nome }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<p class="empty-msg">Nenhum vencimento próximo.</p>{% endif %}
+    </div>
+
+    <!-- Próximos CR -->
+    <div class="venc-card">
+      <div class="venc-header">
+        <h3><i class="bi bi-calendar-check"></i> Próximos Vencimentos — A Receber</h3>
+        <a href="{% url 'home:relatorio_contas_receber' %}" class="btn-link">Ver relatório →</a>
+      </div>
+      {% if prox_cr %}
+      <table class="table">
+        <thead><tr><th>Descrição</th><th>Cliente</th><th>Vencimento</th><th>Valor</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for cr in prox_cr %}
+          <tr class="{% if cr.data_vencimento <= hoje %}row-danger{% endif %}">
+            <td>{{ cr.descricao|truncatechars:30 }}</td>
+            <td>{{ cr.cliente.razao_social|default:"-"|truncatechars:25 }}</td>
+            <td>{{ cr.data_vencimento|date:"d/m/Y" }}</td>
+            <td>R$ {{ cr.valor_original|floatformat:2 }}</td>
+            <td><span class="badge-status">{{ cr.status.nome }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<p class="empty-msg">Nenhum vencimento próximo.</p>{% endif %}
+    </div>
+  </div>
+
+  <!-- Atalhos para Relatórios -->
+  <div class="section-card">
+    <h3><i class="bi bi-file-earmark-bar-graph"></i> Relatórios Gerenciais</h3>
+    <div class="relatorios-grid">
+      <a href="{% url 'home:relatorio_dre' %}" class="rel-card">
+        <i class="bi bi-receipt-cutoff"></i>
+        <span>DRE</span>
+        <small>Demonstrativo de Resultado</small>
+      </a>
+      <a href="{% url 'home:relatorio_fluxo_caixa' %}" class="rel-card">
+        <i class="bi bi-water"></i>
+        <span>Fluxo de Caixa</span>
+        <small>Entradas e saídas detalhadas</small>
+      </a>
+      <a href="{% url 'home:relatorio_inadimplencia' %}" class="rel-card">
+        <i class="bi bi-person-dash"></i>
+        <span>Inadimplência</span>
+        <small>Recebimentos em atraso</small>
+      </a>
+      <a href="{% url 'home:relatorio_centro_custo' %}" class="rel-card">
+        <i class="bi bi-diagram-3"></i>
+        <span>Centro de Custo</span>
+        <small>Previsto x Realizado</small>
+      </a>
+      <a href="{% url 'home:relatorio_contas_pagar' %}" class="rel-card">
+        <i class="bi bi-arrow-up-square"></i>
+        <span>Contas a Pagar</span>
+        <small>Análise de pagamentos</small>
+      </a>
+      <a href="{% url 'home:relatorio_contas_receber' %}" class="rel-card">
+        <i class="bi bi-arrow-down-square"></i>
+        <span>Contas a Receber</span>
+        <small>Análise de recebimentos</small>
+      </a>
+      <a href="{% url 'home:relatorio_impostos' %}" class="rel-card">
+        <i class="bi bi-building-check"></i>
+        <span>Impostos</span>
+        <small>Obrigações fiscais</small>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<style>
+/* ── KPIs ───────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  border-left: 4px solid #ccc;
+}
+.kpi-blue   { border-left-color: #1a73e8; }
+.kpi-green  { border-left-color: #34a853; }
+.kpi-red    { border-left-color: #ea4335; }
+.kpi-orange { border-left-color: #fa7b17; }
+.kpi-yellow { border-left-color: #fbbc04; }
+.kpi-teal   { border-left-color: #00bcd4; }
+.kpi-icon { font-size: 28px; opacity: .7; }
+.kpi-blue .kpi-icon   { color: #1a73e8; }
+.kpi-green .kpi-icon  { color: #34a853; }
+.kpi-red .kpi-icon    { color: #ea4335; }
+.kpi-orange .kpi-icon { color: #fa7b17; }
+.kpi-yellow .kpi-icon { color: #fbbc04; }
+.kpi-teal .kpi-icon   { color: #00bcd4; }
+.kpi-content { display: flex; flex-direction: column; }
+.kpi-label  { font-size: 12px; color: #666; margin-bottom: 4px; }
+.kpi-value  { font-size: 20px; font-weight: 700; color: #333; }
+
+/* ── Gráficos ───────────────────────────── */
+.charts-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.chart-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.chart-card h3 { font-size: 15px; color: #333; margin-bottom: 16px; }
+
+/* ── Contas bancárias ───────────────────── */
+.section-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  margin-bottom: 24px;
+}
+.section-card h3 { font-size: 15px; color: #333; margin-bottom: 16px; }
+.contas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.conta-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.conta-nome  { font-weight: 600; font-size: 14px; }
+.conta-banco { font-size: 12px; color: #888; }
+.conta-saldo { font-size: 18px; font-weight: 700; margin-top: 4px; }
+.conta-saldo.positivo { color: #34a853; }
+.conta-saldo.negativo { color: #ea4335; }
+
+/* ── Vencimentos ────────────────────────── */
+.vencimentos-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.venc-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.venc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.venc-header h3 { font-size: 14px; color: #333; margin: 0; }
+.btn-link { font-size: 12px; color: #1a73e8; text-decoration: none; }
+.row-danger { background: #fff5f5; }
+.badge-status {
+  font-size: 11px;
+  background: #e8f0fe;
+  color: #1a73e8;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.empty-msg { color: #aaa; font-size: 13px; text-align: center; padding: 20px; }
+
+/* ── Relatórios ─────────────────────────── */
+.relatorios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+.rel-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px 10px;
+  text-decoration: none;
+  color: #333;
+  border: 1px solid #e0e0e0;
+  transition: all .2s;
+  text-align: center;
+}
+.rel-card:hover { background: #e8f0fe; border-color: #1a73e8; color: #1a73e8; transform: translateY(-2px); }
+.rel-card i { font-size: 28px; color: #1a73e8; }
+.rel-card span { font-size: 13px; font-weight: 600; }
+.rel-card small { font-size: 11px; color: #888; }
+</style>
+
+<script>
+// Gráfico de Fluxo de Caixa
+const ctxFluxo = document.getElementById('chartFluxo').getContext('2d');
+new Chart(ctxFluxo, {
+  type: 'bar',
+  data: {
+    labels: {{ fluxo_labels|safe }},
+    datasets: [
+      {
+        label: 'Entradas',
+        data: {{ fluxo_entradas|safe }},
+        backgroundColor: 'rgba(52, 168, 83, 0.7)',
+        borderRadius: 6,
+      },
+      {
+        label: 'Saídas',
+        data: {{ fluxo_saidas|safe }},
+        backgroundColor: 'rgba(234, 67, 53, 0.7)',
+        borderRadius: 6,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'top' } },
+    scales: { y: { beginAtZero: true } }
+  }
+});
+
+// Gráfico Pizza CP por Status
+const ctxCpStatus = document.getElementById('chartCpStatus').getContext('2d');
+new Chart(ctxCpStatus, {
+  type: 'doughnut',
+  data: {
+    labels: {{ cp_status_labels|safe }},
+    datasets: [{
+      data: {{ cp_status_values|safe }},
+      backgroundColor: ['#1a73e8','#34a853','#ea4335','#fbbc04','#fa7b17','#00bcd4'],
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
+  }
+});
+</script>
+{% endblock %}

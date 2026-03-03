@@ -1,0 +1,42 @@
+{% extends "layouts/base.html" %}
+{% block title %}Obrigações Fiscais{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>Obrigações Fiscais</h1>
+    <a href="{% url 'fiscal:obrigacao_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nova Obrigação</a>
+  </div>
+  {% include "_includes/messages.html" %}
+  <form method="get" class="filter-form">
+    <div class="form-group"><label>Status</label><select name="status" class="form-control"><option value="">Todos</option>{% for s in status_list %}<option value="{{ s.pk }}" {% if request.GET.status == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>{% endfor %}</select></div>
+    <div class="form-group"><label>Vencimento de</label><input type="date" name="vencimento_de" value="{{ request.GET.vencimento_de }}" class="form-control"></div>
+    <div class="form-group"><label>Vencimento até</label><input type="date" name="vencimento_ate" value="{{ request.GET.vencimento_ate }}" class="form-control"></div>
+    <div class="filter-buttons"><button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrar</button><a href="{% url 'fiscal:obrigacao_list' %}" class="btn btn-secondary"><i class="bi bi-x-lg"></i> Limpar</a></div>
+  </form>
+  <div class="detail-card" style="padding:0;overflow:hidden">
+    <table class="table">
+      <thead><tr><th>Tipo</th><th>Competência</th><th>Vencimento</th><th>Entrega</th><th>Protocolo</th><th>Responsável</th><th>Status</th><th class="text-center">Ações</th></tr></thead>
+      <tbody>
+        {% for ob in objetos %}
+        <tr>
+          <td><a href="{% url 'fiscal:obrigacao_detail' ob.pk %}" style="color:#1a73e8;font-weight:500">{{ ob.tipo.sigla|default:ob.tipo.nome }}</a></td>
+          <td>{{ ob.competencia|date:"m/Y" }}</td>
+          <td><span {% if ob.data_vencimento < today and not ob.data_entrega %}style="color:#dc3545;font-weight:600"{% endif %}>{{ ob.data_vencimento|date:"d/m/Y" }}</span></td>
+          <td>{% if ob.data_entrega %}<span style="color:#28a745">{{ ob.data_entrega|date:"d/m/Y" }}</span>{% else %}—{% endif %}</td>
+          <td style="font-family:monospace;font-size:12px">{{ ob.numero_protocolo|default:"—" }}</td>
+          <td>{{ ob.responsavel.nome|default:"—" }}</td>
+          <td>{% if ob.status %}<span style="background:#e8f0fe;color:#1a73e8;border-radius:4px;padding:3px 8px;font-size:11px">{{ ob.status.nome }}</span>{% endif %}</td>
+          <td class="text-center" style="white-space:nowrap">
+            <a href="{% url 'fiscal:obrigacao_detail' ob.pk %}" class="btn btn-secondary btn-sm"><i class="bi bi-eye"></i></a>
+            <a href="{% url 'fiscal:obrigacao_update' ob.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'fiscal:obrigacao_delete' ob.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
+          </td>
+        </tr>
+        {% empty %}<tr><td colspan="8" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhuma obrigação encontrada.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "_includes/paginacao.html" %}
+</div>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }} — Fiscal{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+
+  <div class="page-header">
+    <h1>{{ titulo }}</h1>
+    <a href="{% url 'fiscal:obrigacao_list' %}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+  </div>
+
+  <div class="detail-card">
+    <form method="post" enctype="multipart/form-data" id="form-obrigacao-fiscal">
+      {% csrf_token %}
+
+      <!-- ── Identificação ───────────────────────────── -->
+      <h2><i class="bi bi-clipboard2-check"></i> Identificação da Obrigação</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.tipo.id_for_label }}">
+            Tipo de Obrigação <span style="color:#dc3545">*</span>
+          </label>
+          {{ form.tipo }}
+          {% if form.tipo.errors %}
+            <span class="error-message">{{ form.tipo.errors|join:", " }}</span>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.status.id_for_label }}">Status <span style="color:#dc3545">*</span></label>
+          {{ form.status }}
+          {% if form.status.errors %}
+            <span class="error-message">{{ form.status.errors|join:", " }}</span>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.responsavel.id_for_label }}">Responsável</label>
+          {{ form.responsavel }}
+          {% if form.responsavel.errors %}
+            <span class="error-message">{{ form.responsavel.errors|join:", " }}</span>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.numero_protocolo.id_for_label }}">Nº do Protocolo</label>
+          {{ form.numero_protocolo }}
+          {% if form.numero_protocolo.errors %}
+            <span class="error-message">{{ form.numero_protocolo.errors|join:", " }}</span>
+          {% endif %}
+        </div>
+
+      </div>
+
+      <!-- ── Datas ───────────────────────────────────── -->
+      <h2 style="margin-top:24px"><i class="bi bi-calendar3"></i> Datas</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.competencia.id_for_label }}">
+            Competência <span style="color:#dc3545">*</span>
+          </label>
+          {{ form.competencia }}
+          {% if form.competencia.errors %}
+            <span class="error-message">{{ form.competencia.errors|join:", " }}</span>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.data_vencimento.id_for_label }}">
+            Vencimento <span style="color:#dc3545">*</span>
+          </label>
+          {{ form.data_vencimento }}
+          {% if form.data_vencimento.errors %}
+            <span class="error-message">{{ form.data_vencimento.errors|join:", " }}</span>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.data_entrega.id_for_label }}">Data de Entrega / Transmissão</label>
+          {{ form.data_entrega }}
+          {% if form.data_entrega.errors %}
+            <span class="error-message">{{ form.data_entrega.errors|join:", " }}</span>
+          {% endif %}
+        </div>
+
+      </div>
+
+      <!-- ── Arquivo ─────────────────────────────────── -->
+      <h2 style="margin-top:24px"><i class="bi bi-paperclip"></i> Arquivo</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.arquivo.id_for_label }}">Anexar Comprovante / Arquivo</label>
+          {{ form.arquivo }}
+          {% if form.arquivo.errors %}
+            <span class="error-message">{{ form.arquivo.errors|join:", " }}</span>
+          {% endif %}
+          {% if object.arquivo %}
+            <small style="color:#666;font-size:12px">
+              Arquivo atual:
+              <a href="{{ object.arquivo.url }}" target="_blank">
+                <i class="bi bi-download"></i> Download
+              </a>
+            </small>
+          {% endif %}
+        </div>
+
+      </div>
+
+      <!-- ── Observações ────────────────────────────── -->
+      <h2 style="margin-top:24px"><i class="bi bi-chat-left-text"></i> Observações</h2>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          {{ form.observacoes }}
+        </div>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url 'fiscal:obrigacao_list' %}" class="btn btn-secondary" style="margin-right:10px">
+          Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg"></i>
+          {% if object %}Salvar Alterações{% else %}Registrar Obrigação{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}

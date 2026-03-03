@@ -344,7 +344,7 @@ class TipoCenarioFluxoDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, Del
 
 class ContaPagarListView(PermissaoModuloMixin, ListView):
     model = ContaPagar
-    template_name = "financeiro/conta_pagar/list.html"
+    template_name = "financeiro/conta_pagar_list.html"
     context_object_name = "objetos"
     paginate_by = 25
     modulo = "contas_pagar"
@@ -374,7 +374,7 @@ class ContaPagarListView(PermissaoModuloMixin, ListView):
 
 class ContaPagarDetailView(PermissaoModuloMixin, DetailView):
     model = ContaPagar
-    template_name = "financeiro/conta_pagar/detail.html"
+    template_name = "financeiro/conta_pagar_detail.html"
     context_object_name = "conta"
     modulo = "contas_pagar"
     acao = "ver"
@@ -391,7 +391,7 @@ class ContaPagarDetailView(PermissaoModuloMixin, DetailView):
 class ContaPagarCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = ContaPagar
     form_class = ContaPagarForm
-    template_name = "financeiro/conta_pagar/form.html"
+    template_name = "financeiro/conta_pagar_form.html"
     success_url = reverse_lazy("financeiro:conta_pagar_list")
     modulo = "contas_pagar"
     acao = "criar"
@@ -406,7 +406,7 @@ class ContaPagarCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateVie
 class ContaPagarUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
     model = ContaPagar
     form_class = ContaPagarForm
-    template_name = "financeiro/conta_pagar/form.html"
+    template_name = "financeiro/conta_pagar_form.html"
     success_url = reverse_lazy("financeiro:conta_pagar_list")
     modulo = "contas_pagar"
     acao = "editar"
@@ -420,7 +420,7 @@ class ContaPagarUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateVie
 
 class ContaPagarDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = ContaPagar
-    template_name = "financeiro/conta_pagar/confirmar_exclusao.html"
+    template_name = "financeiro/conta_pagar_confirmar_exclusao.html"
     success_url = reverse_lazy("financeiro:conta_pagar_list")
     modulo = "contas_pagar"
     acao = "excluir"
@@ -429,7 +429,7 @@ class ContaPagarDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteVie
 class EncargoContaPagarCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = EncargoContaPagar
     form_class = EncargoContaPagarForm
-    template_name = "financeiro/conta_pagar/encargo_form.html"
+    template_name = "financeiro/conta_pagar_encargo_form.html"
     modulo = "contas_pagar"
     acao = "editar"
 
@@ -445,7 +445,7 @@ class EncargoContaPagarCreateView(MensagemSucessoMixin, PermissaoModuloMixin, Cr
 
 class EncargoContaPagarDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = EncargoContaPagar
-    template_name = "financeiro/conta_pagar/confirmar_exclusao_encargo.html"
+    template_name = "financeiro/conta_pagar_confirmar_exclusao_encargo.html"
     modulo = "contas_pagar"
     acao = "editar"
 
@@ -459,7 +459,7 @@ class EncargoContaPagarDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, De
 class DocumentoContaPagarCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = DocumentoContaPagar
     form_class = DocumentoContaPagarForm
-    template_name = "financeiro/conta_pagar/documento_form.html"
+    template_name = "financeiro/conta_pagar_form.html"
     modulo = "contas_pagar"
     acao = "editar"
 
@@ -476,7 +476,7 @@ class DocumentoContaPagarCreateView(MensagemSucessoMixin, PermissaoModuloMixin, 
 
 class DocumentoContaPagarDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = DocumentoContaPagar
-    template_name = "financeiro/conta_pagar/confirmar_exclusao_documento.html"
+    template_name = "financeiro/conta_pagar_confirmar_exclusao_documento.html"
     modulo = "contas_pagar"
     acao = "editar"
 
@@ -490,7 +490,7 @@ class DocumentoContaPagarDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, 
 class AprovacaoContaPagarCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     """Registra aprovação ou rejeição na cadeia multinível."""
     model = AprovacaoContaPagar
-    template_name = "financeiro/conta_pagar/aprovacao_form.html"
+    template_name = "financeiro/conta_pagar_aprovacao_form.html"
     fields = ["decisao", "justificativa"]
     modulo = "contas_pagar"
     acao = "criar"
@@ -517,7 +517,7 @@ class AprovacaoContaPagarCreateView(MensagemSucessoMixin, PermissaoModuloMixin, 
 
 class ContaReceberListView(PermissaoModuloMixin, ListView):
     model = ContaReceber
-    template_name = "financeiro/conta_receber/list.html"
+    template_name = "financeiro/conta_receber_list.html"
     context_object_name = "objetos"
     paginate_by = 25
     modulo = "contas_receber"
@@ -550,7 +550,7 @@ class ContaReceberListView(PermissaoModuloMixin, ListView):
 
 class ContaReceberDetailView(PermissaoModuloMixin, DetailView):
     model = ContaReceber
-    template_name = "financeiro/conta_receber/detail.html"
+    template_name = "financeiro/conta_receber_detail.html"
     context_object_name = "conta"
     modulo = "contas_receber"
     acao = "ver"
@@ -566,7 +566,7 @@ class ContaReceberDetailView(PermissaoModuloMixin, DetailView):
 class ContaReceberCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = ContaReceber
     form_class = ContaReceberForm
-    template_name = "financeiro/conta_receber/form.html"
+    template_name = "financeiro/conta_receber_form.html"
     success_url = reverse_lazy("financeiro:conta_receber_list")
     modulo = "contas_receber"
     acao = "criar"
@@ -581,7 +581,7 @@ class ContaReceberCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateV
 class ContaReceberUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
     model = ContaReceber
     form_class = ContaReceberForm
-    template_name = "financeiro/conta_receber/form.html"
+    template_name = "financeiro/conta_receber_form.html"
     success_url = reverse_lazy("financeiro:conta_receber_list")
     modulo = "contas_receber"
     acao = "editar"
@@ -595,7 +595,7 @@ class ContaReceberUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateV
 
 class ContaReceberDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = ContaReceber
-    template_name = "financeiro/conta_receber/confirmar_exclusao.html"
+    template_name = "financeiro/conta_receber_confirmar_exclusao.html"
     success_url = reverse_lazy("financeiro:conta_receber_list")
     modulo = "contas_receber"
     acao = "excluir"
@@ -604,7 +604,7 @@ class ContaReceberDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteV
 class EncargoContaReceberCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = EncargoContaReceber
     form_class = EncargoContaReceberForm
-    template_name = "financeiro/conta_receber/encargo_form.html"
+    template_name = "financeiro/conta_receber_encargo_form.html"
     modulo = "contas_receber"
     acao = "editar"
 
@@ -620,7 +620,7 @@ class EncargoContaReceberCreateView(MensagemSucessoMixin, PermissaoModuloMixin, 
 
 class EncargoContaReceberDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = EncargoContaReceber
-    template_name = "financeiro/conta_receber/confirmar_exclusao_encargo.html"
+    template_name = "financeiro/conta_receber_confirmar_exclusao_encargo.html"
     modulo = "contas_receber"
     acao = "editar"
 
@@ -634,7 +634,7 @@ class EncargoContaReceberDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, 
 class DocumentoContaReceberCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = DocumentoContaReceber
     form_class = DocumentoContaReceberForm
-    template_name = "financeiro/conta_receber/documento_form.html"
+    template_name = "financeiro/conta_receber_documento_form.html"
     modulo = "contas_receber"
     acao = "editar"
 
@@ -651,7 +651,7 @@ class DocumentoContaReceberCreateView(MensagemSucessoMixin, PermissaoModuloMixin
 
 class DocumentoContaReceberDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = DocumentoContaReceber
-    template_name = "financeiro/conta_receber/confirmar_exclusao_documento.html"
+    template_name = "financeiro/conta_receber_confirmar_exclusao_documento.html"
     modulo = "contas_receber"
     acao = "editar"
 
@@ -668,7 +668,7 @@ class DocumentoContaReceberDeleteView(MensagemSucessoMixin, PermissaoModuloMixin
 
 class LancamentoFinanceiroListView(PermissaoModuloMixin, ListView):
     model = LancamentoFinanceiro
-    template_name = "financeiro/lancamento/list.html"
+    template_name = "financeiro/lancamento_list.html"
     context_object_name = "objetos"
     paginate_by = 50
     modulo = "fluxo_caixa"
@@ -701,7 +701,7 @@ class LancamentoFinanceiroListView(PermissaoModuloMixin, ListView):
 class LancamentoFinanceiroCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = LancamentoFinanceiro
     form_class = LancamentoFinanceiroForm
-    template_name = "financeiro/lancamento/form.html"
+    template_name = "financeiro/lancamento_form.html"
     success_url = reverse_lazy("financeiro:lancamento_list")
     modulo = "fluxo_caixa"
     acao = "criar"
@@ -716,7 +716,7 @@ class LancamentoFinanceiroCreateView(MensagemSucessoMixin, PermissaoModuloMixin,
 class LancamentoFinanceiroUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
     model = LancamentoFinanceiro
     form_class = LancamentoFinanceiroForm
-    template_name = "financeiro/lancamento/form.html"
+    template_name = "financeiro/lancamento_form.html"
     success_url = reverse_lazy("financeiro:lancamento_list")
     modulo = "fluxo_caixa"
     acao = "editar"
@@ -730,7 +730,7 @@ class LancamentoFinanceiroUpdateView(MensagemSucessoMixin, PermissaoModuloMixin,
 
 class LancamentoFinanceiroDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = LancamentoFinanceiro
-    template_name = "financeiro/lancamento/confirmar_exclusao.html"
+    template_name = "financeiro/lancamento_confirmar_exclusao.html"
     success_url = reverse_lazy("financeiro:lancamento_list")
     modulo = "fluxo_caixa"
     acao = "excluir"
@@ -742,7 +742,7 @@ class LancamentoFinanceiroDeleteView(MensagemSucessoMixin, PermissaoModuloMixin,
 
 class TransferenciaBancariaListView(PermissaoModuloMixin, ListView):
     model = TransferenciaBancaria
-    template_name = "financeiro/transferencia/list.html"
+    template_name = "financeiro/transferencia_list.html"
     context_object_name = "objetos"
     paginate_by = 25
     modulo = "fluxo_caixa"
@@ -755,7 +755,7 @@ class TransferenciaBancariaListView(PermissaoModuloMixin, ListView):
 class TransferenciaBancariaCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
     model = TransferenciaBancaria
     form_class = TransferenciaBancariaForm
-    template_name = "financeiro/transferencia/form.html"
+    template_name = "financeiro/transferencia_form.html"
     success_url = reverse_lazy("financeiro:transferencia_list")
     modulo = "fluxo_caixa"
     acao = "criar"
@@ -769,7 +769,7 @@ class TransferenciaBancariaCreateView(MensagemSucessoMixin, PermissaoModuloMixin
 
 class TransferenciaBancariaDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = TransferenciaBancaria
-    template_name = "financeiro/transferencia/confirmar_exclusao.html"
+    template_name = "financeiro/transferencia_confirmar_exclusao.html"
     success_url = reverse_lazy("financeiro:transferencia_list")
     modulo = "fluxo_caixa"
     acao = "excluir"
@@ -781,7 +781,7 @@ class TransferenciaBancariaDeleteView(MensagemSucessoMixin, PermissaoModuloMixin
 
 class ProjecaoFluxoCaixaListView(PermissaoModuloMixin, ListView):
     model = ProjecaoFluxoCaixa
-    template_name = "financeiro/projecao/list.html"
+    template_name = "financeiro/projecao_list.html"
     context_object_name = "objetos"
     modulo = "fluxo_caixa"
     acao = "ver"
@@ -803,7 +803,7 @@ class ProjecaoFluxoCaixaCreateView(MensagemSucessoMixin, PermissaoModuloMixin, C
 
 class ProjecaoFluxoCaixaDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
     model = ProjecaoFluxoCaixa
-    template_name = "financeiro/projecao/confirmar_exclusao.html"
+    template_name = "financeiro/projecao_confirmar_exclusao.html"
     success_url = reverse_lazy("financeiro:projecao_list")
     modulo = "fluxo_caixa"
     acao = "excluir"

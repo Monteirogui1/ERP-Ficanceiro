@@ -1,0 +1,33 @@
+{% extends "layouts/base.html" %}
+{% block title %}Perfis de Acesso{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>Perfis de Acesso</h1>
+    <a href="{% url 'authentication:perfil_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Perfil</a>
+  </div>
+  {% include "_includes/messages.html" %}
+  <div class="detail-card" style="padding:0;overflow:hidden">
+    <table class="table">
+      <thead><tr><th>Nome</th><th>Descrição</th><th class="text-center">Aprova Pag.</th><th>Nível Aprovação</th><th class="text-center">Ativo</th><th class="text-center">Ações</th></tr></thead>
+      <tbody>
+        {% for p in objetos %}
+        <tr>
+          <td><strong>{{ p.nome }}</strong></td>
+          <td>{{ p.descricao|truncatechars:60|default:"—" }}</td>
+          <td class="text-center">{% if p.pode_aprovar_pagamentos %}<i class="bi bi-check-circle-fill" style="color:#28a745"></i>{% else %}—{% endif %}</td>
+          <td class="text-center"><span style="background:#e8f0fe;color:#1a73e8;border-radius:4px;padding:2px 8px;font-size:11px">Nível {{ p.nivel_aprovacao }}</span></td>
+          <td class="text-center">{% if p.ativo %}<i class="bi bi-check-circle-fill" style="color:#28a745"></i>{% else %}<i class="bi bi-x-circle-fill" style="color:#dc3545"></i>{% endif %}</td>
+          <td class="text-center" style="white-space:nowrap">
+            <a href="{% url 'authentication:perfil_update' p.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'authentication:perfil_delete' p.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
+          </td>
+        </tr>
+        {% empty %}<tr><td colspan="6" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum perfil cadastrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "_includes/paginacao.html" %}
+</div>
+{% endblock %}

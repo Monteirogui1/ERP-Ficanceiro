@@ -1,0 +1,116 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Relatório — Contas a Pagar{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <div>
+      <a href="{% url 'home:dashboard' %}" style="font-size:13px;color:#666;text-decoration:none"><i class="bi bi-arrow-left"></i> Dashboard</a>
+      <h1><i class="bi bi-arrow-up-square"></i> Relatório — Contas a Pagar</h1>
+    </div>
+    <button onclick="window.print()" class="btn btn-sm" style="background:#f0f0f0;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">
+      <i class="bi bi-printer"></i> Imprimir
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <form method="get" class="filtros-card">
+    <div><label>De</label><input type="date" name="data_ini" value="{{ data_ini }}"></div>
+    <div><label>Até</label><input type="date" name="data_fim" value="{{ data_fim }}"></div>
+    <div>
+      <label>Status</label>
+      <select name="status">
+        <option value="">Todos</option>
+        {% for s in status_list %}<option value="{{ s.pk }}" {% if status_id == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit">Filtrar</button>
+  </form>
+
+  <!-- KPIs -->
+  <div class="relatorio-resumo">
+    <div class="resumo-item"><label>Total Original</label><strong>R$ {{ total_original|floatformat:2 }}</strong></div>
+    <div class="resumo-item verde"><label>Total Pago</label><strong>R$ {{ total_pago|floatformat:2 }}</strong></div>
+    <div class="resumo-item vermelho"><label>Total Pendente</label><strong>R$ {{ total_pendente|floatformat:2 }}</strong></div>
+    <div class="resumo-item"><label>Qtd Títulos</label><strong>{{ contas|length }}</strong></div>
+  </div>
+
+  <div class="charts-2col">
+    <!-- Gráfico status -->
+    <div class="relatorio-card">
+      <h3><i class="bi bi-pie-chart"></i> Por Status</h3>
+      <canvas id="chartStatus" height="200"></canvas>
+    </div>
+    <!-- Top fornecedores -->
+    <div class="relatorio-card">
+      <h3><i class="bi bi-truck"></i> Top 10 Fornecedores</h3>
+      <table class="table">
+        <thead><tr><th>Fornecedor</th><th>Qtd</th><th style="text-align:right">Total (R$)</th></tr></thead>
+        <tbody>
+          {% for f in por_fornecedor %}
+          <tr>
+            <td>{{ f.fornecedor__razao_social|default:"Sem fornecedor"|truncatechars:30 }}</td>
+            <td>{{ f.qtd }}</td>
+            <td style="text-align:right;font-weight:600;color:#ea4335">{{ f.total|floatformat:2 }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" style="text-align:center;color:#aaa">Sem dados</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Listagem -->
+  <div class="relatorio-card">
+    <h3><i class="bi bi-list-ul"></i> Títulos no Período</h3>
+    <table class="table">
+      <thead>
+        <tr><th>Vencimento</th><th>Fornecedor</th><th>Descrição</th><th>Plano de Contas</th><th>Status</th><th style="text-align:right">Original</th><th style="text-align:right">Pago</th></tr>
+      </thead>
+      <tbody>
+        {% for cp in contas %}
+        <tr>
+          <td style="white-space:nowrap">{{ cp.data_vencimento|date:"d/m/Y" }}</td>
+          <td>{{ cp.fornecedor.razao_social|default:"-"|truncatechars:25 }}</td>
+          <td>{{ cp.descricao|truncatechars:30 }}</td>
+          <td style="font-size:11px;color:#888">{{ cp.plano_contas.nome|default:"-"|truncatechars:20 }}</td>
+          <td><span style="font-size:11px;background:#f0f0f0;padding:2px 8px;border-radius:20px">{{ cp.status.nome }}</span></td>
+          <td style="text-align:right">R$ {{ cp.valor_original|floatformat:2 }}</td>
+          <td style="text-align:right;color:#34a853">R$ {{ cp.valor_pago|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" style="text-align:center;color:#aaa;padding:30px">Nenhuma conta no período.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+.filtros-card{background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.filtros-card label{font-size:12px;color:#666;display:block;margin-bottom:4px}
+.filtros-card select,.filtros-card input{border:1px solid #ddd;border-radius:6px;padding:6px 10px;font-size:13px}
+.filtros-card button{background:#1a73e8;color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:13px;cursor:pointer}
+.relatorio-resumo{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.resumo-item{background:#fff;border-radius:10px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06);text-align:center;border-top:3px solid #1a73e8}
+.resumo-item.verde{border-top-color:#34a853}.resumo-item.vermelho{border-top-color:#ea4335}
+.resumo-item label{font-size:12px;color:#888;display:block}
+.resumo-item strong{font-size:18px;color:#333;display:block;margin-top:4px}
+.relatorio-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px}
+.relatorio-card h3{font-size:15px;color:#333;margin-bottom:14px;border-bottom:1px solid #f0f0f0;padding-bottom:8px}
+.charts-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+@media print{.sidebar,header,.filtros-card button{display:none!important}.main-content{margin-left:0!important}}
+</style>
+
+<script>
+new Chart(document.getElementById('chartStatus').getContext('2d'), {
+  type: 'doughnut',
+  data: {
+    labels: {{ status_labels|safe }},
+    datasets: [{ data: {{ status_values|safe }}, backgroundColor: ['#1a73e8','#34a853','#ea4335','#fbbc04','#fa7b17','#00bcd4'] }]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+});
+</script>
+{% endblock %}

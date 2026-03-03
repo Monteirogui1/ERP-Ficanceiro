@@ -1,0 +1,106 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }} — Bancário{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+
+  <div class="page-header">
+    <h1>{{ titulo }}</h1>
+    <a href="{% url 'bancario:conciliacao_list' %}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+  </div>
+
+  <!-- Resumo de saldos (somente leitura, disponível no Update) -->
+  {% if object %}
+  <div class="metrics" style="margin-bottom:20px">
+    <div class="metric-card">
+      <h3><i class="bi bi-bank"></i> Saldo Extrato</h3>
+      <p>R$ {{ object.movimento_bancario.valor|floatformat:2 }}</p>
+    </div>
+    <div class="metric-card">
+      <h3><i class="bi bi-journal-check"></i> Saldo Sistema</h3>
+      <p>R$ {{ object.lancamento.valor|floatformat:2 }}</p>
+    </div>
+    <div class="metric-card">
+      <h3><i class="bi bi-plusminus"></i> Diferença</h3>
+      <p>R$ {{ object.diferenca|floatformat:2 }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="detail-card">
+    <form method="post" id="form-conciliacao">
+      {% csrf_token %}
+
+      <!-- ── Movimento Bancário ──────────────────────── -->
+      <h2><i class="bi bi-bank2"></i> Movimento Bancário (Extrato)</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.movimento_bancario.id_for_label }}">
+            Movimento do Extrato <span style="color:#dc3545">*</span>
+          </label>
+          {{ form.movimento_bancario }}
+          {% if form.movimento_bancario.errors %}<span class="error-message">{{ form.movimento_bancario.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.lancamento.id_for_label }}">
+            Lançamento no Sistema <span style="color:#dc3545">*</span>
+          </label>
+          {{ form.lancamento }}
+          {% if form.lancamento.errors %}<span class="error-message">{{ form.lancamento.errors|join:", " }}</span>{% endif %}
+        </div>
+
+      </div>
+
+      <!-- ── Dados da Conciliação ────────────────────── -->
+      <h2 style="margin-top:24px"><i class="bi bi-check2-all"></i> Dados da Conciliação</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.status.id_for_label }}">Status <span style="color:#dc3545">*</span></label>
+          {{ form.status }}
+          {% if form.status.errors %}<span class="error-message">{{ form.status.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.diferenca.id_for_label }}">Diferença</label>
+          {{ form.diferenca }}
+          {% if form.diferenca.errors %}<span class="error-message">{{ form.diferenca.errors|join:", " }}</span>{% endif %}
+        </div>
+
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
+          {{ form.automatica }}
+          <label for="{{ form.automatica.id_for_label }}" style="margin:0;font-weight:500">
+            Conciliação Automática
+          </label>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="{{ form.observacao.id_for_label }}">Observação</label>
+          {{ form.observacao }}
+        </div>
+
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url 'bancario:conciliacao_list' %}" class="btn btn-secondary" style="margin-right:10px">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg"></i>
+          {% if object %}Salvar Alterações{% else %}Registrar Conciliação{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}

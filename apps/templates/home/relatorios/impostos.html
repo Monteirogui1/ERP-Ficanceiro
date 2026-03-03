@@ -1,0 +1,138 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Relatório de Impostos{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <div>
+      <a href="{% url 'home:dashboard' %}" style="font-size:13px;color:#666;text-decoration:none"><i class="bi bi-arrow-left"></i> Dashboard</a>
+      <h1><i class="bi bi-building-check"></i> Relatório de Impostos</h1>
+    </div>
+    <button onclick="window.print()" class="btn btn-sm" style="background:#f0f0f0;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">
+      <i class="bi bi-printer"></i> Imprimir
+    </button>
+  </div>
+
+  <form method="get" class="filtros-card">
+    <div>
+      <label>Ano</label>
+      <select name="ano">
+        {% for a in anos %}<option value="{{ a }}" {% if a == ano %}selected{% endif %}>{{ a }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit">Filtrar</button>
+  </form>
+
+  <div class="relatorio-resumo">
+    <div class="resumo-item vermelho"><label>Total Apurado</label><strong>R$ {{ total_calculado|floatformat:2 }}</strong></div>
+    <div class="resumo-item verde"><label>Total Pago</label><strong>R$ {{ total_pago|floatformat:2 }}</strong></div>
+    <div class="resumo-item amarelo"><label>Total Pendente</label><strong>R$ {{ total_pendente|floatformat:2 }}</strong></div>
+  </div>
+
+  <div class="charts-2col">
+    <div class="relatorio-card">
+      <h3><i class="bi bi-bar-chart"></i> Distribuição por Tipo de Imposto</h3>
+      <canvas id="chartImp" height="200"></canvas>
+    </div>
+    <div class="relatorio-card">
+      <h3><i class="bi bi-calendar-x"></i> Próximos Vencimentos</h3>
+      <table class="table">
+        <thead><tr><th>Imposto</th><th>Competência</th><th>Vencimento</th><th style="text-align:right">Valor</th></tr></thead>
+        <tbody>
+          {% for p in proximos %}
+          <tr>
+            <td><strong>{{ p.tipo_imposto.sigla }}</strong></td>
+            <td>{{ p.competencia|date:"m/Y" }}</td>
+            <td style="white-space:nowrap">{{ p.data_vencimento|date:"d/m/Y" }}</td>
+            <td style="text-align:right;font-weight:700;color:#ea4335">R$ {{ p.valor_calculado|floatformat:2 }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" style="text-align:center;color:#aaa">Nenhum vencimento pendente.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Resumo por tipo -->
+  <div class="relatorio-card">
+    <h3><i class="bi bi-table"></i> Resumo por Tipo de Imposto — {{ ano }}</h3>
+    <table class="table">
+      <thead>
+        <tr><th>Imposto</th><th style="text-align:right">Total Apurado</th><th style="text-align:right">Total Pago</th><th style="text-align:right">Pendente</th></tr>
+      </thead>
+      <tbody>
+        {% for t in por_tipo %}
+        <tr>
+          <td><strong>{{ t.tipo_imposto__sigla }}</strong> — {{ t.tipo_imposto__nome }}</td>
+          <td style="text-align:right">R$ {{ t.total_calculado|floatformat:2 }}</td>
+          <td style="text-align:right;color:#34a853">R$ {{ t.total_pago|floatformat:2 }}</td>
+          <td style="text-align:right;color:#ea4335;font-weight:600">R$ {% widthratio t.total_calculado 1 1 %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="text-align:center;color:#aaa;padding:30px">Sem lançamentos de impostos no período.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Lançamentos -->
+  <div class="relatorio-card">
+    <h3><i class="bi bi-list-ul"></i> Todos os Lançamentos — {{ ano }}</h3>
+    <table class="table">
+      <thead>
+        <tr><th>Imposto</th><th>Competência</th><th>Vencimento</th><th>Nº Guia</th><th style="text-align:right">Base Cálc.</th><th style="text-align:right">Calculado</th><th style="text-align:right">Pago</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for l in lancamentos %}
+        <tr>
+          <td><strong>{{ l.tipo_imposto.sigla }}</strong></td>
+          <td>{{ l.competencia|date:"m/Y" }}</td>
+          <td style="white-space:nowrap">{{ l.data_vencimento|date:"d/m/Y" }}</td>
+          <td style="font-size:12px;color:#888">{{ l.numero_guia|default:"-" }}</td>
+          <td style="text-align:right">R$ {{ l.base_calculo|floatformat:2 }}</td>
+          <td style="text-align:right;font-weight:600">R$ {{ l.valor_calculado|floatformat:2 }}</td>
+          <td style="text-align:right;color:#34a853">R$ {{ l.valor_pago|default:0|floatformat:2 }}</td>
+          <td>
+            {% if l.valor_pago and l.valor_pago > 0 %}
+              <span style="font-size:11px;background:#f0fff4;color:#2a7;padding:2px 8px;border-radius:20px">Pago</span>
+            {% else %}
+              <span style="font-size:11px;background:#fff0f0;color:#c00;padding:2px 8px;border-radius:20px">Pendente</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" style="text-align:center;color:#aaa;padding:30px">Sem lançamentos no período.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+.filtros-card{background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.filtros-card label{font-size:12px;color:#666;display:block;margin-bottom:4px}
+.filtros-card select{border:1px solid #ddd;border-radius:6px;padding:6px 10px;font-size:13px}
+.filtros-card button{background:#1a73e8;color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:13px;cursor:pointer}
+.relatorio-resumo{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:20px}
+.resumo-item{background:#fff;border-radius:10px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06);text-align:center;border-top:3px solid #1a73e8}
+.resumo-item.verde{border-top-color:#34a853}.resumo-item.vermelho{border-top-color:#ea4335}.resumo-item.amarelo{border-top-color:#fbbc04}
+.resumo-item label{font-size:12px;color:#888;display:block}
+.resumo-item strong{font-size:18px;color:#333;display:block;margin-top:4px}
+.relatorio-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px}
+.relatorio-card h3{font-size:15px;color:#333;margin-bottom:14px;border-bottom:1px solid #f0f0f0;padding-bottom:8px}
+.charts-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+@media print{.sidebar,header,.filtros-card button{display:none!important}.main-content{margin-left:0!important}}
+</style>
+
+<script>
+new Chart(document.getElementById('chartImp').getContext('2d'), {
+  type: 'doughnut',
+  data: {
+    labels: {{ imp_labels|safe }},
+    datasets: [{ data: {{ imp_values|safe }}, backgroundColor: ['#1a73e8','#34a853','#ea4335','#fbbc04','#fa7b17','#00bcd4','#9c27b0'] }]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+});
+</script>
+{% endblock %}

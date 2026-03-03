@@ -9,7 +9,7 @@ urlpatterns = [
     # ── Autenticação ─────────────────────────
     path(
         "login/",
-        auth_views.LoginView.as_view(template_name="authentication/auth/login.html"),
+        auth_views.LoginView.as_view(template_name="authentication/login.html"),
         name="login",
     ),
     path(
@@ -20,7 +20,7 @@ urlpatterns = [
     path(
         "senha/alterar/",
         auth_views.PasswordChangeView.as_view(
-            template_name="authentication/auth/password_change.html",
+            template_name="authentication/password_change.html",
             success_url="/senha/alterar/concluido/",
         ),
         name="password_change",
@@ -28,7 +28,7 @@ urlpatterns = [
     path(
         "senha/alterar/concluido/",
         auth_views.PasswordChangeDoneView.as_view(
-            template_name="authentication/auth/password_change_done.html"
+            template_name="authentication/password_change_done.html"
         ),
         name="password_change_done",
     ),

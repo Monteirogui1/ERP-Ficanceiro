@@ -1,0 +1,35 @@
+{% extends "layouts/base.html" %}
+{% block title %}Conciliações Bancárias{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>Conciliações Bancárias</h1>
+    <a href="{% url 'bancario:conciliacao_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nova Conciliação</a>
+  </div>
+  {% include "_includes/messages.html" %}
+  <div class="detail-card" style="padding:0;overflow:hidden">
+    <table class="table">
+      <thead><tr><th>Movimento Bancário</th><th>Lançamento</th><th>Status</th><th>Diferença</th><th class="text-center">Automática</th><th>Conciliado por</th><th>Data</th><th class="text-center">Ações</th></tr></thead>
+      <tbody>
+        {% for conc in objetos %}
+        <tr>
+          <td style="font-size:12px">{{ conc.movimento_bancario.descricao|truncatechars:40 }}</td>
+          <td style="font-size:12px">{{ conc.lancamento.descricao|truncatechars:40 }}</td>
+          <td><span style="background:#e8f0fe;color:#1a73e8;border-radius:4px;padding:3px 8px;font-size:11px">{{ conc.status.nome }}</span></td>
+          <td style="{% if conc.diferenca != 0 %}color:#dc3545;font-weight:600{% endif %}">R$ {{ conc.diferenca|floatformat:2 }}</td>
+          <td class="text-center">{% if conc.automatica %}<i class="bi bi-lightning-fill" style="color:#f5a623" title="Automática"></i>{% else %}—{% endif %}</td>
+          <td>{{ conc.conciliado_por.nome|default:"—" }}</td>
+          <td style="font-size:12px">{{ conc.criado_em|date:"d/m/Y H:i" }}</td>
+          <td class="text-center" style="white-space:nowrap">
+            <a href="{% url 'bancario:conciliacao_update' conc.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'bancario:conciliacao_delete' conc.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
+          </td>
+        </tr>
+        {% empty %}<tr><td colspan="8" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhuma conciliação encontrada.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "_includes/paginacao.html" %}
+</div>
+{% endblock %}

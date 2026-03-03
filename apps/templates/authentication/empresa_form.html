@@ -1,0 +1,209 @@
+{% extends "layouts/base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }} — Administração{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+
+  <div class="page-header">
+    <h1>{{ titulo }}</h1>
+    <a href="{% url 'authentication:empresa_list' %}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+  </div>
+
+  <div class="detail-card">
+    <form method="post" enctype="multipart/form-data" id="form-empresa">
+      {% csrf_token %}
+
+      <!-- ── Dados da Empresa ────────────────────────── -->
+      <h2><i class="bi bi-building"></i> Dados da Empresa</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.razao_social.id_for_label }}">
+            Razão Social <span style="color:#dc3545">*</span>
+          </label>
+          {{ form.razao_social }}
+          {% if form.razao_social.errors %}
+            <span class="error-message">{{ form.razao_social.errors|join:", " }}</span>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.nome_fantasia.id_for_label }}">Nome Fantasia</label>
+          {{ form.nome_fantasia }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.cnpj.id_for_label }}">CNPJ</label>
+          {{ form.cnpj }}
+          {% if form.cnpj.errors %}
+            <span class="error-message">{{ form.cnpj.errors|join:", " }}</span>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.inscricao_estadual.id_for_label }}">Inscrição Estadual</label>
+          {{ form.inscricao_estadual }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.inscricao_municipal.id_for_label }}">Inscrição Municipal</label>
+          {{ form.inscricao_municipal }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.segmento.id_for_label }}">Segmento</label>
+          {{ form.segmento }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.regime_tributario.id_for_label }}">Regime Tributário</label>
+          {{ form.regime_tributario }}
+        </div>
+
+      </div>
+
+      <!-- ── Contato ─────────────────────────────────── -->
+      <h2 style="margin-top:24px"><i class="bi bi-telephone"></i> Contato</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.telefone.id_for_label }}">Telefone</label>
+          {{ form.telefone }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.email.id_for_label }}">E-mail</label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <span class="error-message">{{ form.email.errors|join:", " }}</span>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.site.id_for_label }}">Site</label>
+          {{ form.site }}
+        </div>
+
+      </div>
+
+      <!-- ── Endereço ────────────────────────────────── -->
+      <h2 style="margin-top:24px"><i class="bi bi-geo-alt"></i> Endereço</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.cep.id_for_label }}">CEP</label>
+          {{ form.cep }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.logradouro.id_for_label }}">Logradouro</label>
+          {{ form.logradouro }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.numero.id_for_label }}">Número</label>
+          {{ form.numero }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.complemento.id_for_label }}">Complemento</label>
+          {{ form.complemento }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.bairro.id_for_label }}">Bairro</label>
+          {{ form.bairro }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.cidade.id_for_label }}">Cidade</label>
+          {{ form.cidade }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.estado.id_for_label }}">Estado</label>
+          {{ form.estado }}
+        </div>
+
+      </div>
+
+      <!-- ── Plano / Logotipo ────────────────────────── -->
+      <h2 style="margin-top:24px"><i class="bi bi-image"></i> Plano e Logotipo</h2>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="{{ form.plano.id_for_label }}">Plano</label>
+          {{ form.plano }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.data_vencimento_plano.id_for_label }}">Vencimento do Plano</label>
+          {{ form.data_vencimento_plano }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.logo.id_for_label }}">Logotipo</label>
+          {{ form.logo }}
+          {% if object.logo %}
+            <small style="color:#666;font-size:12px;display:block;margin-top:4px">
+              Logo atual: <a href="{{ object.logo.url }}" target="_blank">
+                <i class="bi bi-eye"></i> Visualizar
+              </a>
+            </small>
+          {% endif %}
+        </div>
+
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
+          {{ form.ativo }}
+          <label for="{{ form.ativo.id_for_label }}" style="margin:0;font-weight:500">Empresa Ativa</label>
+        </div>
+
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url 'authentication:empresa_list' %}" class="btn btn-secondary" style="margin-right:10px">
+          Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg"></i>
+          {% if object %}Salvar Alterações{% else %}Cadastrar Empresa{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Auto-preenchimento via ViaCEP
+  (function () {
+    const cepInput = document.getElementById('{{ form.cep.id_for_label }}');
+    if (!cepInput) return;
+    cepInput.addEventListener('blur', function () {
+      const cep = this.value.replace(/\D/g, '');
+      if (cep.length !== 8) return;
+      fetch(`https://viacep.com.br/ws/${cep}/json/`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.erro) return;
+          const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+          set('{{ form.logradouro.id_for_label }}', data.logradouro || '');
+          set('{{ form.bairro.id_for_label }}',    data.bairro     || '');
+          set('{{ form.cidade.id_for_label }}',    data.localidade || '');
+          set('{{ form.estado.id_for_label }}',    data.uf         || '');
+        }).catch(() => {});
+    });
+  })();
+</script>
+{% endblock %}

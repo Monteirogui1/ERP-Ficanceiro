@@ -1,0 +1,151 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Fluxo de Caixa{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <div>
+      <a href="{% url 'home:dashboard' %}" style="font-size:13px;color:#666;text-decoration:none"><i class="bi bi-arrow-left"></i> Dashboard</a>
+      <h1><i class="bi bi-water"></i> Fluxo de Caixa</h1>
+    </div>
+    <button onclick="window.print()" class="btn btn-sm" style="background:#f0f0f0;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">
+      <i class="bi bi-printer"></i> Imprimir
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <form method="get" class="filtros-card">
+    <div>
+      <label>Período (dias)</label>
+      <select name="periodo">
+        <option value="15" {% if periodo == '15' %}selected{% endif %}>15 dias</option>
+        <option value="30" {% if periodo == '30' %}selected{% endif %}>30 dias</option>
+        <option value="60" {% if periodo == '60' %}selected{% endif %}>60 dias</option>
+        <option value="90" {% if periodo == '90' %}selected{% endif %}>90 dias</option>
+      </select>
+    </div>
+    <button type="submit">Filtrar</button>
+  </form>
+
+  <!-- KPIs -->
+  <div class="relatorio-resumo">
+    <div class="resumo-item verde"><label>Total Entradas</label><strong>R$ {{ total_entradas|floatformat:2 }}</strong></div>
+    <div class="resumo-item vermelho"><label>Total Saídas</label><strong>R$ {{ total_saidas|floatformat:2 }}</strong></div>
+    <div class="resumo-item {% if saldo_periodo >= 0 %}verde{% else %}vermelho{% endif %}">
+      <label>Saldo do Período</label><strong>R$ {{ saldo_periodo|floatformat:2 }}</strong>
+    </div>
+  </div>
+
+  <!-- Gráfico -->
+  <div class="relatorio-card">
+    <h3><i class="bi bi-bar-chart-line"></i> Movimentação Diária</h3>
+    <canvas id="chartFluxo" height="80"></canvas>
+  </div>
+
+  <!-- Saldo por Conta -->
+  {% if contas %}
+  <div class="relatorio-card">
+    <h3><i class="bi bi-bank2"></i> Saldo por Conta Bancária</h3>
+    <table class="table">
+      <thead><tr><th>Conta</th><th>Banco</th><th>Agência</th><th style="text-align:right">Saldo Atual</th></tr></thead>
+      <tbody>
+        {% for c in contas %}
+        <tr>
+          <td>{{ c.nome }}</td>
+          <td>{{ c.banco.nome }}</td>
+          <td>{{ c.agencia }}</td>
+          <td style="text-align:right;font-weight:700;color:{% if c.saldo_atual >= 0 %}#34a853{% else %}#ea4335{% endif %}">
+            R$ {{ c.saldo_atual|floatformat:2 }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <div class="charts-2col">
+    <!-- Lançamentos realizados -->
+    <div class="relatorio-card">
+      <h3><i class="bi bi-check-circle"></i> Realizados</h3>
+      <table class="table">
+        <thead><tr><th>Data</th><th>Descrição</th><th>Conta</th><th style="text-align:right">Valor</th></tr></thead>
+        <tbody>
+          {% for lanc in lancamentos %}
+          <tr>
+            <td style="white-space:nowrap">{{ lanc.data_lancamento|date:"d/m/Y" }}</td>
+            <td>{{ lanc.descricao|truncatechars:35 }}</td>
+            <td style="font-size:12px;color:#888">{{ lanc.conta_bancaria.nome|truncatechars:20 }}</td>
+            <td style="text-align:right;font-weight:600;color:{% if lanc.tipo_lancamento.natureza == 'C' %}#34a853{% else %}#ea4335{% endif %}">
+              {% if lanc.tipo_lancamento.natureza == 'C' %}+{% else %}-{% endif %} R$ {{ lanc.valor|floatformat:2 }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" style="text-align:center;color:#aaa">Sem lançamentos no período</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Previstos -->
+    <div class="relatorio-card">
+      <h3><i class="bi bi-calendar-event"></i> Previstos (próximos {{ periodo }} dias)</h3>
+      <p style="font-size:12px;color:#888;margin-bottom:10px">Contas em aberto com vencimento até {{ data_fim|date:"d/m/Y" }}</p>
+      <table class="table">
+        <thead><tr><th>Vencimento</th><th>Descrição</th><th>Tipo</th><th style="text-align:right">Valor</th></tr></thead>
+        <tbody>
+          {% for cp in cp_previstas %}
+          <tr>
+            <td style="white-space:nowrap">{{ cp.data_vencimento|date:"d/m/Y" }}</td>
+            <td>{{ cp.descricao|truncatechars:30 }}</td>
+            <td><span style="font-size:11px;background:#fff0f0;color:#ea4335;padding:2px 8px;border-radius:20px">Pagar</span></td>
+            <td style="text-align:right;color:#ea4335;font-weight:600">- R$ {{ cp.valor_original|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+          {% for cr in cr_previstas %}
+          <tr>
+            <td style="white-space:nowrap">{{ cr.data_vencimento|date:"d/m/Y" }}</td>
+            <td>{{ cr.descricao|truncatechars:30 }}</td>
+            <td><span style="font-size:11px;background:#f0fff4;color:#34a853;padding:2px 8px;border-radius:20px">Receber</span></td>
+            <td style="text-align:right;color:#34a853;font-weight:600">+ R$ {{ cr.valor_original|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+          {% if not cp_previstas and not cr_previstas %}
+          <tr><td colspan="4" style="text-align:center;color:#aaa">Sem previsões no período</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<style>
+.filtros-card{background:#fff;border-radius:12px;padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.filtros-card label{font-size:12px;color:#666;display:block;margin-bottom:4px}
+.filtros-card select{border:1px solid #ddd;border-radius:6px;padding:6px 10px;font-size:13px}
+.filtros-card button{background:#1a73e8;color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:13px;cursor:pointer}
+.relatorio-resumo{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:20px}
+.resumo-item{background:#fff;border-radius:10px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06);text-align:center;border-top:3px solid #1a73e8}
+.resumo-item.verde{border-top-color:#34a853}.resumo-item.vermelho{border-top-color:#ea4335}
+.resumo-item label{font-size:12px;color:#888;display:block}
+.resumo-item strong{font-size:18px;color:#333;display:block;margin-top:4px}
+.relatorio-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:20px}
+.relatorio-card h3{font-size:15px;color:#333;margin-bottom:14px;border-bottom:1px solid #f0f0f0;padding-bottom:8px}
+.charts-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+@media print{.sidebar,header,.filtros-card button{display:none!important}.main-content{margin-left:0!important}}
+</style>
+
+<script>
+new Chart(document.getElementById('chartFluxo').getContext('2d'), {
+  type: 'bar',
+  data: {
+    labels: {{ dias_labels|safe }},
+    datasets: [
+      { label: 'Entradas', data: {{ entradas_dia|safe }}, backgroundColor: 'rgba(52,168,83,0.7)', borderRadius: 4 },
+      { label: 'Saídas', data: {{ saidas_dia|safe }}, backgroundColor: 'rgba(234,67,53,0.7)', borderRadius: 4 }
+    ]
+  },
+  options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+</script>
+{% endblock %}
