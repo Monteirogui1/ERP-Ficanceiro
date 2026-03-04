@@ -2,961 +2,200 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}FinanceERP{% endblock %}</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
-  <link rel="shortcut icon" href="{% static 'assets/img/favicon.png' %}" type="image/x-icon">
-
-  <style>
-    /* ══════════════════════════════════════════════
-       DESIGN TOKENS
-    ══════════════════════════════════════════════ */
-    :root {
-      /* Sidebar escura */
-      --sb-bg:           #0d1117;
-      --sb-surface:      #161b27;
-      --sb-border:       rgba(255,255,255,.07);
-      --sb-txt:          #8b95aa;
-      --sb-txt-hi:       #e2e8f0;
-      --sb-hover:        rgba(255,255,255,.055);
-      --sb-active-bg:    rgba(16,185,129,.13);
-      --sb-active-txt:   #34d399;
-      --sb-w:            250px;
-
-      /* Acento esmeralda */
-      --accent:          #10b981;
-      --accent-hover:    #059669;
-      --accent-dim:      rgba(16,185,129,.14);
-      --accent-glow:     rgba(16,185,129,.3);
-
-      /* Área principal */
-      --bg:              #f4f6fb;
-      --surface:         #ffffff;
-      --surface-2:       #f8f9fc;
-      --border:          #e6e9f0;
-      --border-soft:     #f0f3f9;
-
-      /* Texto */
-      --txt-1:           #0f172a;
-      --txt-2:           #64748b;
-      --txt-3:           #94a3b8;
-
-      /* Status */
-      --green:           #16a34a;
-      --green-bg:        #dcfce7;
-      --red:             #dc2626;
-      --red-bg:          #fee2e2;
-      --amber:           #d97706;
-      --amber-bg:        #fef3c7;
-      --blue:            #2563eb;
-      --blue-bg:         #eff6ff;
-
-      /* Forma */
-      --r:               7px;
-      --r-lg:            11px;
-      --sh-sm:           0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-      --sh:              0 4px 16px rgba(0,0,0,.08);
-      --sh-lg:           0 8px 28px rgba(0,0,0,.12);
-
-      /* Misc */
-      --header-h:        52px;
-      --t:               .15s ease;
-      --font:            'Geist', 'Segoe UI', system-ui, sans-serif;
-      --font-mono:       'JetBrains Mono', 'Fira Code', monospace;
-    }
-
-    /* ══════════════════════════════════════════════
-       BASE
-    ══════════════════════════════════════════════ */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: var(--font);
-      font-size: 13.5px;
-      color: var(--txt-1);
-      background: var(--bg);
-      -webkit-font-smoothing: antialiased;
-      min-height: 100vh;
-    }
-
-    a { color: inherit; text-decoration: none; }
-    button, input, select, textarea { font-family: var(--font); }
-
-    /* ══════════════════════════════════════════════
-       SHELL
-    ══════════════════════════════════════════════ */
-    .erp-shell {
-      display: flex;
-      min-height: 100vh;
-    }
-
-    /* ══════════════════════════════════════════════
-       SIDEBAR
-    ══════════════════════════════════════════════ */
-    .sidebar {
-      position: fixed;
-      inset: 0 auto 0 0;
-      width: var(--sb-w);
-      background: var(--sb-bg);
-      display: flex;
-      flex-direction: column;
-      z-index: 300;
-      overflow: hidden;
-      transition: transform var(--t);
-    }
-
-    /* Fio de acento no topo */
-    .sidebar::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--accent) 30%, transparent);
-      pointer-events: none;
-    }
-
-    /* ── Logo ── */
-    .sb-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 17px 16px 14px;
-      border-bottom: 1px solid var(--sb-border);
-      flex-shrink: 0;
-    }
-
-    .sb-logo-gem {
-      width: 30px; height: 30px;
-      border-radius: 8px;
-      background: linear-gradient(140deg, var(--accent), #34d399 80%);
-      display: flex; align-items: center; justify-content: center;
-      color: #fff;
-      font-size: 14px;
-      flex-shrink: 0;
-      box-shadow: 0 0 14px var(--accent-glow);
-    }
-
-    .sb-logo-txt {
-      font-size: 15px;
-      font-weight: 700;
-      color: #f1f5f9;
-      letter-spacing: -0.5px;
-    }
-
-    .sb-logo-txt b {
-      font-weight: 700;
-      color: var(--accent);
-    }
-
-    /* ── Empresa ── */
-    .sb-empresa-wrap {
-      margin: 8px 10px 2px;
-      flex-shrink: 0;
-    }
-
-    .sb-empresa {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 9px;
-      border-radius: var(--r);
-      border: 1px solid var(--sb-border);
-      background: var(--sb-surface);
-      text-decoration: none;
-      cursor: pointer;
-      transition: border-color var(--t), background var(--t);
-    }
-
-    .sb-empresa:hover {
-      border-color: rgba(52, 211, 153, .3);
-      background: rgba(16,185,129,.06);
-    }
-
-    .sb-empresa-ico {
-      width: 26px; height: 26px;
-      background: var(--accent-dim);
-      border-radius: 5px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px;
-      color: var(--accent);
-      flex-shrink: 0;
-    }
-
-    .sb-empresa-body { flex: 1; overflow: hidden; }
-
-    .sb-empresa-lbl {
-      font-size: 9.5px;
-      text-transform: uppercase;
-      letter-spacing: .7px;
-      color: var(--sb-txt);
-      line-height: 1;
-      margin-bottom: 2px;
-    }
-
-    .sb-empresa-nm {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--sb-txt-hi);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .sb-empresa-arrow {
-      font-size: 10px;
-      color: var(--sb-txt);
-      flex-shrink: 0;
-    }
-
-    /* ── Nav ── */
-    .sb-nav {
-      flex: 1;
-      padding: 4px 8px 18px;
-      overflow-y: auto;
-      overflow-x: hidden;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(255,255,255,.07) transparent;
-    }
-
-    .sb-nav::-webkit-scrollbar { width: 3px; }
-    .sb-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
-
-    .sb-cat {
-      font-size: 9.5px;
-      font-weight: 700;
-      letter-spacing: 1.1px;
-      text-transform: uppercase;
-      color: rgba(255,255,255,.22);
-      padding: 14px 10px 5px;
-      user-select: none;
-    }
-
-    .sb-divider {
-      height: 1px;
-      background: var(--sb-border);
-      margin: 7px 6px;
-    }
-
-    /* Item */
-    .sb-item { list-style: none; }
-
-    .sb-link {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 6.5px 10px;
-      border-radius: var(--r);
-      color: var(--sb-txt);
-      font-size: 13px;
-      font-weight: 400;
-      cursor: pointer;
-      text-decoration: none;
-      transition: background var(--t), color var(--t);
-      white-space: nowrap;
-    }
-
-    .sb-link:hover {
-      background: var(--sb-hover);
-      color: var(--sb-txt-hi);
-    }
-
-    .sb-link.is-active {
-      background: var(--sb-active-bg);
-      color: var(--sb-active-txt);
-      font-weight: 500;
-    }
-
-    .sb-link.is-active .sb-ico,
-    .sb-link:hover .sb-ico { color: inherit; }
-
-    .sb-ico {
-      font-size: 14.5px;
-      flex-shrink: 0;
-      width: 18px;
-      text-align: center;
-      color: rgba(255,255,255,.25);
-      transition: color var(--t);
-    }
-
-    /* Grupo */
-    .sb-group { list-style: none; }
-
-    .sb-grp-btn {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 6.5px 10px;
-      border-radius: var(--r);
-      color: var(--sb-txt);
-      font-size: 13px;
-      font-weight: 400;
-      cursor: pointer;
-      width: 100%;
-      border: none;
-      background: none;
-      text-align: left;
-      white-space: nowrap;
-      transition: background var(--t), color var(--t);
-    }
-
-    .sb-grp-btn:hover,
-    .sb-group.open > .sb-grp-btn {
-      background: var(--sb-hover);
-      color: var(--sb-txt-hi);
-    }
-
-    .sb-grp-btn .sb-ico { color: rgba(255,255,255,.25); }
-    .sb-group.open > .sb-grp-btn .sb-ico { color: rgba(255,255,255,.6); }
-
-    .sb-arrow {
-      margin-left: auto;
-      font-size: 10px;
-      color: rgba(255,255,255,.18);
-      flex-shrink: 0;
-      transition: transform var(--t);
-    }
-
-    .sb-group.open > .sb-grp-btn .sb-arrow { transform: rotate(90deg); }
-
-    /* Submenu */
-    .sb-sub {
-      display: none;
-      list-style: none;
-      padding: 1px 0 3px 26px;
-      position: relative;
-    }
-
-    .sb-sub::before {
-      content: '';
-      position: absolute;
-      left: 17px; top: 4px; bottom: 4px;
-      width: 1px;
-      background: rgba(255,255,255,.07);
-    }
-
-    .sb-group.open > .sb-sub { display: block; }
-
-    .sb-sub .sb-link {
-      font-size: 12.5px;
-      padding: 5.5px 10px;
-      color: rgba(139,149,170,.75);
-    }
-
-    .sb-sub .sb-link:hover { color: var(--sb-txt-hi); }
-    .sb-sub .sb-link.is-active { color: var(--sb-active-txt); background: var(--sb-active-bg); }
-    .sb-sub .sb-ico { font-size: 13px; }
-
-    /* ── Footer ── */
-    .sb-footer {
-      padding: 8px;
-      border-top: 1px solid var(--sb-border);
-      flex-shrink: 0;
-    }
-
-    .sb-user {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 7px 10px;
-      border-radius: var(--r);
-      cursor: default;
-      transition: background var(--t);
-    }
-
-    .sb-user:hover { background: var(--sb-hover); }
-
-    .sb-avatar {
-      width: 28px; height: 28px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), #0ea5e9);
-      display: flex; align-items: center; justify-content: center;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .sb-user-info { flex: 1; overflow: hidden; }
-
-    .sb-user-nm {
-      font-size: 12.5px;
-      font-weight: 500;
-      color: var(--sb-txt-hi);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .sb-user-role {
-      font-size: 11px;
-      color: rgba(139,149,170,.55);
-    }
-
-    /* ══════════════════════════════════════════════
-       MAIN
-    ══════════════════════════════════════════════ */
-    .erp-main {
-      flex: 1;
-      margin-left: var(--sb-w);
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      min-width: 0;
-    }
-
-    /* ══════════════════════════════════════════════
-       TOPBAR
-    ══════════════════════════════════════════════ */
-    .topbar {
-      position: sticky;
-      top: 0;
-      height: var(--header-h);
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      gap: 8px;
-      z-index: 200;
-    }
-
-    .tb-mobile-btn {
-      display: none;
-      width: 32px; height: 32px;
-      border-radius: var(--r);
-      border: none;
-      background: none;
-      cursor: pointer;
-      align-items: center;
-      justify-content: center;
-      color: var(--txt-2);
-      font-size: 18px;
-      flex-shrink: 0;
-      transition: background var(--t);
-    }
-
-    .tb-mobile-btn:hover { background: var(--bg); }
-
-    /* Breadcrumb */
-    .topbar-bc {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 12.5px;
-      color: var(--txt-3);
-      min-width: 0;
-      overflow: hidden;
-    }
-
-    .topbar-bc a {
-      color: var(--txt-3);
-      transition: color var(--t);
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .topbar-bc a:hover { color: var(--accent); }
-
-    .topbar-bc .bc-sep {
-      font-size: 9px;
-      color: var(--border);
-      flex-shrink: 0;
-    }
-
-    .topbar-bc .bc-cur {
-      color: var(--txt-1);
-      font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Direita */
-    .topbar-r {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      flex-shrink: 0;
-    }
-
-    .tb-sep {
-      width: 1px; height: 16px;
-      background: var(--border);
-      margin: 0 5px;
-    }
-
-    /* Botão ícone */
-    .tb-btn {
-      width: 32px; height: 32px;
-      border-radius: var(--r);
-      border: none;
-      background: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--txt-2);
-      font-size: 16px;
-      position: relative;
-      transition: background var(--t), color var(--t);
-    }
-
-    .tb-btn:hover { background: var(--bg); color: var(--txt-1); }
-
-    .tb-dot {
-      position: absolute;
-      top: 7px; right: 7px;
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--red);
-      border: 1.5px solid var(--surface);
-    }
-
-    /* Empresa pill */
-    .tb-empresa {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 10px 4px 8px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      font-size: 12px;
-      color: var(--txt-2);
-      cursor: pointer;
-      text-decoration: none;
-      white-space: nowrap;
-      transition: all var(--t);
-    }
-
-    .tb-empresa:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-dim);
-    }
-
-    .tb-empresa i { font-size: 11px; }
-
-    /* Logout */
-    .tb-logout {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 5px 11px;
-      border-radius: var(--r);
-      border: none;
-      background: none;
-      font-size: 13px;
-      font-family: var(--font);
-      color: var(--txt-2);
-      cursor: pointer;
-      transition: all var(--t);
-    }
-
-    .tb-logout:hover { background: var(--red-bg); color: var(--red); }
-
-    /* Notif dropdown */
-    .tb-notif-wrap { position: relative; }
-
-    .tb-notif-drop {
-      display: none;
-      position: absolute;
-      top: calc(100% + 8px);
-      right: 0;
-      width: 308px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r-lg);
-      box-shadow: var(--sh-lg);
-      z-index: 400;
-      overflow: hidden;
-    }
-
-    .tb-notif-drop.open {
-      display: block;
-      animation: slideDown .12s ease;
-    }
-
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .nd-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 11px 14px 9px;
-      border-bottom: 1px solid var(--border-soft);
-    }
-
-    .nd-head h4 {
-      font-size: 13px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .nd-head h4 i { color: var(--accent); }
-    .nd-head a { font-size: 12px; color: var(--accent); }
-
-    .nd-body { max-height: 288px; overflow-y: auto; }
-
-    .nd-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 9px;
-      padding: 9px 14px;
-      border-bottom: 1px solid var(--border-soft);
-      transition: background var(--t);
-    }
-
-    .nd-item:last-child { border-bottom: none; }
-    .nd-item:hover { background: var(--surface-2); }
-    .nd-item.unread { background: #f0fdf8; }
-
-    .nd-ico {
-      width: 26px; height: 26px;
-      border-radius: 6px;
-      background: var(--accent-dim);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px;
-      color: var(--accent);
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-
-    .nd-txt { flex: 1; min-width: 0; }
-    .nd-title { font-size: 12.5px; font-weight: 500; line-height: 1.35; color: var(--txt-1); }
-    .nd-time  { font-size: 11px; color: var(--txt-3); margin-top: 2px; }
-
-    .nd-empty { padding: 26px 14px; text-align: center; color: var(--txt-3); font-size: 13px; }
-    .nd-empty i { display: block; font-size: 22px; color: var(--accent); margin-bottom: 6px; }
-
-    /* ══════════════════════════════════════════════
-       CONTENT
-    ══════════════════════════════════════════════ */
-    .erp-content {
-      flex: 1;
-      padding: 24px 24px 44px;
-    }
-
-    /* ── Page header ── */
-    .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-
-    .page-header h1 {
-      font-size: 19px;
-      font-weight: 700;
-      color: var(--txt-1);
-      letter-spacing: -0.5px;
-      line-height: 1.2;
-    }
-
-    /* ── Metrics ── */
-    .metrics {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 22px;
-    }
-
-    .metric-card {
-      flex: 1;
-      min-width: 165px;
-      max-width: 240px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r-lg);
-      padding: 14px 16px;
-      box-shadow: var(--sh-sm);
-      transition: box-shadow var(--t), transform var(--t);
-    }
-
-    .metric-card:hover { box-shadow: var(--sh); transform: translateY(-1px); }
-
-    .metric-card h3 {
-      font-size: 10.5px;
-      font-weight: 600;
-      color: var(--txt-3);
-      text-transform: uppercase;
-      letter-spacing: .7px;
-      margin-bottom: 7px;
-    }
-
-    .metric-card p {
-      font-size: 23px;
-      font-weight: 700;
-      color: var(--accent);
-      line-height: 1;
-      font-family: var(--font-mono);
-      font-variant-numeric: tabular-nums;
-      margin: 0;
-    }
-
-    /* ── Detail card ── */
-    .detail-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r-lg);
-      padding: 18px 20px;
-      margin-bottom: 18px;
-      box-shadow: var(--sh-sm);
-    }
-
-    .detail-card h2 {
-      font-size: 13.5px;
-      font-weight: 600;
-      color: var(--txt-1);
-      margin-bottom: 14px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--border-soft);
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-
-    .detail-card h2 i { color: var(--accent); font-size: 15px; }
-
-    .detail-content { display: flex; gap: 22px; flex-wrap: wrap; }
-    .detail-info { flex: 1; min-width: 260px; }
-
-    .detail-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border-soft);
-      gap: 14px;
-    }
-
-    .detail-row:last-child { border-bottom: none; }
-
-    .detail-label {
-      font-size: 12.5px;
-      font-weight: 500;
-      color: var(--txt-2);
-      flex-shrink: 0;
-      min-width: 130px;
-    }
-
-    .detail-value { font-size: 13px; color: var(--txt-1); text-align: right; }
-
-    .metrics.vertical {
-      flex-direction: column;
-      min-width: 190px;
-      max-width: 210px;
-    }
-
-    .metrics.vertical .metric-card { max-width: 100%; min-width: unset; }
-
-    /* ── Table ── */
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    .table th {
-      padding: 9px 13px;
-      background: var(--surface-2);
-      color: var(--txt-2);
-      font-weight: 600;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .55px;
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-    }
-
-    .table td {
-      padding: 10px 13px;
-      color: var(--txt-1);
-      border-bottom: 1px solid var(--border-soft);
-      vertical-align: middle;
-    }
-
-    .table tr:last-child td { border-bottom: none; }
-    .table tbody tr { transition: background var(--t); }
-    .table tbody tr:hover td { background: #f7f9ff; }
-    .text-center { text-align: center; }
-
-    /* ── Buttons ── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 7px 15px;
-      border: none;
-      border-radius: var(--r);
-      font-size: 13px;
-      font-family: var(--font);
-      font-weight: 500;
-      cursor: pointer;
-      text-decoration: none;
-      white-space: nowrap;
-      line-height: 1;
-      transition: background var(--t), box-shadow var(--t), transform var(--t), color var(--t);
-    }
-
-    .btn:active { transform: scale(.98); }
-
-    .btn-primary   { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 2px 10px var(--accent-glow); }
-
-    .btn-secondary { background: var(--surface); color: var(--txt-2); border: 1px solid var(--border); }
-    .btn-secondary:hover { background: var(--bg); color: var(--txt-1); }
-
-    .btn-edit   { background: var(--blue-bg); color: var(--blue); }
-    .btn-edit:hover { background: #dbeafe; }
-
-    .btn-delete { background: var(--red-bg); color: var(--red); }
-    .btn-delete:hover { background: #fecaca; }
-
-    .btn-sm { padding: 4px 9px; font-size: 11.5px; }
-
-    /* ── Forms ── */
-    .form-group { margin-bottom: 16px; }
-
-    .form-group label {
-      display: block;
-      font-size: 12.5px;
-      font-weight: 500;
-      color: var(--txt-2);
-      margin-bottom: 5px;
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 8px 11px;
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      font-size: 13px;
-      font-family: var(--font);
-      color: var(--txt-1);
-      background: var(--surface);
-      transition: border-color var(--t), box-shadow var(--t);
-    }
-
-    .form-control:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(16,185,129,.12);
-    }
-
-    textarea.form-control { min-height: 86px; resize: vertical; }
-
-    .filter-form {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      gap: 10px;
-      margin-bottom: 18px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r-lg);
-      padding: 12px 14px;
-      box-shadow: var(--sh-sm);
-    }
-
-    .filter-form .form-group { flex: 1; min-width: 148px; margin-bottom: 0; }
-    .filter-buttons { display: flex; gap: 7px; align-items: flex-end; flex-shrink: 0; }
-
-    .form-grid { display: flex; flex-wrap: wrap; gap: 16px; }
-    .form-grid .form-group { flex: 1; min-width: 190px; max-width: 310px; }
-    .form-grid .form-group.full-width { flex: 0 0 100%; max-width: 100%; }
-    .form-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 22px; }
-
-    /* ── Pagination ── */
-    .pagination {
-      display: flex;
-      list-style: none;
-      justify-content: flex-end;
-      gap: 3px;
-      margin-top: 16px;
-      flex-wrap: wrap;
-      padding: 0;
-    }
-
-    .page-link {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 28px; height: 28px;
-      padding: 0 7px;
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      font-size: 12px;
-      font-family: var(--font);
-      color: var(--txt-2);
-      background: var(--surface);
-      cursor: pointer;
-      text-decoration: none;
-      transition: all var(--t);
-    }
-
-    .page-item.active .page-link {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-      font-weight: 600;
-    }
-
-    .page-item.disabled .page-link { opacity: .4; cursor: default; pointer-events: none; }
-    .page-link:hover { border-color: var(--accent); color: var(--accent); }
-
-    /* ── Charts ── */
-    .chart-container { max-width: 100%; max-height: 300px; }
-    .chart-container canvas { max-height: 300px !important; width: 100% !important; }
-
-    /* ── Mono util ── */
-    .mono { font-family: var(--font-mono); font-size: 12.5px; }
-
-    /* ── Overlay (mobile) ── */
-    .sb-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.55);
-      z-index: 299;
-    }
-
-    /* ══════════════════════════════════════════════
-       RESPONSIVE
-    ══════════════════════════════════════════════ */
-    @media (max-width: 768px) {
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.open { transform: translateX(0); box-shadow: var(--sh-lg); }
-      .sb-overlay.open { display: block; }
-      .erp-main { margin-left: 0; }
-      .erp-content { padding: 16px 14px 36px; }
-      .tb-mobile-btn { display: flex; }
-      .tb-empresa span { display: none; }
-      .metrics { flex-direction: column; }
-      .metric-card { max-width: 100%; }
-      .filter-form { flex-direction: column; }
-      .filter-buttons { width: 100%; }
-      .detail-content { flex-direction: column; }
-      .metrics.vertical { max-width: 100%; }
-    }
-  </style>
-
-  {% block extra_head %}{% endblock %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}FinanceERP{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+
+    <style>
+        /* ══════════════════════════════════════════════
+           VARIÁVEIS
+        ══════════════════════════════════════════════ */
+        :root {
+          --sb-w: 240px;
+          --sb-bg: #0f172a;
+          --sb-surface: rgba(255,255,255,.05);
+          --sb-border: rgba(255,255,255,.08);
+          --sb-txt: #cbd5e1;
+          --sb-txt-dim: #64748b;
+          --accent: #10b981;
+          --accent-glow: rgba(16,185,129,.35);
+          --bg: #f1f5f9;
+          --surface: #f8fafc;
+          --border: #e2e8f0;
+          --txt-1: #1e293b;
+          --txt-2: #475569;
+          --txt-3: #94a3b8;
+          --r: 8px;
+          --t: .18s ease;
+          --font: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        /* ══════════════════════════════════════════════
+           RESET
+        ══════════════════════════════════════════════ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font); font-size: 13.5px; color: var(--txt-1); background: var(--bg); -webkit-font-smoothing: antialiased; min-height: 100vh; }
+        a { color: inherit; text-decoration: none; }
+        button, input, select, textarea { font-family: var(--font); }
+
+        /* ══════════════════════════════════════════════
+           SHELL
+        ══════════════════════════════════════════════ */
+        .erp-shell { display: flex; min-height: 100vh; }
+
+        /* ══════════════════════════════════════════════
+           SIDEBAR
+        ══════════════════════════════════════════════ */
+        .sidebar {
+          position: fixed; inset: 0 auto 0 0;
+          width: var(--sb-w); background: var(--sb-bg);
+          display: flex; flex-direction: column;
+          z-index: 300; overflow: hidden; transition: transform var(--t);
+        }
+        .sidebar::after {
+          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+          background: linear-gradient(90deg, var(--accent) 30%, transparent); pointer-events: none;
+        }
+
+        /* Logo */
+        .sb-logo { display: flex; align-items: center; gap: 10px; padding: 17px 16px 14px; border-bottom: 1px solid var(--sb-border); flex-shrink: 0; }
+        .sb-logo-gem { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(140deg, var(--accent), #34d399 80%); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; flex-shrink: 0; box-shadow: 0 0 14px var(--accent-glow); }
+        .sb-logo-txt { font-size: 15px; font-weight: 700; color: #f1f5f9; letter-spacing: -0.5px; }
+        .sb-logo-txt b { font-weight: 700; color: var(--accent); }
+
+        /* Empresa */
+        .sb-empresa-wrap { margin: 8px 10px 2px; flex-shrink: 0; }
+        .sb-empresa { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: var(--r); border: 1px solid var(--sb-border); background: var(--sb-surface); text-decoration: none; cursor: pointer; transition: border-color var(--t), background var(--t); }
+        .sb-empresa:hover { border-color: rgba(52,211,153,.3); background: rgba(16,185,129,.06); }
+        .sb-empresa-ico { width: 26px; height: 26px; background: rgba(16,185,129,.15); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 13px; flex-shrink: 0; }
+        .sb-empresa-body { flex: 1; min-width: 0; }
+        .sb-empresa-lbl { font-size: 10px; color: var(--sb-txt-dim); text-transform: uppercase; letter-spacing: .5px; }
+        .sb-empresa-nm { font-size: 12px; font-weight: 600; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sb-empresa-arrow { font-size: 11px; color: var(--sb-txt-dim); flex-shrink: 0; }
+
+        /* Nav */
+        .sb-nav { flex: 1; overflow-y: auto; padding: 6px 0 16px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.1) transparent; }
+        .sb-nav::-webkit-scrollbar { width: 4px; }
+        .sb-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+
+        .sb-cat { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--sb-txt-dim); padding: 14px 16px 4px; }
+        .sb-divider { height: 1px; background: var(--sb-border); margin: 8px 12px; }
+
+        .sb-item { list-style: none; }
+        .sb-link { display: flex; align-items: center; gap: 9px; padding: 7px 14px; font-size: 13px; color: var(--sb-txt); border-radius: 0; transition: background var(--t), color var(--t); cursor: pointer; white-space: nowrap; overflow: hidden; }
+        .sb-link:hover { background: var(--sb-surface); color: #f1f5f9; }
+        .sb-link.active { background: rgba(16,185,129,.12); color: var(--accent); }
+        .sb-ico { font-size: 15px; flex-shrink: 0; opacity: .75; }
+        .sb-link:hover .sb-ico, .sb-link.active .sb-ico { opacity: 1; }
+
+        /* Grupos expansíveis */
+        .sb-group { list-style: none; }
+        .sb-grp-btn { display: flex; align-items: center; gap: 9px; width: 100%; padding: 7px 14px; font-size: 13px; color: var(--sb-txt); background: none; border: none; cursor: pointer; transition: background var(--t), color var(--t); }
+        .sb-grp-btn:hover { background: var(--sb-surface); color: #f1f5f9; }
+        .sb-arrow { margin-left: auto; font-size: 10px; transition: transform var(--t); }
+        .sb-grp-btn[aria-expanded="true"] .sb-arrow { transform: rotate(90deg); }
+        .sb-sub { list-style: none; overflow: hidden; max-height: 0; transition: max-height .25s ease; }
+        .sb-sub.open { max-height: 600px; }
+        .sb-sub .sb-link { padding-left: 38px; font-size: 12.5px; color: var(--sb-txt-dim); }
+        .sb-sub .sb-link:hover { color: #f1f5f9; }
+
+        /* Footer */
+        .sb-footer { flex-shrink: 0; border-top: 1px solid var(--sb-border); padding: 10px 12px; }
+        .sb-user { display: flex; align-items: center; gap: 9px; }
+        .sb-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #3b82f6); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
+        .sb-user-info { flex: 1; min-width: 0; }
+        .sb-user-nm { font-size: 12.5px; font-weight: 600; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sb-user-role { font-size: 11px; color: var(--sb-txt-dim); }
+
+        /* Overlay mobile */
+        .sb-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 299; }
+
+        /* ══════════════════════════════════════════════
+           MAIN
+        ══════════════════════════════════════════════ */
+        .erp-main { flex: 1; margin-left: var(--sb-w); display: flex; flex-direction: column; min-height: 100vh; }
+
+        /* Topbar */
+        .topbar { height: 52px; background: #fff; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; padding: 0 20px; position: sticky; top: 0; z-index: 200; flex-shrink: 0; }
+        .tb-mobile-btn { display: none; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--txt-2); padding: 4px; }
+        .topbar-bc { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--txt-3); flex: 1; }
+        .topbar-bc a { color: var(--txt-3); transition: color var(--t); }
+        .topbar-bc a:hover { color: var(--txt-1); }
+        .topbar-r { display: flex; align-items: center; gap: 8px; }
+        .tb-sep { width: 1px; height: 20px; background: var(--border); }
+        .tb-btn { background: none; border: none; width: 34px; height: 34px; border-radius: var(--r); display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--txt-2); cursor: pointer; position: relative; transition: background var(--t); }
+        .tb-btn:hover { background: var(--surface); }
+        .tb-dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: #ef4444; border: 1.5px solid #fff; }
+        .tb-empresa { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--txt-2); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px; cursor: pointer; transition: border-color var(--t); }
+        .tb-empresa:hover { border-color: var(--accent); }
+
+        /* Notificações dropdown */
+        .tb-notif-wrap { position: relative; }
+        .tb-notif-drop { display: none; position: absolute; top: calc(100% + 8px); right: 0; width: 320px; background: #fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.12); z-index: 500; overflow: hidden; }
+        .tb-notif-drop.open { display: block; }
+        .nd-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+        .nd-head h4 { font-size: 13px; font-weight: 700; color: var(--txt-1); }
+        .nd-head a { font-size: 12px; color: var(--accent); }
+        .nd-body { max-height: 320px; overflow-y: auto; }
+        .nd-item { display: flex; gap: 10px; padding: 11px 16px; border-bottom: 1px solid var(--border); transition: background var(--t); }
+        .nd-item:hover { background: var(--surface); }
+        .nd-item.unread { background: rgba(16,185,129,.04); }
+        .nd-ico { width: 30px; height: 30px; border-radius: 50%; background: rgba(16,185,129,.1); display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 13px; flex-shrink: 0; }
+        .nd-title { font-size: 12.5px; color: var(--txt-1); font-weight: 500; line-height: 1.4; }
+        .nd-time { font-size: 11px; color: var(--txt-3); margin-top: 2px; }
+        .nd-empty { padding: 24px; text-align: center; color: var(--txt-3); font-size: 13px; }
+        .nd-empty i { display: block; font-size: 24px; margin-bottom: 6px; color: var(--accent); }
+
+        /* Content */
+        .erp-content { flex: 1; padding: 24px 28px 40px; }
+
+        /* Utilitários de página */
+        .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; gap: 12px; flex-wrap: wrap; }
+        .detail-card { background: #fff; border-radius: 12px; padding: 20px 24px; box-shadow: 0 1px 4px rgba(0,0,0,.07); margin-bottom: 16px; }
+        .card-hdr { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; border-bottom: 1px solid var(--border); }
+        .card-hdr h3 { font-size: 13px; font-weight: 600; color: var(--txt-1); display: flex; align-items: center; gap: 6px; margin: 0; }
+        .error-message { color: #dc3545; font-size: 12px; display: block; margin-top: 4px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-grid .full-width { grid-column: 1 / -1; }
+        .form-group { margin-bottom: 0; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--txt-2); margin-bottom: 5px; }
+        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+        /* Relatórios */
+        .filtros-card { background:#fff; border-radius:12px; padding:16px 20px; box-shadow:0 2px 8px rgba(0,0,0,.06); margin-bottom:20px; display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
+        .filtros-card label { font-size:12px; color:#666; display:block; margin-bottom:4px; }
+        .filtros-card select, .filtros-card input { border:1px solid #ddd; border-radius:6px; padding:6px 10px; font-size:13px; }
+        .filtros-card button { background:#1a73e8; color:#fff; border:none; border-radius:6px; padding:8px 18px; font-size:13px; cursor:pointer; }
+        .relatorio-resumo { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px; margin-bottom:20px; }
+        .resumo-item { background:#fff; border-radius:10px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,.06); text-align:center; border-top:3px solid #1a73e8; }
+        .resumo-item.verde { border-top-color:#34a853; } .resumo-item.vermelho { border-top-color:#ea4335; } .resumo-item.amarelo { border-top-color:#fbbc04; }
+        .resumo-item label { font-size:12px; color:#888; display:block; }
+        .resumo-item strong { font-size:18px; color:#333; display:block; margin-top:4px; }
+        .relatorio-card { background:#fff; border-radius:12px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,.06); margin-bottom:20px; }
+        .relatorio-card h3 { font-size:15px; color:#333; margin-bottom:14px; border-bottom:1px solid #f0f0f0; padding-bottom:8px; }
+        .charts-2col { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+        @media print { .sidebar, header, .filtros-card button { display:none!important; } .erp-main { margin-left:0!important; } }
+
+        /* ══════════════════════════════════════════════
+           RESPONSIVE
+        ══════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+          .sidebar { transform: translateX(-100%); }
+          .sidebar.open { transform: translateX(0); }
+          .sb-overlay { display: block; opacity: 0; pointer-events: none; transition: opacity var(--t); }
+          .sb-overlay.open { opacity: 1; pointer-events: auto; }
+          .erp-main { margin-left: 0; }
+          .erp-content { padding: 16px 14px 36px; }
+          .tb-mobile-btn { display: flex; }
+          .tb-empresa span { display: none; }
+          .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
 
@@ -964,405 +203,543 @@
 
 <div class="erp-shell">
 
-  <!-- ════════════════════════════════════════════
-       SIDEBAR
-  ════════════════════════════════════════════ -->
-  <aside class="sidebar" id="sidebar" aria-label="Navegação principal">
+    <!-- ════════════════════════════════════════════
+         SIDEBAR
+    ════════════════════════════════════════════ -->
+    <aside class="sidebar" id="sidebar" aria-label="Navegação principal">
 
-    <!-- Logo -->
-    <div class="sb-logo">
-      <div class="sb-logo-gem"><i class="bi bi-graph-up-arrow"></i></div>
-      <span class="sb-logo-txt">Finance<b>ERP</b></span>
-    </div>
-
-    <!-- Empresa ativa -->
-    <div class="sb-empresa-wrap">
-      {% if empresa_ativa %}
-      <a href="{% url 'authentication:selecionar_empresa' %}" class="sb-empresa" title="Trocar empresa">
-        <div class="sb-empresa-ico"><i class="bi bi-building"></i></div>
-        <div class="sb-empresa-body">
-          <div class="sb-empresa-lbl">Empresa ativa</div>
-          <div class="sb-empresa-nm">{{ empresa_ativa.nome_fantasia|default:empresa_ativa.razao_social }}</div>
+        <!-- Logo -->
+        <div class="sb-logo">
+            <div class="sb-logo-gem"><i class="bi bi-graph-up-arrow"></i></div>
+            <span class="sb-logo-txt">Finance<b>ERP</b></span>
         </div>
-        <i class="bi bi-arrow-left-right sb-empresa-arrow"></i>
-      </a>
-      {% else %}
-      <a href="{% url 'authentication:selecionar_empresa' %}" class="sb-empresa">
-        <div class="sb-empresa-ico"><i class="bi bi-building-x"></i></div>
-        <div class="sb-empresa-body">
-          <div class="sb-empresa-lbl">Nenhuma empresa</div>
-          <div class="sb-empresa-nm" style="color:var(--accent)">Selecionar empresa →</div>
-        </div>
-      </a>
-      {% endif %}
-    </div>
 
-    <!-- Nav -->
-    <nav class="sb-nav" aria-label="Módulos">
-      <ul style="list-style:none">
-
-        <li class="sb-item">
-          <a href="{% url 'authentication:dashboard' %}" class="sb-link">
-            <i class="bi bi-speedometer2 sb-ico"></i>Dashboard
-          </a>
-        </li>
-
-        <!-- FINANCEIRO -->
-        <p class="sb-cat">Financeiro</p>
-
-        <li class="sb-group">
-          <button class="sb-grp-btn" aria-expanded="false">
-            <i class="bi bi-credit-card sb-ico"></i>Contas a Pagar
-            <i class="bi bi-chevron-right sb-arrow"></i>
-          </button>
-          <ul class="sb-sub">
-            <li><a href="{% url 'financeiro:conta_pagar_list' %}" class="sb-link">
-              <i class="bi bi-list-ul sb-ico"></i>Todas as contas
-            </a></li>
-            <li><a href="{% url 'financeiro:conta_pagar_create' %}" class="sb-link">
-              <i class="bi bi-plus-circle sb-ico"></i>Nova conta
-            </a></li>
-          </ul>
-        </li>
-
-        <li class="sb-group">
-          <button class="sb-grp-btn" aria-expanded="false">
-            <i class="bi bi-cash-stack sb-ico"></i>Contas a Receber
-            <i class="bi bi-chevron-right sb-arrow"></i>
-          </button>
-          <ul class="sb-sub">
-            <li><a href="{% url 'financeiro:conta_receber_list' %}" class="sb-link">
-              <i class="bi bi-list-ul sb-ico"></i>Todas as contas
-            </a></li>
-            <li><a href="{% url 'financeiro:conta_receber_create' %}" class="sb-link">
-              <i class="bi bi-plus-circle sb-ico"></i>Nova conta
-            </a></li>
-          </ul>
-        </li>
-
-        <li class="sb-item">
-          <a href="{% url 'financeiro:lancamento_list' %}" class="sb-link">
-            <i class="bi bi-journal-text sb-ico"></i>Lançamentos
-          </a>
-        </li>
-
-        <li class="sb-item">
-          <a href="{% url 'financeiro:transferencia_list' %}" class="sb-link">
-            <i class="bi bi-arrow-left-right sb-ico"></i>Transferências
-          </a>
-        </li>
-
-        <li class="sb-item">
-          <a href="{% url 'financeiro:projecao_list' %}" class="sb-link">
-            <i class="bi bi-graph-up sb-ico"></i>Fluxo de Caixa
-          </a>
-        </li>
-
-        <!-- BANCÁRIO -->
-        <p class="sb-cat">Bancário</p>
-
-        <li class="sb-item">
-          <a href="{% url 'bancario:importacao_list' %}" class="sb-link">
-            <i class="bi bi-bank sb-ico"></i>Extratos
-          </a>
-        </li>
-
-        <li class="sb-item">
-          <a href="{% url 'bancario:conciliacao_list' %}" class="sb-link">
-            <i class="bi bi-check2-circle sb-ico"></i>Conciliação Bancária
-          </a>
-        </li>
-
-        <!-- FISCAL -->
-        <p class="sb-cat">Fiscal</p>
-
-        <li class="sb-item">
-          <a href="{% url 'fiscal:obrigacao_list' %}" class="sb-link">
-            <i class="bi bi-clipboard2-check sb-ico"></i>Obrigações Fiscais
-          </a>
-        </li>
-
-        <li class="sb-item">
-          <a href="{% url 'fiscal:lancamento_imposto_list' %}" class="sb-link">
-            <i class="bi bi-receipt sb-ico"></i>Lançamento de Impostos
-          </a>
-        </li>
-
-        <!-- ORÇAMENTO -->
-        <p class="sb-cat">Orçamento</p>
-
-        <li class="sb-item">
-          <a href="{% url 'orcamento:orcamento_list' %}" class="sb-link">
-            <i class="bi bi-bar-chart-line sb-ico"></i>Orçamentos
-          </a>
-        </li>
-
-        <li class="sb-item">
-          <a href="{% url 'orcamento:alerta_list' %}" class="sb-link">
-            <i class="bi bi-exclamation-triangle sb-ico"></i>Alertas de Estouro
-          </a>
-        </li>
-
-        <!-- CADASTROS -->
-        <p class="sb-cat">Cadastros</p>
-
-        <li class="sb-item">
-          <a href="{% url 'sistema:fornecedor_list' %}" class="sb-link">
-            <i class="bi bi-truck sb-ico"></i>Fornecedores
-          </a>
-        </li>
-
-        <li class="sb-item">
-          <a href="{% url 'sistema:cliente_list' %}" class="sb-link">
-            <i class="bi bi-people sb-ico"></i>Clientes
-          </a>
-        </li>
-
-        <li class="sb-group">
-          <button class="sb-grp-btn" aria-expanded="false">
-            <i class="bi bi-sliders sb-ico"></i>Configurações
-            <i class="bi bi-chevron-right sb-arrow"></i>
-          </button>
-          <ul class="sb-sub">
-            <li><a href="{% url 'sistema:conta_bancaria_list' %}" class="sb-link">
-              <i class="bi bi-bank2 sb-ico"></i>Contas Bancárias
-            </a></li>
-            <li><a href="{% url 'sistema:plano_contas_list' %}" class="sb-link">
-              <i class="bi bi-diagram-3 sb-ico"></i>Plano de Contas
-            </a></li>
-            <li><a href="{% url 'sistema:centro_custo_list' %}" class="sb-link">
-              <i class="bi bi-pie-chart sb-ico"></i>Centros de Custo
-            </a></li>
-          </ul>
-        </li>
-
-        <!-- ADMINISTRAÇÃO (apenas superuser) -->
-        {% if request.user.is_superuser %}
-        <div class="sb-divider"></div>
-        <p class="sb-cat">Administração</p>
-
-        <li class="sb-item">
-          <a href="{% url 'authentication:empresa_list' %}" class="sb-link">
-            <i class="bi bi-building sb-ico"></i>Empresas
-          </a>
-        </li>
-
-        <li class="sb-item">
-          <a href="{% url 'authentication:usuario_list' %}" class="sb-link">
-            <i class="bi bi-person-badge sb-ico"></i>Usuários
-          </a>
-        </li>
-
-        <li class="sb-item">
-          <a href="{% url 'authentication:perfil_list' %}" class="sb-link">
-            <i class="bi bi-shield-check sb-ico"></i>Perfis de Acesso
-          </a>
-        </li>
-
-        <li class="sb-item">
-          <a href="{% url 'authentication:log_list' %}" class="sb-link">
-            <i class="bi bi-clock-history sb-ico"></i>Logs de Auditoria
-          </a>
-        </li>
-        {% endif %}
-
-      </ul>
-    </nav>
-
-    <!-- Usuário -->
-    <div class="sb-footer">
-      <div class="sb-user">
-        <div class="sb-avatar">{{ request.user.nome|first|upper|default:"U" }}</div>
-        <div class="sb-user-info">
-          <div class="sb-user-nm">{{ request.user.nome|default:request.user.email|truncatechars:22 }}</div>
-          <div class="sb-user-role">{{ request.user.perfil_acesso.nome|default:"Usuário" }}</div>
-        </div>
-      </div>
-    </div>
-
-  </aside>
-
-  <!-- ════════════════════════════════════════════
-       MAIN
-  ════════════════════════════════════════════ -->
-  <div class="erp-main">
-
-    <!-- TOPBAR -->
-    <header class="topbar">
-
-      <button class="tb-mobile-btn" id="menuBtn" aria-label="Abrir menu lateral">
-        <i class="bi bi-list"></i>
-      </button>
-
-      <!-- Breadcrumb -->
-      <nav class="topbar-bc" aria-label="Caminho de navegação">
-        <a href="{% url 'authentication:dashboard' %}" title="Dashboard">
-          <i class="bi bi-house-door"></i>
-        </a>
-        {% block breadcrumb %}{% endblock %}
-      </nav>
-
-      <!-- Direita -->
-      <div class="topbar-r">
-
-        {% if empresa_ativa %}
-        <a href="{% url 'authentication:selecionar_empresa' %}" class="tb-empresa" title="Trocar empresa">
-          <i class="bi bi-building"></i>
-          <span>{{ empresa_ativa.nome_fantasia|default:empresa_ativa.razao_social|truncatechars:22 }}</span>
-          <i class="bi bi-chevron-down" style="font-size:9px"></i>
-        </a>
-        <div class="tb-sep"></div>
-        {% endif %}
-
-        <!-- Notificações -->
-        <div class="tb-notif-wrap">
-          <button class="tb-btn" id="notifBtn" aria-label="Notificações">
-            <i class="bi bi-bell"></i>
-            {% if notificacoes_nao_lidas %}
-            <span class="tb-dot"></span>
+        <!-- Empresa ativa -->
+        <div class="sb-empresa-wrap">
+            {% if empresa_ativa %}
+            <a href="{% url 'authentication:selecionar_empresa' %}" class="sb-empresa" title="Trocar empresa">
+                <div class="sb-empresa-ico"><i class="bi bi-building"></i></div>
+                <div class="sb-empresa-body">
+                    <div class="sb-empresa-lbl">Empresa ativa</div>
+                    <div class="sb-empresa-nm">{{ empresa_ativa.nome_fantasia|default:empresa_ativa.razao_social }}
+                    </div>
+                </div>
+                <i class="bi bi-arrow-left-right sb-empresa-arrow"></i>
+            </a>
+            {% else %}
+            <a href="{% url 'authentication:selecionar_empresa' %}" class="sb-empresa">
+                <div class="sb-empresa-ico"><i class="bi bi-building-x"></i></div>
+                <div class="sb-empresa-body">
+                    <div class="sb-empresa-lbl">Nenhuma empresa</div>
+                    <div class="sb-empresa-nm" style="color:var(--accent)">Selecionar empresa →</div>
+                </div>
+            </a>
             {% endif %}
-          </button>
-
-          <div class="tb-notif-drop" id="notifDrop" role="dialog" aria-label="Notificações">
-            <div class="nd-head">
-              <h4><i class="bi bi-bell-fill"></i> Notificações</h4>
-              <a href="{% url 'authentication:notificacao_list' %}">Ver todas →</a>
-            </div>
-            <div class="nd-body">
-              {% for n in notificacoes_nao_lidas %}
-              <div class="nd-item {% if not n.lida %}unread{% endif %}">
-                <div class="nd-ico">
-                  <i class="bi {{ n.tipo.icone|default:'bi-info-circle' }}"></i>
-                </div>
-                <div class="nd-txt">
-                  <div class="nd-title">{{ n.titulo }}</div>
-                  <div class="nd-time">{{ n.criado_em|timesince }} atrás</div>
-                </div>
-              </div>
-              {% empty %}
-              <div class="nd-empty">
-                <i class="bi bi-check2-circle"></i>
-                Tudo em dia — nenhuma notificação pendente.
-              </div>
-              {% endfor %}
-            </div>
-          </div>
         </div>
 
-        <div class="tb-sep"></div>
+        <!-- ════ NAV ════ -->
+        <nav class="sb-nav" aria-label="Módulos">
+            <ul style="list-style:none">
 
-        <!-- Logout -->
-        <form method="post" action="{% url 'authentication:logout' %}">
-          {% csrf_token %}
-          <button type="submit" class="tb-logout" title="Sair do sistema">
-            <i class="bi bi-box-arrow-right"></i>Sair
-          </button>
-        </form>
+                <!-- Dashboard -->
+                <li class="sb-item">
+                    <a href="{% url 'home:dashboard' %}" class="sb-link">
+                        <i class="bi bi-speedometer2 sb-ico"></i>Dashboard
+                    </a>
+                </li>
 
-      </div>
-    </header>
+                <!-- ── FINANCEIRO ────────────────────── -->
+                <p class="sb-cat">Financeiro</p>
 
-    <!-- PÁGINA -->
-    <main class="erp-content">
-      {% block conteudo %}{% endblock %}
-    </main>
+                <li class="sb-group">
+                    <button class="sb-grp-btn" aria-expanded="false">
+                        <i class="bi bi-credit-card sb-ico"></i>Contas a Pagar
+                        <i class="bi bi-chevron-right sb-arrow"></i>
+                    </button>
+                    <ul class="sb-sub">
+                        <li><a href="{% url 'financeiro:conta_pagar_list' %}" class="sb-link">
+                            <i class="bi bi-list-ul sb-ico"></i>Todas as contas
+                        </a></li>
+                        <li><a href="{% url 'financeiro:conta_pagar_create' %}" class="sb-link">
+                            <i class="bi bi-plus-circle sb-ico"></i>Nova conta
+                        </a></li>
+                    </ul>
+                </li>
 
-  </div>
-</div>
+                <li class="sb-group">
+                    <button class="sb-grp-btn" aria-expanded="false">
+                        <i class="bi bi-cash-stack sb-ico"></i>Contas a Receber
+                        <i class="bi bi-chevron-right sb-arrow"></i>
+                    </button>
+                    <ul class="sb-sub">
+                        <li><a href="{% url 'financeiro:conta_receber_list' %}" class="sb-link">
+                            <i class="bi bi-list-ul sb-ico"></i>Todas as contas
+                        </a></li>
+                        <li><a href="{% url 'financeiro:conta_receber_create' %}" class="sb-link">
+                            <i class="bi bi-plus-circle sb-ico"></i>Nova conta
+                        </a></li>
+                    </ul>
+                </li>
 
-<!-- ════════════════════════════════════════════
-     SCRIPTS
-════════════════════════════════════════════ -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script src="{% static 'assets/js/script.js' %}"></script>
+                <li class="sb-item">
+                    <a href="{% url 'financeiro:lancamento_list' %}" class="sb-link">
+                        <i class="bi bi-journal-text sb-ico"></i>Lançamentos
+                    </a>
+                </li>
+
+                <li class="sb-item">
+                    <a href="{% url 'financeiro:transferencia_list' %}" class="sb-link">
+                        <i class="bi bi-arrow-left-right sb-ico"></i>Transferências
+                    </a>
+                </li>
+
+                <li class="sb-item">
+                    <a href="{% url 'financeiro:projecao_list' %}" class="sb-link">
+                        <i class="bi bi-graph-up sb-ico"></i>Fluxo de Caixa
+                    </a>
+                </li>
+
+                <!-- ── BANCÁRIO ──────────────────────── -->
+                <p class="sb-cat">Bancário</p>
+
+                <li class="sb-item">
+                    <a href="{% url 'bancario:importacao_list' %}" class="sb-link">
+                        <i class="bi bi-bank sb-ico"></i>Extratos
+                    </a>
+                </li>
+
+                <li class="sb-item">
+                    <a href="{% url 'bancario:conciliacao_list' %}" class="sb-link">
+                        <i class="bi bi-check2-circle sb-ico"></i>Conciliação Bancária
+                    </a>
+                </li>
+
+                <li class="sb-item">
+                    <a href="{% url 'bancario:divergencia_list' %}" class="sb-link">
+                        <i class="bi bi-exclamation-diamond sb-ico"></i>Divergências
+                    </a>
+                </li>
+
+                <li class="sb-group">
+                    <button class="sb-grp-btn" aria-expanded="false">
+                        <i class="bi bi-file-earmark-arrow-up sb-ico"></i>Remessa / Retorno
+                        <i class="bi bi-chevron-right sb-arrow"></i>
+                    </button>
+                    <ul class="sb-sub">
+                        <li><a href="{% url 'bancario:remessa_list' %}" class="sb-link">
+                            <i class="bi bi-upload sb-ico"></i>Remessas
+                        </a></li>
+                        <li><a href="{% url 'bancario:retorno_list' %}" class="sb-link">
+                            <i class="bi bi-download sb-ico"></i>Retornos
+                        </a></li>
+                    </ul>
+                </li>
+
+                <!-- ── FISCAL ────────────────────────── -->
+                <p class="sb-cat">Fiscal</p>
+
+                <li class="sb-item">
+                    <a href="{% url 'fiscal:obrigacao_list' %}" class="sb-link">
+                        <i class="bi bi-clipboard2-check sb-ico"></i>Obrigações Fiscais
+                    </a>
+                </li>
+
+                <li class="sb-item">
+                    <a href="{% url 'fiscal:lancamento_imposto_list' %}" class="sb-link">
+                        <i class="bi bi-receipt sb-ico"></i>Lançamento de Impostos
+                    </a>
+                </li>
+
+                <li class="sb-item">
+                    <a href="{% url 'fiscal:configuracao_imposto_list' %}" class="sb-link">
+                        <i class="bi bi-sliders2 sb-ico"></i>Config. de Impostos
+                    </a>
+                </li>
+
+                <!-- ── ORÇAMENTO ─────────────────────── -->
+                <p class="sb-cat">Orçamento</p>
+
+                <li class="sb-item">
+                    <a href="{% url 'orcamento:orcamento_list' %}" class="sb-link">
+                        <i class="bi bi-bar-chart-line sb-ico"></i>Orçamentos
+                    </a>
+                </li>
+
+                <li class="sb-item">
+                    <a href="{% url 'orcamento:alerta_list' %}" class="sb-link">
+                        <i class="bi bi-exclamation-triangle sb-ico"></i>Alertas de Estouro
+                    </a>
+                </li>
+
+                <!-- ── RELATÓRIOS ────────────────────── -->
+                <p class="sb-cat">Relatórios</p>
+
+                <li class="sb-group">
+                    <button class="sb-grp-btn" aria-expanded="false">
+                        <i class="bi bi-bar-chart-fill sb-ico"></i>Relatórios Gerenciais
+                        <i class="bi bi-chevron-right sb-arrow"></i>
+                    </button>
+                    <ul class="sb-sub">
+                        <li><a href="{% url 'home:relatorio_dre' %}" class="sb-link">
+                            <i class="bi bi-receipt-cutoff sb-ico"></i>DRE
+                        </a></li>
+                        <li><a href="{% url 'home:relatorio_fluxo_caixa' %}" class="sb-link">
+                            <i class="bi bi-water sb-ico"></i>Fluxo de Caixa
+                        </a></li>
+                        <li><a href="{% url 'home:relatorio_inadimplencia' %}" class="sb-link">
+                            <i class="bi bi-person-dash sb-ico"></i>Inadimplência
+                        </a></li>
+                        <li><a href="{% url 'home:relatorio_centro_custo' %}" class="sb-link">
+                            <i class="bi bi-diagram-3 sb-ico"></i>Centro de Custo
+                        </a></li>
+                        <li><a href="{% url 'home:relatorio_contas_pagar' %}" class="sb-link">
+                            <i class="bi bi-arrow-up-square sb-ico"></i>Contas a Pagar
+                        </a></li>
+                        <li><a href="{% url 'home:relatorio_contas_receber' %}" class="sb-link">
+                            <i class="bi bi-arrow-down-square sb-ico"></i>Contas a Receber
+                        </a></li>
+                        <li><a href="{% url 'home:relatorio_impostos' %}" class="sb-link">
+                            <i class="bi bi-building-check sb-ico"></i>Impostos
+                        </a></li>
+                    </ul>
+                </li>
+
+                <!-- ── CADASTROS ─────────────────────── -->
+                <p class="sb-cat">Cadastros</p>
+
+                <li class="sb-item">
+                    <a href="{% url 'sistema:fornecedor_list' %}" class="sb-link">
+                        <i class="bi bi-truck sb-ico"></i>Fornecedores
+                    </a>
+                </li>
+
+                <li class="sb-item">
+                    <a href="{% url 'sistema:cliente_list' %}" class="sb-link">
+                        <i class="bi bi-people sb-ico"></i>Clientes
+                    </a>
+                </li>
+
+                <!-- ── CONFIGURAÇÕES ─────────────────── -->
+                <li class="sb-group">
+                    <button class="sb-grp-btn" aria-expanded="false">
+                        <i class="bi bi-gear sb-ico"></i>Configurações
+                        <i class="bi bi-chevron-right sb-arrow"></i>
+                    </button>
+                    <ul class="sb-sub">
+                        <li><a href="{% url 'sistema:conta_bancaria_list' %}" class="sb-link">
+                            <i class="bi bi-bank2 sb-ico"></i>Contas Bancárias
+                        </a></li>
+                        <li><a href="{% url 'sistema:banco_list' %}" class="sb-link">
+                            <i class="bi bi-bank sb-ico"></i>Bancos
+                        </a></li>
+                        <li><a href="{% url 'sistema:plano_contas_list' %}" class="sb-link">
+                            <i class="bi bi-diagram-3 sb-ico"></i>Plano de Contas
+                        </a></li>
+                        <li><a href="{% url 'sistema:centro_custo_list' %}" class="sb-link">
+                            <i class="bi bi-pie-chart sb-ico"></i>Centros de Custo
+                        </a></li>
+                        <li><a href="{% url 'authentication:notificacao_list' %}" class="sb-link">
+                            <i class="bi bi-bell sb-ico"></i>Notificações
+                        </a></li>
+                    </ul>
+                </li>
+
+                <!-- ── TABELAS FINANCEIRAS (domínios) ── -->
+                <li class="sb-group">
+                    <button class="sb-grp-btn" aria-expanded="false">
+                        <i class="bi bi-list-check sb-ico"></i>Tabelas Financeiras
+                        <i class="bi bi-chevron-right sb-arrow"></i>
+                    </button>
+                    <ul class="sb-sub">
+                        <li><a href="{% url 'financeiro:tipo_documento_list' %}" class="sb-link">
+                            <i class="bi bi-file-earmark sb-ico"></i>Tipos de Documento
+                        </a></li>
+                        <li><a href="{% url 'financeiro:forma_pagamento_list' %}" class="sb-link">
+                            <i class="bi bi-credit-card-2-front sb-ico"></i>Formas de Pagamento
+                        </a></li>
+                        <li><a href="{% url 'financeiro:status_conta_pagar_list' %}" class="sb-link">
+                            <i class="bi bi-toggle-on sb-ico"></i>Status CP
+                        </a></li>
+                        <li><a href="{% url 'financeiro:status_conta_receber_list' %}" class="sb-link">
+                            <i class="bi bi-toggle-off sb-ico"></i>Status CR
+                        </a></li>
+                        <li><a href="{% url 'financeiro:periodicidade_list' %}" class="sb-link">
+                            <i class="bi bi-calendar-week sb-ico"></i>Periodicidades
+                        </a></li>
+                        <li><a href="{% url 'financeiro:tipo_encargo_list' %}" class="sb-link">
+                            <i class="bi bi-percent sb-ico"></i>Tipos de Encargo
+                        </a></li>
+                        <li><a href="{% url 'financeiro:tipo_cenario_fluxo_list' %}" class="sb-link">
+                            <i class="bi bi-graph-up-arrow sb-ico"></i>Cenários de Fluxo
+                        </a></li>
+                        <li><a href="{% url 'bancario:status_conciliacao_list' %}" class="sb-link">
+                            <i class="bi bi-check-all sb-ico"></i>Status Conciliação
+                        </a></li>
+                        <li><a href="{% url 'fiscal:status_obrigacao_list' %}" class="sb-link">
+                            <i class="bi bi-clipboard-check sb-ico"></i>Status Obrigação Fiscal
+                        </a></li>
+                        <li><a href="{% url 'orcamento:status_list' %}" class="sb-link">
+                            <i class="bi bi-bar-chart-steps sb-ico"></i>Status Orçamento
+                        </a></li>
+                    </ul>
+                </li>
+
+                <!-- ── ADMINISTRAÇÃO (superuser) ──────── -->
+                {% if request.user.is_superuser %}
+                <div class="sb-divider"></div>
+                <p class="sb-cat">Administração</p>
+
+                <li class="sb-item">
+                    <a href="{% url 'authentication:empresa_list' %}" class="sb-link">
+                        <i class="bi bi-building sb-ico"></i>Empresas
+                    </a>
+                </li>
+
+                <li class="sb-item">
+                    <a href="{% url 'authentication:usuario_list' %}" class="sb-link">
+                        <i class="bi bi-person-badge sb-ico"></i>Usuários
+                    </a>
+                </li>
+
+                <li class="sb-item">
+                    <a href="{% url 'authentication:perfil_list' %}" class="sb-link">
+                        <i class="bi bi-shield-check sb-ico"></i>Perfis de Acesso
+                    </a>
+                </li>
+
+                <li class="sb-group">
+                    <button class="sb-grp-btn" aria-expanded="false">
+                        <i class="bi bi-sliders sb-ico"></i>Tabelas do Sistema
+                        <i class="bi bi-chevron-right sb-arrow"></i>
+                    </button>
+                    <ul class="sb-sub">
+                        <li><a href="{% url 'authentication:tipo_documento_list' %}" class="sb-link">
+                            <i class="bi bi-file-earmark sb-ico"></i>Tipos de Documento
+                        </a></li>
+                        <li><a href="{% url 'authentication:tipo_contato_list' %}" class="sb-link">
+                            <i class="bi bi-telephone sb-ico"></i>Tipos de Contato
+                        </a></li>
+                        <li><a href="{% url 'authentication:tipo_notificacao_list' %}" class="sb-link">
+                            <i class="bi bi-bell-fill sb-ico"></i>Tipos de Notificação
+                        </a></li>
+                        <li><a href="{% url 'authentication:regime_list' %}" class="sb-link">
+                            <i class="bi bi-bank sb-ico"></i>Regimes Tributários
+                        </a></li>
+                        <li><a href="{% url 'authentication:segmento_list' %}" class="sb-link">
+                            <i class="bi bi-tag sb-ico"></i>Segmentos de Empresa
+                        </a></li>
+                        <li><a href="{% url 'sistema:tipo_conta_list' %}" class="sb-link">
+                            <i class="bi bi-wallet2 sb-ico"></i>Tipos de Conta Bancária
+                        </a></li>
+                        <li><a href="{% url 'sistema:tipo_chave_pix_list' %}" class="sb-link">
+                            <i class="bi bi-qr-code sb-ico"></i>Tipos de Chave PIX
+                        </a></li>
+                        <li><a href="{% url 'sistema:tipo_plano_contas_list' %}" class="sb-link">
+                            <i class="bi bi-diagram-2 sb-ico"></i>Tipos de Plano de Contas
+                        </a></li>
+                        <li><a href="{% url 'sistema:tipo_centro_custo_list' %}" class="sb-link">
+                            <i class="bi bi-collection sb-ico"></i>Tipos de Centro de Custo
+                        </a></li>
+                        <li><a href="{% url 'fiscal:tipo_imposto_list' %}" class="sb-link">
+                            <i class="bi bi-percent sb-ico"></i>Tipos de Imposto
+                        </a></li>
+                        <li><a href="{% url 'fiscal:tipo_obrigacao_list' %}" class="sb-link">
+                            <i class="bi bi-clipboard sb-ico"></i>Tipos de Obrigação Fiscal
+                        </a></li>
+                        <li><a href="{% url 'bancario:tipo_arquivo_list' %}" class="sb-link">
+                            <i class="bi bi-file-binary sb-ico"></i>Tipos de Arquivo Bancário
+                        </a></li>
+                        <li><a href="{% url 'bancario:tipo_movimento_list' %}" class="sb-link">
+                            <i class="bi bi-arrow-down-up sb-ico"></i>Tipos de Movimento
+                        </a></li>
+                    </ul>
+                </li>
+
+                <li class="sb-item">
+                    <a href="{% url 'authentication:log_list' %}" class="sb-link">
+                        <i class="bi bi-clock-history sb-ico"></i>Logs de Auditoria
+                    </a>
+                </li>
+                {% endif %}
+
+            </ul>
+        </nav>
+
+        <!-- Usuário -->
+        <div class="sb-footer">
+            <div class="sb-user">
+                <div class="sb-avatar">{{ request.user.nome|first|upper|default:"U" }}</div>
+                <div class="sb-user-info">
+                    <div class="sb-user-nm">{{ request.user.nome|default:request.user.email|truncatechars:22 }}</div>
+                    <div class="sb-user-role">{{ request.user.perfil_acesso.nome|default:"Usuário" }}</div>
+                </div>
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- ════════════════════════════════════════════
+         MAIN
+    ════════════════════════════════════════════ -->
+    <div class="erp-main">
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+
+            <button class="tb-mobile-btn" id="menuBtn" aria-label="Abrir menu lateral">
+                <i class="bi bi-list"></i>
+            </button>
+
+            <!-- Breadcrumb -->
+            <nav class="topbar-bc" aria-label="Caminho de navegação">
+                <a href="{% url 'home:dashboard' %}" title="Dashboard">
+                    <i class="bi bi-house-door"></i>
+                </a>
+                {% block breadcrumb %}{% endblock %}
+            </nav>
+
+            <!-- Direita -->
+            <div class="topbar-r">
+
+                {% if empresa_ativa %}
+                <a href="{% url 'authentication:selecionar_empresa' %}" class="tb-empresa" title="Trocar empresa">
+                    <i class="bi bi-building"></i>
+                    <span>{{ empresa_ativa.nome_fantasia|default:empresa_ativa.razao_social|truncatechars:22 }}</span>
+                    <i class="bi bi-chevron-down" style="font-size:9px"></i>
+                </a>
+                <div class="tb-sep"></div>
+                {% endif %}
+
+                <!-- Notificações -->
+                <div class="tb-notif-wrap">
+                    <button class="tb-btn" id="notifBtn" aria-label="Notificações">
+                        <i class="bi bi-bell"></i>
+                        {% if notificacoes_nao_lidas %}
+                        <span class="tb-dot"></span>
+                        {% endif %}
+                    </button>
+                    <div class="tb-notif-drop" id="notifDrop" role="dialog" aria-label="Notificações">
+                        <div class="nd-head">
+                            <h4><i class="bi bi-bell-fill"></i> Notificações</h4>
+                            <a href="{% url 'authentication:notificacao_list' %}">Ver todas →</a>
+                        </div>
+                        <div class="nd-body">
+                            {% for n in notificacoes_nao_lidas %}
+                            <div class="nd-item {% if not n.lida %}unread{% endif %}">
+                                <div class="nd-ico"><i class="bi {{ n.tipo.icone|default:'bi-info-circle' }}"></i></div>
+                                <div class="nd-txt">
+                                    <div class="nd-title">{{ n.titulo }}</div>
+                                    <div class="nd-time">{{ n.criado_em|timesince }} atrás</div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="nd-empty">
+                                <i class="bi bi-check2-circle"></i>
+                                Tudo em dia — nenhuma notificação pendente.
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Perfil -->
+                <a href="{% url 'authentication:password_change' %}" class="tb-btn" title="Alterar senha">
+                    <i class="bi bi-person-circle"></i>
+                </a>
+
+                <!-- Logout -->
+                <a href="{% url 'authentication:logout' %}" class="tb-btn" title="Sair">
+                    <i class="bi bi-box-arrow-right"></i>
+                </a>
+
+            </div>
+        </header>
+
+        <!-- CONTEÚDO -->
+        <div class="erp-content">
+            {% block conteudo %}{% endblock %}
+        </div>
+
+    </div><!-- /erp-main -->
+</div><!-- /erp-shell -->
 
 <script>
-(function () {
-  'use strict';
+    (function () {
 
-  /* ── Marca link ativo ── */
-  var path = window.location.pathname;
-  document.querySelectorAll('.sidebar .sb-link[href]').forEach(function (a) {
-    var href = a.getAttribute('href');
-    if (!href || href === '#') return;
-    if (path === href || (href.length > 1 && path.startsWith(href))) {
-      a.classList.add('is-active');
-      var sub = a.closest('.sb-sub');
-      if (sub) {
-        var grp = sub.closest('.sb-group');
-        if (grp) {
-          grp.classList.add('open');
-          var btn = grp.querySelector('.sb-grp-btn');
-          if (btn) btn.setAttribute('aria-expanded', 'true');
-        }
-      }
-    }
-  });
-
-  /* ── Submenus ── */
-  document.querySelectorAll('.sb-grp-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var grp = btn.closest('.sb-group');
-      var isOpen = grp.classList.contains('open');
-      document.querySelectorAll('.sb-group.open').forEach(function (g) {
-        g.classList.remove('open');
-        var b = g.querySelector('.sb-grp-btn');
-        if (b) b.setAttribute('aria-expanded', 'false');
+      /* ── Sidebar grupos expansíveis ── */
+      document.querySelectorAll('.sb-grp-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var sub = btn.nextElementSibling;
+          var expanded = btn.getAttribute('aria-expanded') === 'true';
+          btn.setAttribute('aria-expanded', !expanded);
+          sub.classList.toggle('open', !expanded);
+        });
       });
-      if (!isOpen) {
-        grp.classList.add('open');
-        btn.setAttribute('aria-expanded', 'true');
+
+      /* ── Abre automaticamente o grupo do link ativo ── */
+      var currentPath = window.location.pathname;
+      document.querySelectorAll('.sb-sub .sb-link').forEach(function (link) {
+        if (link.getAttribute('href') === currentPath) {
+          link.classList.add('active');
+          var sub = link.closest('.sb-sub');
+          if (sub) {
+            sub.classList.add('open');
+            var btn = sub.previousElementSibling;
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+          }
+        }
+      });
+      document.querySelectorAll('.sb-item > .sb-link').forEach(function (link) {
+        if (link.getAttribute('href') === currentPath) {
+          link.classList.add('active');
+        }
+      });
+
+      /* ── Dropdown de notificações ── */
+      var notifBtn = document.getElementById('notifBtn');
+      var notifDrop = document.getElementById('notifDrop');
+      if (notifBtn && notifDrop) {
+        notifBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          notifDrop.classList.toggle('open');
+        });
+        document.addEventListener('click', function (e) {
+          if (notifDrop.classList.contains('open') &&
+              !notifDrop.contains(e.target) && e.target !== notifBtn) {
+            notifDrop.classList.remove('open');
+          }
+        });
       }
-    });
-  });
 
-  /* ── Notificações ── */
-  var notifBtn  = document.getElementById('notifBtn');
-  var notifDrop = document.getElementById('notifDrop');
-  if (notifBtn && notifDrop) {
-    notifBtn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      notifDrop.classList.toggle('open');
-    });
-    document.addEventListener('click', function (e) {
-      if (notifDrop.classList.contains('open') &&
-          !notifDrop.contains(e.target) && e.target !== notifBtn) {
-        notifDrop.classList.remove('open');
+      /* ── Sidebar mobile ── */
+      var menuBtn = document.getElementById('menuBtn');
+      var sidebar = document.getElementById('sidebar');
+      var overlay = document.getElementById('sbOverlay');
+
+      function isMobile() { return window.innerWidth <= 768; }
+
+      if (menuBtn) {
+        menuBtn.addEventListener('click', function () {
+          sidebar.classList.toggle('open');
+          overlay.classList.toggle('open');
+        });
       }
-    });
-  }
-
-  /* ── Sidebar mobile ── */
-  var menuBtn = document.getElementById('menuBtn');
-  var sidebar = document.getElementById('sidebar');
-  var overlay = document.getElementById('sbOverlay');
-
-  function isMobile() { return window.innerWidth <= 768; }
-
-  if (menuBtn) {
-    menuBtn.addEventListener('click', function () {
-      sidebar.classList.toggle('open');
-      overlay.classList.toggle('open');
-    });
-  }
-
-  if (overlay) {
-    overlay.addEventListener('click', function () {
-      sidebar.classList.remove('open');
-      overlay.classList.remove('open');
-    });
-  }
-
-  document.querySelectorAll('.sidebar .sb-link').forEach(function (a) {
-    a.addEventListener('click', function () {
-      if (isMobile()) {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('open');
+      if (overlay) {
+        overlay.addEventListener('click', function () {
+          sidebar.classList.remove('open');
+          overlay.classList.remove('open');
+        });
       }
-    });
-  });
+      document.querySelectorAll('.sidebar .sb-link').forEach(function (a) {
+        a.addEventListener('click', function () {
+          if (isMobile()) {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+          }
+        });
+      });
 
-})();
+    })();
 </script>
 
 {% block extra_scripts %}{% endblock %}

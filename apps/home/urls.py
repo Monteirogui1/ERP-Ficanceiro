@@ -16,4 +16,6 @@ urlpatterns = [
     path("relatorios/contas-pagar/", views.RelatorioContasPagarView.as_view(), name="relatorio_contas_pagar"),
     path("relatorios/contas-receber/", views.RelatorioContasReceberView.as_view(), name="relatorio_contas_receber"),
     path("relatorios/impostos/", views.RelatorioImpostosView.as_view(), name="relatorio_impostos"),
+    path("relatorios/balanco/", views.RelatorioBalancoView.as_view(), name="relatorio_balanco"),
+
 ]

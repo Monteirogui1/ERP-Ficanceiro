@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.urls import reverse_lazy
 from django.contrib import messages
@@ -14,6 +16,7 @@ from .forms import (
     ConciliacaoBancariaForm,
     ArquivoRemessaForm, ArquivoRetornoForm,
 )
+from .services.conciliacao_automatica import ConciliacaoAutomaticaService
 
 
 # ══════════════════════════════════════════════
@@ -445,3 +448,20 @@ class ArquivoRetornoCreateView(MensagemSucessoMixin, PermissaoModuloMixin, Creat
         if form.instance.arquivo:
             form.instance.nome_arquivo = form.instance.arquivo.name.split("/")[-1]
         return super().form_valid(form)
+
+
+
+class ConciliarAutomaticoView(PermissaoModuloMixin, View):
+    modulo = "bancario"
+    acao = "editar"
+
+    def post(self, request, pk):
+        importacao = get_object_or_404(ImportacaoExtrato, pk=pk, empresa=self.get_empresa())
+        svc = ConciliacaoAutomaticaService(importacao, usuario=request.user)
+        resultado = svc.executar()
+        messages.success(
+            request,
+            f"Conciliação concluída: {resultado['conciliados']} conciliados, "
+            f"{resultado['divergentes']} divergentes."
+        )
+        return redirect("bancario:importacao_detail", pk=pk)

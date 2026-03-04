@@ -2,20 +2,83 @@
 {% block title %}Extrato — {{ importacao.conta_bancaria.nome }}{% endblock %}
 {% block conteudo %}
 <div class="content">
+
+  <!-- Cabeçalho -->
   <div class="page-header">
     <div>
       <h1>Extrato — {{ importacao.conta_bancaria.nome }}</h1>
       <small style="color:var(--txt-3)">
-        {{ importacao.nome_arquivo }} · Importado em {{ importacao.criado_em|date:"d/m/Y H:i" }}
+        {{ importacao.nome_arquivo }}
+        · Importado em {{ importacao.criado_em|date:"d/m/Y H:i" }}
         {% if importacao.importado_por %} por {{ importacao.importado_por.nome|default:importacao.importado_por.username }}{% endif %}
       </small>
     </div>
-    <a href="{% url 'bancario:importacao_list' %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+    <div style="display:flex;gap:10px;align-items:center">
+
+      <!-- ══ BOTÃO CONCILIAR AUTOMATICAMENTE ══ -->
+      {% if not importacao.processado %}
+      <form method="post" action="{% url 'bancario:conciliar_automatico' importacao.pk %}" id="form-conciliar">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary" id="btn-conciliar"
+          onclick="return confirmarConciliacao()"
+          style="display:flex;align-items:center;gap:8px">
+          <i class="bi bi-magic"></i> Conciliar Automaticamente
+        </button>
+      </form>
+      {% else %}
+      <span style="display:flex;align-items:center;gap:6px;font-size:13px;
+        background:rgba(16,185,129,.1);color:#10b981;padding:8px 14px;
+        border-radius:8px;font-weight:600">
+        <i class="bi bi-check-circle-fill"></i> Já conciliado
+      </span>
+      {% endif %}
+
+      <a href="{% url 'bancario:conciliacao_create' %}" class="btn btn-secondary">
+        <i class="bi bi-plus-lg"></i> Conciliar Manual
+      </a>
+      <a href="{% url 'bancario:importacao_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Voltar
+      </a>
+    </div>
   </div>
+
   {% include "_includes/messages.html" %}
 
-  <!-- Métricas -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px">
+  <!-- ══ Barra de progresso de conciliação ══ -->
+  {% if importacao.total_registros > 0 %}
+  {% with pct=importacao.total_conciliados|divisibleby:importacao.total_registros %}
+  <div class="detail-card" style="padding:16px 20px;margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:13px;font-weight:600;color:var(--txt-1)">
+        Progresso da Conciliação
+      </span>
+      <span style="font-size:13px;color:var(--txt-3)">
+        {{ importacao.total_conciliados }} de {{ importacao.total_registros }} movimentos
+      </span>
+    </div>
+    {% with largura=importacao.total_conciliados|default:0 %}
+    <div style="background:var(--surface);border-radius:8px;height:10px;overflow:hidden">
+      <div style="height:100%;border-radius:8px;background:linear-gradient(90deg,#10b981,#34d399);
+        width:{% widthratio importacao.total_conciliados importacao.total_registros 100 %}%;
+        transition:width .4s ease">
+      </div>
+    </div>
+    {% endwith %}
+    <div style="display:flex;gap:20px;margin-top:10px;font-size:12px">
+      <span style="color:#10b981"><i class="bi bi-check-circle-fill"></i> {{ importacao.total_conciliados }} conciliados</span>
+      <span style="color:#ef4444"><i class="bi bi-x-circle-fill"></i> {{ importacao.total_divergentes }} divergentes</span>
+      {% with pendentes=importacao.total_registros|add:"-"|add:importacao.total_conciliados|add:"-"|add:importacao.total_divergentes %}
+      <span style="color:#f59e0b"><i class="bi bi-clock-fill"></i>
+        {{ importacao.total_registros|add:"-0" }} total
+      </span>
+      {% endwith %}
+    </div>
+  </div>
+  {% endwith %}
+  {% endif %}
+
+  <!-- ══ Métricas ══ -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px">
     <div class="detail-card" style="padding:18px;text-align:center">
       <p style="color:var(--txt-3);font-size:12px;margin:0">Total Registros</p>
       <p style="font-size:28px;font-weight:700;margin:4px 0;color:var(--txt-1)">{{ importacao.total_registros }}</p>
@@ -26,11 +89,14 @@
     </div>
     <div class="detail-card" style="padding:18px;text-align:center">
       <p style="color:var(--txt-3);font-size:12px;margin:0">Divergentes</p>
-      <p style="font-size:28px;font-weight:700;margin:4px 0;{% if importacao.total_divergentes > 0 %}color:#ef4444{% else %}color:#aaa{% endif %}">{{ importacao.total_divergentes }}</p>
+      <p style="font-size:28px;font-weight:700;margin:4px 0;
+        {% if importacao.total_divergentes > 0 %}color:#ef4444{% else %}color:#aaa{% endif %}">
+        {{ importacao.total_divergentes }}
+      </p>
     </div>
     <div class="detail-card" style="padding:18px;text-align:center">
       <p style="color:var(--txt-3);font-size:12px;margin:0">Status</p>
-      <p style="font-size:14px;font-weight:700;margin:4px 0">
+      <p style="font-size:14px;font-weight:700;margin:8px 0">
         {% if importacao.processado %}
           <span style="color:#10b981"><i class="bi bi-check-circle-fill"></i> Processado</span>
         {% else %}
@@ -41,26 +107,86 @@
     {% if importacao.data_inicio_extrato %}
     <div class="detail-card" style="padding:18px;text-align:center">
       <p style="color:var(--txt-3);font-size:12px;margin:0">Período</p>
-      <p style="font-size:13px;font-weight:600;margin:4px 0">{{ importacao.data_inicio_extrato|date:"d/m/Y" }}<br>{{ importacao.data_fim_extrato|date:"d/m/Y" }}</p>
+      <p style="font-size:13px;font-weight:600;margin:4px 0;line-height:1.6">
+        {{ importacao.data_inicio_extrato|date:"d/m/Y" }}<br>
+        <span style="color:var(--txt-3)">até</span><br>
+        {{ importacao.data_fim_extrato|date:"d/m/Y" }}
+      </p>
     </div>
     {% endif %}
   </div>
 
-  <!-- Log de processamento -->
-  {% if importacao.log_processamento %}
-  <div class="detail-card" style="margin-bottom:16px">
-    <h3 style="font-size:13px;font-weight:600;color:var(--txt-3);text-transform:uppercase;margin-bottom:10px"><i class="bi bi-terminal"></i> Log de Processamento</h3>
-    <pre style="font-size:12px;color:var(--txt-2);background:var(--surface);padding:12px;border-radius:6px;overflow-x:auto;margin:0">{{ importacao.log_processamento }}</pre>
+  <!-- ══ Alerta para não-processados ══ -->
+  {% if not importacao.processado and importacao.total_registros == 0 %}
+  <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);
+    border-radius:10px;padding:16px 20px;margin-bottom:16px;
+    display:flex;align-items:center;gap:12px">
+    <i class="bi bi-exclamation-triangle-fill" style="color:#f59e0b;font-size:20px"></i>
+    <div>
+      <strong style="color:#92400e">Nenhum movimento importado ainda.</strong>
+      <p style="margin:2px 0 0;font-size:13px;color:#78350f">
+        O arquivo foi salvo mas ainda não foi processado.
+        Clique em <strong>Conciliar Automaticamente</strong> para processar os movimentos.
+      </p>
+    </div>
   </div>
   {% endif %}
 
-  <!-- Movimentos -->
+  <!-- ══ Log de processamento ══ -->
+  {% if importacao.log_processamento %}
+  <div class="detail-card" style="margin-bottom:16px">
+    <details>
+      <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--txt-3);
+        text-transform:uppercase;letter-spacing:.5px;padding:4px 0;
+        display:flex;align-items:center;gap:6px">
+        <i class="bi bi-terminal"></i> Log de Processamento
+      </summary>
+      <pre style="font-size:11.5px;color:var(--txt-2);background:var(--surface);
+        padding:12px;border-radius:6px;overflow-x:auto;margin:10px 0 0;
+        max-height:220px;overflow-y:auto;line-height:1.7">{{ importacao.log_processamento }}</pre>
+    </details>
+  </div>
+  {% endif %}
+
+  <!-- ══ Tabela de movimentos ══ -->
   <div class="detail-card" style="padding:0;overflow:hidden">
-    <div style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-      <h3 style="font-size:13px;font-weight:600;color:var(--txt-1);display:flex;align-items:center;gap:6px;margin:0"><i class="bi bi-list-ul"></i> Movimentos do Extrato</h3>
-      <a href="{% url 'bancario:conciliacao_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Conciliar</a>
+    <div style="padding:12px 18px;border-bottom:1px solid var(--border);
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <h3 style="font-size:13px;font-weight:600;color:var(--txt-1);
+        display:flex;align-items:center;gap:6px;margin:0">
+        <i class="bi bi-list-ul"></i> Movimentos do Extrato
+        {% if movimentos %}<span style="font-size:11px;background:#f0f0f0;
+          padding:2px 8px;border-radius:20px;color:#666;font-weight:400">
+          {{ movimentos|length }} registro{{ movimentos|length|pluralize }}
+        </span>{% endif %}
+      </h3>
+
+      <!-- Filtro rápido por status de conciliação (client-side) -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button onclick="filtrarStatus('todos')"
+          class="btn-filtro ativo" id="f-todos" style="font-size:12px;padding:4px 10px;
+          border:1px solid #ddd;border-radius:20px;cursor:pointer;background:#1a73e8;color:#fff">
+          Todos
+        </button>
+        <button onclick="filtrarStatus('Pendente')"
+          class="btn-filtro" id="f-Pendente" style="font-size:12px;padding:4px 10px;
+          border:1px solid #ddd;border-radius:20px;cursor:pointer;background:#fff;color:#444">
+          <i class="bi bi-clock" style="color:#f59e0b"></i> Pendentes
+        </button>
+        <button onclick="filtrarStatus('Conciliada')"
+          class="btn-filtro" id="f-Conciliada" style="font-size:12px;padding:4px 10px;
+          border:1px solid #ddd;border-radius:20px;cursor:pointer;background:#fff;color:#444">
+          <i class="bi bi-check-circle" style="color:#10b981"></i> Conciliadas
+        </button>
+        <button onclick="filtrarStatus('Divergente')"
+          class="btn-filtro" id="f-Divergente" style="font-size:12px;padding:4px 10px;
+          border:1px solid #ddd;border-radius:20px;cursor:pointer;background:#fff;color:#444">
+          <i class="bi bi-x-circle" style="color:#ef4444"></i> Divergentes
+        </button>
+      </div>
     </div>
-    <table class="table">
+
+    <table class="table" id="tabela-movimentos">
       <thead>
         <tr>
           <th>Data</th>
@@ -74,41 +200,128 @@
       </thead>
       <tbody>
         {% for mov in movimentos %}
-        <tr>
+        <tr data-status="{{ mov.status_conciliacao.nome|default:'Pendente' }}">
+
           <td style="white-space:nowrap">{{ mov.data_movimento|date:"d/m/Y" }}</td>
-          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ mov.descricao }}">{{ mov.descricao }}</td>
-          <td style="font-size:12px;font-family:monospace;color:var(--txt-3)">{{ mov.documento|default:"—" }}</td>
+
+          <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;
+            white-space:nowrap" title="{{ mov.descricao }}">
+            {{ mov.descricao }}
+          </td>
+
+          <td style="font-size:12px;font-family:monospace;color:var(--txt-3)">
+            {{ mov.documento|default:"—" }}
+          </td>
+
           <td>
             {% if mov.tipo_movimento %}
               {% if mov.tipo_movimento.natureza == "C" %}
-                <span style="font-size:11px;background:rgba(16,185,129,.1);color:#10b981;border-radius:4px;padding:2px 7px">{{ mov.tipo_movimento.nome }}</span>
+                <span style="font-size:11px;background:rgba(16,185,129,.1);
+                  color:#10b981;border-radius:4px;padding:2px 7px">
+                  {{ mov.tipo_movimento.nome }}
+                </span>
               {% else %}
-                <span style="font-size:11px;background:rgba(239,68,68,.1);color:#ef4444;border-radius:4px;padding:2px 7px">{{ mov.tipo_movimento.nome }}</span>
+                <span style="font-size:11px;background:rgba(239,68,68,.1);
+                  color:#ef4444;border-radius:4px;padding:2px 7px">
+                  {{ mov.tipo_movimento.nome }}
+                </span>
               {% endif %}
-            {% else %}—{% endif %}
+            {% else %}
+              <span style="color:var(--txt-3);font-size:12px">—</span>
+            {% endif %}
           </td>
-          <td style="text-align:right;font-family:monospace;font-weight:600;{% if mov.valor >= 0 %}color:#10b981{% else %}color:#ef4444{% endif %}">
-            R$ {{ mov.valor|floatformat:2 }}
+
+          <td style="text-align:right;font-family:monospace;font-weight:600;
+            {% if mov.valor >= 0 %}color:#10b981{% else %}color:#ef4444{% endif %}">
+            {% if mov.valor >= 0 %}+{% endif %}R$ {{ mov.valor|floatformat:2 }}
           </td>
+
           <td style="text-align:right;font-family:monospace;color:var(--txt-3)">
             {% if mov.saldo_apos %}R$ {{ mov.saldo_apos|floatformat:2 }}{% else %}—{% endif %}
           </td>
+
           <td class="text-center">
             {% if mov.status_conciliacao %}
-              <span style="font-size:11px;padding:2px 8px;border-radius:20px;
-                {% if mov.status_conciliacao.nome == 'Conciliada' %}background:rgba(16,185,129,.1);color:#10b981
-                {% elif mov.status_conciliacao.nome == 'Divergente' %}background:rgba(239,68,68,.1);color:#ef4444
-                {% else %}background:rgba(245,158,11,.1);color:#f59e0b{% endif %}">
-                {{ mov.status_conciliacao.nome }}
+              {% if mov.status_conciliacao.nome == "Conciliada" %}
+                <span style="font-size:11px;padding:3px 10px;border-radius:20px;
+                  background:rgba(16,185,129,.1);color:#10b981;font-weight:600">
+                  <i class="bi bi-check-circle-fill"></i> Conciliada
+                </span>
+              {% elif mov.status_conciliacao.nome == "Divergente" %}
+                <span style="font-size:11px;padding:3px 10px;border-radius:20px;
+                  background:rgba(239,68,68,.1);color:#ef4444;font-weight:600">
+                  <i class="bi bi-x-circle-fill"></i> Divergente
+                </span>
+              {% else %}
+                <span style="font-size:11px;padding:3px 10px;border-radius:20px;
+                  background:rgba(245,158,11,.1);color:#f59e0b;font-weight:600">
+                  <i class="bi bi-clock-fill"></i> {{ mov.status_conciliacao.nome }}
+                </span>
+              {% endif %}
+            {% else %}
+              <span style="font-size:11px;padding:3px 10px;border-radius:20px;
+                background:rgba(245,158,11,.1);color:#f59e0b;font-weight:600">
+                <i class="bi bi-clock-fill"></i> Pendente
               </span>
-            {% else %}—{% endif %}
+            {% endif %}
           </td>
+
         </tr>
         {% empty %}
-        <tr><td colspan="7" class="text-center" style="color:#999;padding:30px">Nenhum movimento registrado.</td></tr>
+        <tr>
+          <td colspan="7" class="text-center" style="color:#999;padding:40px">
+            <i class="bi bi-inbox" style="font-size:32px;display:block;margin-bottom:10px"></i>
+            Nenhum movimento registrado nesta importação.
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+
 </div>
+
+<script>
+/* ── Confirmação antes de conciliar ── */
+function confirmarConciliacao() {
+  return confirm(
+    'Iniciar conciliação automática?\n\n' +
+    'O sistema tentará casar cada movimento bancário com os lançamentos ' +
+    'do sistema por valor e data.\n\n' +
+    'Movimentos sem correspondência serão marcados como Divergentes.'
+  );
+}
+
+/* ── Feedback visual ao submeter ── */
+document.getElementById('form-conciliar')?.addEventListener('submit', function () {
+  var btn = document.getElementById('btn-conciliar');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Processando...';
+  }
+});
+
+/* ── Filtro client-side por status ── */
+function filtrarStatus(status) {
+  var linhas = document.querySelectorAll('#tabela-movimentos tbody tr[data-status]');
+  linhas.forEach(function (tr) {
+    if (status === 'todos' || tr.dataset.status === status) {
+      tr.style.display = '';
+    } else {
+      tr.style.display = 'none';
+    }
+  });
+
+  /* Atualiza estilo dos botões */
+  document.querySelectorAll('.btn-filtro').forEach(function (b) {
+    b.style.background = '#fff';
+    b.style.color = '#444';
+  });
+  var ativo = document.getElementById('f-' + status);
+  if (ativo) {
+    ativo.style.background = '#1a73e8';
+    ativo.style.color = '#fff';
+  }
+}
+</script>
 {% endblock %}

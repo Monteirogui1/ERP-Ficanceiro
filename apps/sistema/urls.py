@@ -73,6 +73,12 @@ urlpatterns = [
 
     # ── Bancos ───────────────────────────────
     path("bancos/", views.BancoListView.as_view(), name="banco_list"),
+    path("bancos/novo/", views.BancoCreateView.as_view(), name="banco_create"),
+    path("bancos/<int:pk>/editar/", views.BancoUpdateView.as_view(), name="banco_update"),
+    path("bancos/<int:pk>/excluir/", views.BancoDeleteView.as_view(), name="banco_delete"),
+
+
+
 
     # ── Contas Bancárias ─────────────────────
     path("contas-bancarias/", views.ContaBancariaListView.as_view(), name="conta_bancaria_list"),

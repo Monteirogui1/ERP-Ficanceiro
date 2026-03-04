@@ -7,6 +7,11 @@ from .models import (
 from apps.sistema.models import ContaBancaria
 from apps.financeiro.models import LancamentoFinanceiro
 
+FC = "form-control"
+FS = "form-select"
+
+EXTENSOES_PERMITIDAS = [".ofx", ".cnab", ".ret", ".csv", ".txt"]
+
 
 # ══════════════════════════════════════════════
 # TABELAS DE DOMÍNIO
@@ -16,6 +21,10 @@ class TipoArquivoBancarioForm(forms.ModelForm):
     class Meta:
         model = TipoArquivoBancario
         fields = ["nome", "extensao", "ativo"]
+        widgets = {
+            "nome":     forms.TextInput(attrs={"class": FC, "placeholder": "Ex: OFX, CNAB 240, CSV"}),
+            "extensao": forms.TextInput(attrs={"class": FC, "placeholder": "Ex: .ofx, .cnab, .csv"}),
+        }
 
     def clean_nome(self):
         nome = self.cleaned_data["nome"]
@@ -31,6 +40,9 @@ class StatusConciliacaoForm(forms.ModelForm):
     class Meta:
         model = StatusConciliacao
         fields = ["nome", "ativo"]
+        widgets = {
+            "nome": forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Pendente, Conciliada, Divergente"}),
+        }
 
     def clean_nome(self):
         nome = self.cleaned_data["nome"]
@@ -46,6 +58,10 @@ class TipoMovimentoBancarioForm(forms.ModelForm):
     class Meta:
         model = TipoMovimentoBancario
         fields = ["nome", "natureza", "ativo"]
+        widgets = {
+            "nome":     forms.TextInput(attrs={"class": FC, "placeholder": "Ex: PIX, TED, Tarifa, Saldo"}),
+            "natureza": forms.Select(attrs={"class": FS}),
+        }
 
     def clean_nome(self):
         nome = self.cleaned_data["nome"]
@@ -61,17 +77,19 @@ class TipoMovimentoBancarioForm(forms.ModelForm):
 # IMPORTAÇÃO DE EXTRATOS
 # ══════════════════════════════════════════════
 
-EXTENSOES_PERMITIDAS = [".ofx", ".cnab", ".ret", ".csv", ".txt"]
-
-
 class ImportacaoExtratoForm(forms.ModelForm):
     class Meta:
         model = ImportacaoExtrato
-        fields = ["conta_bancaria", "tipo_arquivo", "arquivo", "nome_arquivo",
-                  "data_inicio_extrato", "data_fim_extrato"]
+        fields = [
+            "conta_bancaria", "tipo_arquivo", "arquivo", "nome_arquivo",
+            "data_inicio_extrato", "data_fim_extrato",
+        ]
         widgets = {
-            "data_inicio_extrato": forms.DateInput(attrs={"type": "date"}),
-            "data_fim_extrato": forms.DateInput(attrs={"type": "date"}),
+            "conta_bancaria":     forms.Select(attrs={"class": FS}),
+            "tipo_arquivo":       forms.Select(attrs={"class": FS}),
+            "nome_arquivo":       forms.TextInput(attrs={"class": FC, "placeholder": "Nome do arquivo (opcional)"}),
+            "data_inicio_extrato": forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "data_fim_extrato":    forms.DateInput(attrs={"class": FC, "type": "date"}),
         }
 
     def __init__(self, *args, empresa=None, **kwargs):
@@ -117,7 +135,11 @@ class ConciliacaoBancariaForm(forms.ModelForm):
             "status", "automatica", "diferenca", "observacao",
         ]
         widgets = {
-            "observacao": forms.Textarea(attrs={"rows": 2}),
+            "movimento_bancario": forms.Select(attrs={"class": FS}),
+            "lancamento":         forms.Select(attrs={"class": FS}),
+            "status":             forms.Select(attrs={"class": FS}),
+            "diferenca":          forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+            "observacao":         forms.Textarea(attrs={"class": FC, "rows": 2, "placeholder": "Observações sobre a conciliação"}),
         }
 
     def __init__(self, *args, empresa=None, **kwargs):
@@ -146,6 +168,13 @@ class ArquivoRemessaForm(forms.ModelForm):
             "conta_bancaria", "tipo", "nome_arquivo",
             "numero_sequencial", "valor_total",
         ]
+        widgets = {
+            "conta_bancaria":    forms.Select(attrs={"class": FS}),
+            "tipo":              forms.Select(attrs={"class": FS}),
+            "nome_arquivo":      forms.TextInput(attrs={"class": FC, "placeholder": "Nome do arquivo de remessa"}),
+            "numero_sequencial": forms.NumberInput(attrs={"class": FC, "placeholder": "Ex: 1", "min": "1"}),
+            "valor_total":       forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+        }
 
     def __init__(self, *args, empresa=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -168,6 +197,11 @@ class ArquivoRetornoForm(forms.ModelForm):
             "conta_bancaria", "arquivo_remessa",
             "nome_arquivo", "arquivo",
         ]
+        widgets = {
+            "conta_bancaria":  forms.Select(attrs={"class": FS}),
+            "arquivo_remessa": forms.Select(attrs={"class": FS}),
+            "nome_arquivo":    forms.TextInput(attrs={"class": FC, "placeholder": "Nome do arquivo de retorno"}),
+        }
 
     def __init__(self, *args, empresa=None, **kwargs):
         super().__init__(*args, **kwargs)

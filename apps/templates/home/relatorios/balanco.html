@@ -1,0 +1,188 @@
+{% extends 'layouts/base.html' %}
+{% block title %}Balanço Patrimonial{% endblock %}
+{% block conteudo %}
+<div class="content">
+    <div class="page-header">
+        <div>
+            <a href="{% url 'home:dashboard' %}" style="font-size:13px;color:#666;text-decoration:none"><i
+                    class="bi bi-arrow-left"></i> Dashboard</a>
+            <h1><i class="bi bi-building"></i> Balanço Patrimonial</h1>
+        </div>
+        <button onclick="window.print()" class="btn btn-sm"
+                style="background:#f0f0f0;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">
+            <i class="bi bi-printer"></i> Imprimir
+        </button>
+    </div>
+
+    <!-- Filtros -->
+    <form method="get" class="filtros-card">
+        <div><label>Ano</label>
+            <select name="ano">{% for a in anos %}
+                <option value="{{ a }}" {% if a == ano %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}</select>
+        </div>
+        <div><label>Mês</label>
+            <select name="mes">{% for m in meses %}
+                <option value="{{ m }}" {% if m == mes %}selected{% endif %}>{{ m|stringformat:"02d" }}</option>
+                {% endfor %}</select>
+        </div>
+        <button type="submit">Filtrar</button>
+    </form>
+
+    <p style="color:#888;font-size:13px">Posição em: <strong>{{ data_ref|date:"d/m/Y" }}</strong></p>
+
+    <!-- KPIs -->
+    <div class="relatorio-resumo" style="grid-template-columns:repeat(3,1fr)">
+        <div class="resumo-item verde"><label>Total do Ativo</label><strong> R$ {{ total_ativo|floatformat:2 }}</strong>
+        </div>
+        <div class="resumo-item vermelho"><label>Total do Passivo</label><strong> R$ {{ total_passivo|floatformat:2}}</strong></div>
+        <div class="resumo-item {% if patrimonio_liquido >= 0 %}verde{% else %}vermelho{% endif %}">
+            <label>Patrimônio Líquido</label><strong> R$ {{ patrimonio_liquido|floatformat:2 }}</strong>
+        </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px">
+
+        <!-- ATIVO -->
+        <div>
+            <div class="relatorio-card">
+                <h3 style="color:#1a73e8"><i class="bi bi-arrow-down-circle"></i> ATIVO</h3>
+
+                <h4 style="margin-top:16px;font-size:14px;color:#34a853">Ativo Circulante</h4>
+                <table class="table table-sm">
+                    <tbody>
+                    <tr style="font-weight:600">
+                        <td>Disponibilidades</td>
+                        <td style="text-align:right">R$ {{ total_disponibilidades|floatformat:2 }}</td>
+                    </tr>
+                    {% for d in disponibilidades %}
+                    <tr style="font-size:12px;color:#666">
+                        <td style="padding-left:16px">{{ d.nome }}</td>
+                        <td style="text-align:right">{{ d.valor|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr style="font-weight:600">
+                        <td>Contas a Receber</td>
+                        <td style="text-align:right">R$ {{ cr_abertas|floatformat:2 }}</td>
+                    </tr>
+                    </tbody>
+                    <tfoot>
+                    <tr style="background:#e8f5e9;font-weight:700">
+                        <td>Total Ativo Circulante</td>
+                        <td style="text-align:right;color:#34a853">R$ {{ total_ativo_circulante|floatformat:2 }}</td>
+                    </tr>
+                    </tfoot>
+                </table>
+
+                {% if outros_ativos %}
+                <h4 style="font-size:14px;color:#1a73e8">Ativo Não Circulante</h4>
+                <table class="table table-sm">
+                    <tbody>
+                    {% for a in outros_ativos %}
+                    <tr>
+                        <td style="font-size:12px">{{ a.codigo }} — {{ a.nome }}</td>
+                        <td style="text-align:right;font-size:12px">R$ {{ a.valor|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr style="background:#e3f2fd;font-weight:700">
+                        <td>Total Ativo Não Circulante</td>
+                        <td style="text-align:right;color:#1a73e8">R$ {{ total_outros_ativos|floatformat:2 }}</td>
+                    </tr>
+                    </tfoot>
+                </table>
+                {% endif %}
+
+                <div style="background:#1a73e8;color:#fff;padding:10px 16px;border-radius:8px;font-weight:700;display:flex;justify-content:space-between;margin-top:8px">
+                    <span>TOTAL DO ATIVO</span><span>R$ {{ total_ativo|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- PASSIVO + PL -->
+        <div>
+            <div class="relatorio-card">
+                <h3 style="color:#ea4335"><i class="bi bi-arrow-up-circle"></i> PASSIVO</h3>
+
+                <h4 style="margin-top:16px;font-size:14px;color:#ea4335">Passivo Circulante</h4>
+                <table class="table table-sm">
+                    <tbody>
+                    {% for p in passivo_circulante %}
+                    <tr>
+                        <td style="font-size:12px">{{ p.codigo }} — {{ p.nome }}</td>
+                        <td style="text-align:right;font-size:12px">R$ {{ p.valor|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" style="color:#aaa;text-align:center;font-size:12px">Sem passivo circulante</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr style="background:#fce8e6;font-weight:700">
+                        <td>Total Passivo Circulante</td>
+                        <td style="text-align:right;color:#ea4335">R$ {{ total_passivo_circulante|floatformat:2 }}</td>
+                    </tr>
+                    </tfoot>
+                </table>
+
+                {% if passivo_nao_circulante %}
+                <h4 style="font-size:14px;color:#e91e63">Passivo Não Circulante</h4>
+                <table class="table table-sm">
+                    <tbody>
+                    {% for p in passivo_nao_circulante %}
+                    <tr>
+                        <td style="font-size:12px">{{ p.codigo }} — {{ p.nome }}</td>
+                        <td style="text-align:right;font-size:12px">R$ {{ p.valor|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                    <tr style="background:#fce4ec;font-weight:700">
+                        <td>Total Passivo Não Circulante</td>
+                        <td style="text-align:right;color:#e91e63">R$ {{ total_passivo_nao_circulante|floatformat:2 }}
+                        </td>
+                    </tr>
+                    </tfoot>
+                </table>
+                {% endif %}
+
+                <div style="background:#ea4335;color:#fff;padding:10px 16px;border-radius:8px;font-weight:700;display:flex;justify-content:space-between;margin-top:8px">
+                    <span>TOTAL DO PASSIVO</span><span>R$ {{ total_passivo|floatformat:2 }}</span>
+                </div>
+
+                <!-- Patrimônio Líquido -->
+                <div style="margin-top:20px;border:2px solid {% if patrimonio_liquido >= 0 %}#34a853{% else %}#ea4335{% endif %};border-radius:10px;padding:16px">
+                    <h4 style="color:#444;margin:0 0 8px">Patrimônio Líquido</h4>
+                    <div style="display:flex;justify-content:space-between;font-weight:700;font-size:1.1rem;color:{% if patrimonio_liquido >= 0 %}#34a853{% else %}#ea4335{% endif %}">
+                        <span>PL = Ativo − Passivo</span>
+                        <span>R$ {{ patrimonio_liquido|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico pizza composição ativo -->
+    <div class="relatorio-card" style="margin-top:20px;max-width:500px">
+        <h3><i class="bi bi-pie-chart"></i> Composição do Ativo</h3>
+        <canvas id="chartBalanco" height="200"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('chartBalanco').getContext('2d');
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: {{ grafico_labels|safe }},
+        datasets: [{ data: {{ grafico_valores|safe }},
+          backgroundColor: ['#1a73e8','#34a853','#fbbc04'],
+          borderWidth: 2, borderColor: '#fff' }]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'right' } } }
+    });
+</script>
+{% endblock %}

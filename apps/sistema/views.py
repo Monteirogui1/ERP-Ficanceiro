@@ -17,7 +17,7 @@ from .forms import (
     PlanoContasForm,
     CentroCustoForm,
     TipoPessoaForm, CategoriaFornecedorForm, CategoriaClienteForm,
-    TipoContaForm, TipoChavePixForm, TipoPlanoContasForm, TipoCentroCustoForm,
+    TipoContaForm, TipoChavePixForm, TipoPlanoContasForm, TipoCentroCustoForm, BancoForm,
 )
 
 
@@ -699,6 +699,40 @@ class BancoListView(PermissaoModuloMixin, ListView):
         if q:
             qs = qs.filter(nome__icontains=q) | qs.filter(codigo__icontains=q)
         return qs
+
+
+class BancoCreateView(MensagemSucessoMixin, PermissaoModuloMixin, CreateView):
+    model = Banco
+    form_class = BancoForm
+    template_name = "sistema/banco_form.html"
+    success_url = reverse_lazy("sistema:banco_list")
+    modulo = "sistema"
+    acao = "criar"
+    extra_context = {"titulo": "Novo Banco"}
+
+
+class BancoUpdateView(MensagemSucessoMixin, PermissaoModuloMixin, UpdateView):
+    model = Banco
+    form_class = BancoForm
+    template_name = "sistema/banco_form.html"
+    success_url = reverse_lazy("sistema:banco_list")
+    modulo = "sistema"
+    acao = "editar"
+    extra_context = {"titulo": "Editar Banco"}
+
+    def get_queryset(self):
+        return Banco.objects.all()
+
+
+class BancoDeleteView(MensagemSucessoMixin, PermissaoModuloMixin, DeleteView):
+    model = Banco
+    template_name = "sistema/dominio_confirmar_exclusao.html"
+    success_url = reverse_lazy("sistema:banco_list")
+    modulo = "sistema"
+    acao = "excluir"
+
+    def get_queryset(self):
+        return Banco.objects.all()
 
 
 # ══════════════════════════════════════════════

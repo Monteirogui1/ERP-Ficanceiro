@@ -6,6 +6,9 @@ from .models import (
 from apps.sistema.models import PlanoContas
 from apps.authentication.models import Usuario
 
+FC = "form-control"
+FS = "form-select"
+
 
 # ══════════════════════════════════════════════
 # TABELAS DE DOMÍNIO
@@ -16,9 +19,10 @@ class TipoImpostoForm(forms.ModelForm):
         model = TipoImposto
         fields = ["nome", "sigla", "esfera", "base_calculo_padrao", "ativo"]
         widgets = {
-            "base_calculo_padrao": forms.TextInput(
-                attrs={"placeholder": "Ex: Receita Bruta, Folha de Pagamento"}
-            ),
+            "nome":                forms.TextInput(attrs={"class": FC, "placeholder": "Ex: ICMS, ISS, PIS, COFINS"}),
+            "sigla":               forms.TextInput(attrs={"class": FC, "placeholder": "Ex: ICMS"}),
+            "esfera":              forms.Select(attrs={"class": FS}),
+            "base_calculo_padrao": forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Receita Bruta, Folha de Pagamento"}),
         }
 
     def clean_sigla(self):
@@ -44,6 +48,11 @@ class TipoObrigacaoFiscalForm(forms.ModelForm):
     class Meta:
         model = TipoObrigacaoFiscal
         fields = ["nome", "sigla", "periodicidade", "ativo"]
+        widgets = {
+            "nome":         forms.TextInput(attrs={"class": FC, "placeholder": "Ex: SPED Fiscal, DCTF, EFD-Contribuições"}),
+            "sigla":        forms.TextInput(attrs={"class": FC, "placeholder": "Ex: DCTF"}),
+            "periodicidade": forms.Select(attrs={"class": FS}),
+        }
 
     def clean_nome(self):
         nome = self.cleaned_data["nome"]
@@ -59,6 +68,9 @@ class StatusObrigacaoFiscalForm(forms.ModelForm):
     class Meta:
         model = StatusObrigacaoFiscal
         fields = ["nome", "ativo"]
+        widgets = {
+            "nome": forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Pendente, Entregue, Atrasada"}),
+        }
 
     def clean_nome(self):
         nome = self.cleaned_data["nome"]
@@ -83,8 +95,12 @@ class ConfiguracaoImpostoEmpresaForm(forms.ModelForm):
             "vigencia_inicio", "vigencia_fim", "ativo",
         ]
         widgets = {
-            "vigencia_inicio": forms.DateInput(attrs={"type": "date"}),
-            "vigencia_fim": forms.DateInput(attrs={"type": "date"}),
+            "tipo_imposto":        forms.Select(attrs={"class": FS}),
+            "aliquota":            forms.NumberInput(attrs={"class": FC, "placeholder": "Ex: 12.00", "step": "0.0001", "min": "0", "max": "100"}),
+            "plano_contas_debito": forms.Select(attrs={"class": FS}),
+            "plano_contas_credito": forms.Select(attrs={"class": FS}),
+            "vigencia_inicio":     forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "vigencia_fim":        forms.DateInput(attrs={"class": FC, "type": "date"}),
         }
 
     def __init__(self, *args, empresa=None, **kwargs):
@@ -108,10 +124,9 @@ class ConfiguracaoImpostoEmpresaForm(forms.ModelForm):
     def clean(self):
         cleaned = super().clean()
         inicio = cleaned.get("vigencia_inicio")
-        fim = cleaned.get("vigencia_fim")
+        fim    = cleaned.get("vigencia_fim")
         if inicio and fim and fim <= inicio:
             self.add_error("vigencia_fim", "A data fim deve ser posterior à data de início.")
-
         tipo = cleaned.get("tipo_imposto")
         if tipo and inicio and self.empresa:
             qs = ConfiguracaoImpostoEmpresa.objects.filter(
@@ -141,10 +156,17 @@ class LancamentoImpostoForm(forms.ModelForm):
             "valor_pago", "data_pagamento", "numero_guia", "observacoes",
         ]
         widgets = {
-            "competencia": forms.DateInput(attrs={"type": "date"}),
-            "data_vencimento": forms.DateInput(attrs={"type": "date"}),
-            "data_pagamento": forms.DateInput(attrs={"type": "date"}),
-            "observacoes": forms.Textarea(attrs={"rows": 3}),
+            "tipo_imposto":      forms.Select(attrs={"class": FS}),
+            "configuracao":      forms.Select(attrs={"class": FS}),
+            "competencia":       forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "data_vencimento":   forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "data_pagamento":    forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "base_calculo":      forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+            "aliquota_aplicada": forms.NumberInput(attrs={"class": FC, "placeholder": "Ex: 12.00", "step": "0.0001", "min": "0", "max": "100"}),
+            "valor_calculado":   forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+            "valor_pago":        forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+            "numero_guia":       forms.TextInput(attrs={"class": FC, "placeholder": "Nº da guia de recolhimento"}),
+            "observacoes":       forms.Textarea(attrs={"class": FC, "rows": 3, "placeholder": "Observações adicionais"}),
         }
 
     def __init__(self, *args, empresa=None, **kwargs):
@@ -159,9 +181,9 @@ class LancamentoImpostoForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
-        base = cleaned.get("base_calculo")
+        base     = cleaned.get("base_calculo")
         aliquota = cleaned.get("aliquota_aplicada")
-        valor = cleaned.get("valor_calculado")
+        valor    = cleaned.get("valor_calculado")
         if base and aliquota and valor:
             esperado = round(base * aliquota / 100, 2)
             if abs(float(valor) - float(esperado)) > 0.05:
@@ -170,7 +192,7 @@ class LancamentoImpostoForm(forms.ModelForm):
                     f"O valor calculado ({valor}) difere do esperado ({esperado}) "
                     f"com base no percentual informado."
                 )
-        valor_pago = cleaned.get("valor_pago")
+        valor_pago     = cleaned.get("valor_pago")
         data_pagamento = cleaned.get("data_pagamento")
         if valor_pago and valor_pago > 0 and not data_pagamento:
             self.add_error("data_pagamento", "Informe a data de pagamento.")
@@ -190,10 +212,14 @@ class ObrigacaoFiscalForm(forms.ModelForm):
             "arquivo", "responsavel", "observacoes",
         ]
         widgets = {
-            "competencia": forms.DateInput(attrs={"type": "date"}),
-            "data_vencimento": forms.DateInput(attrs={"type": "date"}),
-            "data_entrega": forms.DateInput(attrs={"type": "date"}),
-            "observacoes": forms.Textarea(attrs={"rows": 3}),
+            "tipo":              forms.Select(attrs={"class": FS}),
+            "status":            forms.Select(attrs={"class": FS}),
+            "responsavel":       forms.Select(attrs={"class": FS}),
+            "competencia":       forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "data_vencimento":   forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "data_entrega":      forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "numero_protocolo":  forms.TextInput(attrs={"class": FC, "placeholder": "Nº do protocolo de entrega"}),
+            "observacoes":       forms.Textarea(attrs={"class": FC, "rows": 3, "placeholder": "Observações adicionais"}),
         }
 
     def __init__(self, *args, empresa=None, **kwargs):
@@ -210,9 +236,9 @@ class ObrigacaoFiscalForm(forms.ModelForm):
             self.fields[f].required = False
 
     def clean(self):
-        cleaned = super().clean()
+        cleaned    = super().clean()
         competencia = cleaned.get("competencia")
-        vencimento = cleaned.get("data_vencimento")
+        vencimento  = cleaned.get("data_vencimento")
         if competencia and vencimento and vencimento < competencia:
             self.add_error(
                 "data_vencimento",

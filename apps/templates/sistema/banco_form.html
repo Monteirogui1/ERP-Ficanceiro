@@ -1,0 +1,97 @@
+{% extends "layouts/base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block conteudo %}
+<div class="content">
+
+  <div class="page-header">
+    <div>
+      <a href="{% url 'sistema:banco_list' %}" style="font-size:13px;color:var(--txt-3);text-decoration:none">
+        <i class="bi bi-arrow-left"></i> Bancos
+      </a>
+      <h1 style="margin-top:4px">{{ titulo }}</h1>
+    </div>
+    <a href="{% url 'sistema:banco_list' %}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+  </div>
+
+  {% include "_includes/messages.html" %}
+
+  <div class="detail-card" style="max-width:560px">
+    <form method="post">
+      {% csrf_token %}
+
+      <h2 style="font-size:14px;font-weight:600;color:var(--txt-2);margin-bottom:18px;
+        display:flex;align-items:center;gap:8px">
+        <i class="bi bi-bank"></i> Dados do Banco
+      </h2>
+
+      <div class="form-grid">
+
+        <!-- Código -->
+        <div class="form-group">
+          <label for="{{ form.codigo.id_for_label }}">
+            Código <span style="color:#dc3545">*</span>
+          </label>
+          {{ form.codigo }}
+          {% if form.codigo.errors %}
+            <span class="error-message">{{ form.codigo.errors|join:", " }}</span>
+          {% endif %}
+          <small style="color:var(--txt-3);font-size:12px">Ex: 001, 033, 341</small>
+        </div>
+
+        <!-- ISPB -->
+        <div class="form-group">
+          <label for="{{ form.ispb.id_for_label }}">ISPB</label>
+          {{ form.ispb }}
+          {% if form.ispb.errors %}
+            <span class="error-message">{{ form.ispb.errors|join:", " }}</span>
+          {% endif %}
+          <small style="color:var(--txt-3);font-size:12px">Código de 8 dígitos — opcional</small>
+        </div>
+
+        <!-- Nome -->
+        <div class="form-group full-width">
+          <label for="{{ form.nome.id_for_label }}">
+            Nome <span style="color:#dc3545">*</span>
+          </label>
+          {{ form.nome }}
+          {% if form.nome.errors %}
+            <span class="error-message">{{ form.nome.errors|join:", " }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Ativo -->
+        <div class="form-group full-width"
+          style="display:flex;align-items:center;gap:10px;padding-top:6px">
+          {{ form.ativo }}
+          <label for="{{ form.ativo.id_for_label }}" style="margin:0;font-weight:500;cursor:pointer">
+            Banco ativo
+          </label>
+          {% if form.ativo.errors %}
+            <span class="error-message">{{ form.ativo.errors|join:", " }}</span>
+          {% endif %}
+        </div>
+
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="error-message" style="margin-top:12px">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url 'sistema:banco_list' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg"></i>
+          {% if object %}Salvar Alterações{% else %}Cadastrar Banco{% endif %}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+{% endblock %}

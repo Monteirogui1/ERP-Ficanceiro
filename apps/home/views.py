@@ -726,3 +726,184 @@ class RelatorioImpostosView(LoginRequiredMixin, TemplateView):
             'imp_values': json.dumps(imp_values),
         })
         return ctx
+
+
+class RelatorioBalancoView(LoginRequiredMixin, TemplateView):
+    """
+    Balanço Patrimonial gerencial baseado nos lançamentos financeiros.
+
+    Estrutura:
+    ATIVO
+      ├─ Ativo Circulante     (natureza C, tipo de plano = Ativo, nível curto prazo)
+      │    ├─ Disponibilidades (saldos bancários)
+      │    └─ Contas a Receber (CR em aberto)
+      └─ Ativo Não Circulante  (demais contas de Ativo)
+
+    PASSIVO
+      ├─ Passivo Circulante    (CP em aberto com vencimento ≤ 12 meses)
+      └─ Passivo Não Circulante (CP com vencimento > 12 meses)
+
+    PATRIMÔNIO LÍQUIDO = Total Ativo - Total Passivo
+    """
+
+    template_name = "home/relatorios/balanco.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        empresa = _empresa(self.request)
+        if not empresa:
+            return ctx
+
+        hoje = date.today()
+        ano = int(self.request.GET.get("ano", hoje.year))
+        mes = int(self.request.GET.get("mes", hoje.month))
+
+        # Data de referência: último dia do mês/ano selecionado
+        if mes == 12:
+            from datetime import timedelta
+            data_ref = date(ano + 1, 1, 1) - timedelta(days=1)
+        else:
+            data_ref = date(ano, mes + 1, 1) - __import__("datetime").timedelta(days=1)
+
+        # ── ATIVO ─────────────────────────────────────────
+
+        # Disponibilidades: saldos bancários atuais
+        contas_bancarias = ContaBancaria.objects.filter(
+            empresa=empresa, ativo=True
+        ).select_related("banco")
+
+        disponibilidades = [
+            {"nome": f"{c.banco.nome} — {c.nome}", "valor": c.saldo_atual}
+            for c in contas_bancarias
+        ]
+        total_disponibilidades = sum(c.saldo_atual for c in contas_bancarias)
+
+        # Contas a Receber em aberto até a data de referência
+        from apps.financeiro.models import ContaReceber, ContaPagar
+        cr_abertas = (
+            ContaReceber.objects
+            .filter(
+                empresa=empresa,
+                status__finalizado=False,
+                data_vencimento__lte=data_ref,
+            )
+            .aggregate(total=Coalesce(Sum("valor_original"), Decimal("0")))
+        )["total"]
+
+        # Outros ativos via lançamentos (plano de contas natureza credora = ativo)
+        lancamentos_ativo = (
+            LancamentoFinanceiro.objects
+            .filter(
+                empresa=empresa,
+                data_lancamento__lte=data_ref,
+                plano_contas__tipo__natureza="C",   # natureza credora = ativo/receita
+            )
+            .values("plano_contas__codigo", "plano_contas__nome", "tipo_lancamento__natureza")
+            .annotate(total=Sum("valor"))
+            .order_by("plano_contas__codigo")
+        )
+
+        outros_ativos = []
+        for item in lancamentos_ativo:
+            nat = item["tipo_lancamento__natureza"] or "D"
+            valor = Decimal(str(item["total"] or 0))
+            outros_ativos.append({
+                "codigo": item["plano_contas__codigo"] or "—",
+                "nome": item["plano_contas__nome"] or "Sem plano",
+                "valor": valor if nat == "C" else -valor,
+            })
+
+        total_outros_ativos = sum(a["valor"] for a in outros_ativos)
+        total_ativo_circulante = total_disponibilidades + cr_abertas
+        total_ativo = total_ativo_circulante + total_outros_ativos
+
+        # ── PASSIVO ───────────────────────────────────────
+
+        limite_curto_prazo = date(data_ref.year + 1, data_ref.month, 1)
+
+        # Passivo Circulante: CP vencendo em até 12 meses
+        cp_curto = (
+            ContaPagar.objects
+            .filter(
+                empresa=empresa,
+                status__finalizado=False,
+                data_vencimento__lte=limite_curto_prazo,
+            )
+            .values("plano_contas__codigo", "plano_contas__nome")
+            .annotate(total=Sum("valor_original"))
+            .order_by("plano_contas__codigo")
+        )
+
+        # Passivo Não Circulante: CP vencendo após 12 meses
+        cp_longo = (
+            ContaPagar.objects
+            .filter(
+                empresa=empresa,
+                status__finalizado=False,
+                data_vencimento__gt=limite_curto_prazo,
+            )
+            .values("plano_contas__codigo", "plano_contas__nome")
+            .annotate(total=Sum("valor_original"))
+            .order_by("plano_contas__codigo")
+        )
+
+        passivo_circulante = [
+            {
+                "codigo": i["plano_contas__codigo"] or "—",
+                "nome": i["plano_contas__nome"] or "Contas a Pagar",
+                "valor": Decimal(str(i["total"] or 0)),
+            }
+            for i in cp_curto
+        ]
+        passivo_nao_circulante = [
+            {
+                "codigo": i["plano_contas__codigo"] or "—",
+                "nome": i["plano_contas__nome"] or "Contas a Pagar LP",
+                "valor": Decimal(str(i["total"] or 0)),
+            }
+            for i in cp_longo
+        ]
+
+        total_passivo_circulante = sum(i["valor"] for i in passivo_circulante)
+        total_passivo_nao_circulante = sum(i["valor"] for i in passivo_nao_circulante)
+        total_passivo = total_passivo_circulante + total_passivo_nao_circulante
+
+        # ── PATRIMÔNIO LÍQUIDO ────────────────────────────
+        patrimonio_liquido = total_ativo - total_passivo
+
+        # ── Gráfico composição ────────────────────────────
+        grafico_labels = ["Disponibilidades", "Contas a Receber", "Outros Ativos"]
+        grafico_valores = [
+            _fmt(total_disponibilidades),
+            _fmt(cr_abertas),
+            _fmt(total_outros_ativos),
+        ]
+
+        ctx.update({
+            # Ativo
+            "disponibilidades": disponibilidades,
+            "total_disponibilidades": total_disponibilidades,
+            "cr_abertas": cr_abertas,
+            "outros_ativos": outros_ativos,
+            "total_outros_ativos": total_outros_ativos,
+            "total_ativo_circulante": total_ativo_circulante,
+            "total_ativo": total_ativo,
+            # Passivo
+            "passivo_circulante": passivo_circulante,
+            "passivo_nao_circulante": passivo_nao_circulante,
+            "total_passivo_circulante": total_passivo_circulante,
+            "total_passivo_nao_circulante": total_passivo_nao_circulante,
+            "total_passivo": total_passivo,
+            # Patrimônio
+            "patrimonio_liquido": patrimonio_liquido,
+            # Filtros
+            "ano": ano,
+            "mes": mes,
+            "data_ref": data_ref,
+            "anos": range(hoje.year - 4, hoje.year + 2),
+            "meses": range(1, 13),
+            # Gráfico
+            "grafico_labels": json.dumps(grafico_labels),
+            "grafico_valores": json.dumps(grafico_valores),
+        })
+        return ctx

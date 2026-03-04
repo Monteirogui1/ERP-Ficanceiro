@@ -3,11 +3,21 @@ from .models import StatusOrcamento, Orcamento, ItemOrcamento
 from apps.sistema.models import PlanoContas, CentroCusto
 from apps.authentication.models import Usuario
 
+FC = "form-control"
+FS = "form-select"
+
+
+# ══════════════════════════════════════════════
+# TABELAS DE DOMÍNIO
+# ══════════════════════════════════════════════
 
 class StatusOrcamentoForm(forms.ModelForm):
     class Meta:
         model = StatusOrcamento
         fields = ["nome", "ativo"]
+        widgets = {
+            "nome": forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Em elaboração, Aprovado, Revisado"}),
+        }
 
     def clean_nome(self):
         nome = self.cleaned_data["nome"]
@@ -19,13 +29,21 @@ class StatusOrcamentoForm(forms.ModelForm):
         return nome
 
 
+# ══════════════════════════════════════════════
+# ORÇAMENTO
+# ══════════════════════════════════════════════
+
 class OrcamentoForm(forms.ModelForm):
     class Meta:
         model = Orcamento
         fields = ["nome", "descricao", "ano", "status", "aprovado_por", "data_aprovacao"]
         widgets = {
-            "descricao": forms.Textarea(attrs={"rows": 3}),
-            "data_aprovacao": forms.DateInput(attrs={"type": "date"}),
+            "nome":           forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Orçamento Anual 2025"}),
+            "descricao":      forms.Textarea(attrs={"class": FC, "rows": 3, "placeholder": "Descrição ou objetivo do orçamento"}),
+            "ano":            forms.NumberInput(attrs={"class": FC, "placeholder": "Ex: 2025", "min": "2000", "max": "2100"}),
+            "status":         forms.Select(attrs={"class": FS}),
+            "aprovado_por":   forms.Select(attrs={"class": FS}),
+            "data_aprovacao": forms.DateInput(attrs={"class": FC, "type": "date"}),
         }
 
     def __init__(self, *args, empresa=None, **kwargs):
@@ -44,7 +62,7 @@ class OrcamentoForm(forms.ModelForm):
     def clean(self):
         cleaned = super().clean()
         nome = cleaned.get("nome")
-        ano = cleaned.get("ano")
+        ano  = cleaned.get("ano")
         if nome and ano and self.empresa:
             qs = Orcamento.objects.filter(empresa=self.empresa, nome__iexact=nome, ano=ano)
             if self.instance.pk:
@@ -56,6 +74,10 @@ class OrcamentoForm(forms.ModelForm):
         return cleaned
 
 
+# ══════════════════════════════════════════════
+# ITENS DE ORÇAMENTO
+# ══════════════════════════════════════════════
+
 class ItemOrcamentoForm(forms.ModelForm):
     class Meta:
         model = ItemOrcamento
@@ -64,13 +86,20 @@ class ItemOrcamentoForm(forms.ModelForm):
             "valor_previsto", "valor_revisado", "observacoes",
         ]
         widgets = {
-            "observacoes": forms.Textarea(attrs={"rows": 2}),
-            "mes": forms.Select(choices=[
-                (1, "Janeiro"), (2, "Fevereiro"), (3, "Março"),
-                (4, "Abril"), (5, "Maio"), (6, "Junho"),
-                (7, "Julho"), (8, "Agosto"), (9, "Setembro"),
-                (10, "Outubro"), (11, "Novembro"), (12, "Dezembro"),
-            ]),
+            "plano_contas":   forms.Select(attrs={"class": FS}),
+            "centro_custo":   forms.Select(attrs={"class": FS}),
+            "mes": forms.Select(
+                attrs={"class": FS},
+                choices=[
+                    (1, "Janeiro"),  (2, "Fevereiro"), (3, "Março"),
+                    (4, "Abril"),    (5, "Maio"),       (6, "Junho"),
+                    (7, "Julho"),    (8, "Agosto"),     (9, "Setembro"),
+                    (10, "Outubro"), (11, "Novembro"),  (12, "Dezembro"),
+                ],
+            ),
+            "valor_previsto": forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+            "valor_revisado": forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+            "observacoes":    forms.Textarea(attrs={"class": FC, "rows": 2, "placeholder": "Justificativa ou observação sobre o item"}),
         }
 
     def __init__(self, *args, empresa=None, **kwargs):

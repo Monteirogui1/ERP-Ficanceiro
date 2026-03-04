@@ -29,6 +29,7 @@ urlpatterns = [
     path("extratos/", views.ImportacaoExtratoListView.as_view(), name="importacao_list"),
     path("extratos/importar/", views.ImportacaoExtratoCreateView.as_view(), name="importacao_create"),
     path("extratos/<int:pk>/", views.ImportacaoExtratoDetailView.as_view(), name="importacao_detail"),
+    path("extratos/<int:pk>/conciliar/", views.ConciliarAutomaticoView.as_view(), name="conciliar_automatico"),
 
     # ── Conciliação Bancária ─────────────────
     path("conciliacao/", views.ConciliacaoBancariaListView.as_view(), name="conciliacao_list"),

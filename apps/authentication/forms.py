@@ -5,23 +5,42 @@ from .models import (
     Empresa, FilialEmpresa, PerfilAcesso, Usuario,
 )
 
+FC = "form-control"
+FS = "form-select"
+
+
+# ══════════════════════════════════════════════
+# TABELAS DE DOMÍNIO
+# ══════════════════════════════════════════════
 
 class SegmentoEmpresaForm(forms.ModelForm):
     class Meta:
         model = SegmentoEmpresa
         fields = ["nome", "ativo"]
+        widgets = {
+            "nome": forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Comércio, Serviços, Indústria"}),
+        }
 
 
 class RegimeTributarioForm(forms.ModelForm):
     class Meta:
         model = RegimeTributario
         fields = ["nome", "codigo", "ativo"]
+        widgets = {
+            "nome":   forms.TextInput(attrs={"class": FC, "placeholder": "Nome do regime"}),
+            "codigo": forms.TextInput(attrs={"class": FC, "placeholder": "Ex: SN, LP, LR"}),
+        }
 
 
 class TipoDocumentoForm(forms.ModelForm):
     class Meta:
         model = TipoDocumento
         fields = ["nome", "sigla", "mascara", "ativo"]
+        widgets = {
+            "nome":    forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Nota Fiscal, Contrato"}),
+            "sigla":   forms.TextInput(attrs={"class": FC, "placeholder": "Ex: NF, CT"}),
+            "mascara": forms.TextInput(attrs={"class": FC, "placeholder": "Ex: 000.000.000-00"}),
+        }
 
     def __init__(self, *args, empresa=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -41,6 +60,9 @@ class TipoContatoForm(forms.ModelForm):
     class Meta:
         model = TipoContato
         fields = ["nome", "ativo"]
+        widgets = {
+            "nome": forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Telefone, WhatsApp, E-mail"}),
+        }
 
     def __init__(self, *args, empresa=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -60,13 +82,25 @@ class TipoAcaoLogForm(forms.ModelForm):
     class Meta:
         model = TipoAcaoLog
         fields = ["nome", "descricao"]
+        widgets = {
+            "nome":      forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Criação, Edição, Exclusão"}),
+            "descricao": forms.Textarea(attrs={"class": FC, "rows": 2, "placeholder": "Descrição da ação"}),
+        }
 
 
 class TipoNotificacaoForm(forms.ModelForm):
     class Meta:
         model = TipoNotificacao
         fields = ["nome", "icone", "ativo"]
+        widgets = {
+            "nome":  forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Alerta, Aviso, Informação"}),
+            "icone": forms.TextInput(attrs={"class": FC, "placeholder": "Ex: bi-bell, bi-exclamation-triangle"}),
+        }
 
+
+# ══════════════════════════════════════════════
+# EMPRESA
+# ══════════════════════════════════════════════
 
 class EmpresaForm(forms.ModelForm):
     class Meta:
@@ -81,7 +115,25 @@ class EmpresaForm(forms.ModelForm):
             "plano", "data_vencimento_plano", "logo", "ativo",
         ]
         widgets = {
-            "data_vencimento_plano": forms.DateInput(attrs={"type": "date"}),
+            "razao_social":          forms.TextInput(attrs={"class": FC, "placeholder": "Razão social da empresa"}),
+            "nome_fantasia":         forms.TextInput(attrs={"class": FC, "placeholder": "Nome fantasia"}),
+            "cnpj":                  forms.TextInput(attrs={"class": FC, "placeholder": "00.000.000/0000-00"}),
+            "inscricao_estadual":    forms.TextInput(attrs={"class": FC, "placeholder": "Inscrição estadual"}),
+            "inscricao_municipal":   forms.TextInput(attrs={"class": FC, "placeholder": "Inscrição municipal"}),
+            "segmento":              forms.Select(attrs={"class": FS}),
+            "regime_tributario":     forms.Select(attrs={"class": FS}),
+            "cep":                   forms.TextInput(attrs={"class": FC, "placeholder": "00000-000"}),
+            "logradouro":            forms.TextInput(attrs={"class": FC, "placeholder": "Rua, Av., etc."}),
+            "numero":                forms.TextInput(attrs={"class": FC, "placeholder": "Nº"}),
+            "complemento":           forms.TextInput(attrs={"class": FC, "placeholder": "Sala, Andar, etc."}),
+            "bairro":                forms.TextInput(attrs={"class": FC, "placeholder": "Bairro"}),
+            "cidade":                forms.TextInput(attrs={"class": FC, "placeholder": "Cidade"}),
+            "estado":                forms.TextInput(attrs={"class": FC, "placeholder": "UF"}),
+            "telefone":              forms.TextInput(attrs={"class": FC, "placeholder": "(00) 00000-0000"}),
+            "email":                 forms.EmailInput(attrs={"class": FC, "placeholder": "contato@empresa.com.br"}),
+            "site":                  forms.URLInput(attrs={"class": FC, "placeholder": "https://www.empresa.com.br"}),
+            "plano":                 forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Basic, Pro, Enterprise"}),
+            "data_vencimento_plano": forms.DateInput(attrs={"class": FC, "type": "date"}),
         }
 
     def clean_cnpj(self):
@@ -94,6 +146,10 @@ class EmpresaForm(forms.ModelForm):
         return cnpj
 
 
+# ══════════════════════════════════════════════
+# FILIAL
+# ══════════════════════════════════════════════
+
 class FilialEmpresaForm(forms.ModelForm):
     class Meta:
         model = FilialEmpresa
@@ -102,11 +158,24 @@ class FilialEmpresaForm(forms.ModelForm):
             "cep", "logradouro", "numero",
             "cidade", "estado", "ativo",
         ]
+        widgets = {
+            "nome":       forms.TextInput(attrs={"class": FC, "placeholder": "Nome da filial"}),
+            "cnpj":       forms.TextInput(attrs={"class": FC, "placeholder": "00.000.000/0000-00"}),
+            "cep":        forms.TextInput(attrs={"class": FC, "placeholder": "00000-000"}),
+            "logradouro": forms.TextInput(attrs={"class": FC, "placeholder": "Rua, Av., etc."}),
+            "numero":     forms.TextInput(attrs={"class": FC, "placeholder": "Nº"}),
+            "cidade":     forms.TextInput(attrs={"class": FC, "placeholder": "Cidade"}),
+            "estado":     forms.TextInput(attrs={"class": FC, "placeholder": "UF"}),
+        }
 
     def __init__(self, *args, empresa=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.empresa = empresa
 
+
+# ══════════════════════════════════════════════
+# PERFIL DE ACESSO
+# ══════════════════════════════════════════════
 
 class PerfilAcessoForm(forms.ModelForm):
     class Meta:
@@ -116,8 +185,10 @@ class PerfilAcessoForm(forms.ModelForm):
             "pode_aprovar_pagamentos", "nivel_aprovacao", "ativo",
         ]
         widgets = {
-            "permissoes": forms.Textarea(attrs={"rows": 6, "class": "font-mono text-sm"}),
-            "descricao": forms.Textarea(attrs={"rows": 3}),
+            "nome":             forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Financeiro, Gerente, Analista"}),
+            "descricao":        forms.Textarea(attrs={"class": FC, "rows": 3, "placeholder": "Descreva as responsabilidades deste perfil"}),
+            "permissoes":       forms.Textarea(attrs={"class": FC, "rows": 6, "style": "font-family: monospace; font-size: 13px;"}),
+            "nivel_aprovacao":  forms.NumberInput(attrs={"class": FC, "min": 1, "placeholder": "Ex: 1, 2, 3"}),
         }
 
     def __init__(self, *args, empresa=None, **kwargs):
@@ -134,9 +205,21 @@ class PerfilAcessoForm(forms.ModelForm):
         return nome
 
 
+# ══════════════════════════════════════════════
+# USUÁRIO
+# ══════════════════════════════════════════════
+
 class UsuarioForm(forms.ModelForm):
-    password1 = forms.CharField(label="Senha", widget=forms.PasswordInput, required=False)
-    password2 = forms.CharField(label="Confirmar senha", widget=forms.PasswordInput, required=False)
+    password1 = forms.CharField(
+        label="Senha",
+        required=False,
+        widget=forms.PasswordInput(attrs={"class": FC, "placeholder": "Digite a senha"}),
+    )
+    password2 = forms.CharField(
+        label="Confirmar senha",
+        required=False,
+        widget=forms.PasswordInput(attrs={"class": FC, "placeholder": "Confirme a senha"}),
+    )
 
     class Meta:
         model = Usuario
@@ -144,6 +227,13 @@ class UsuarioForm(forms.ModelForm):
             "nome", "email", "empresa_principal", "perfil_acesso",
             "telefone", "avatar", "dois_fatores_ativo", "is_active",
         ]
+        widgets = {
+            "nome":              forms.TextInput(attrs={"class": FC, "placeholder": "Nome completo"}),
+            "email":             forms.EmailInput(attrs={"class": FC, "placeholder": "usuario@empresa.com.br"}),
+            "empresa_principal": forms.Select(attrs={"class": FS}),
+            "perfil_acesso":     forms.Select(attrs={"class": FS}),
+            "telefone":          forms.TextInput(attrs={"class": FC, "placeholder": "(00) 00000-0000"}),
+        }
 
     def __init__(self, *args, empresa=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -173,12 +263,19 @@ class UsuarioForm(forms.ModelForm):
 
 class UsuarioEdicaoForm(forms.ModelForm):
     """Form de edição sem campos de senha — para atualização de perfil."""
+
     class Meta:
         model = Usuario
         fields = [
             "nome", "email", "perfil_acesso",
             "telefone", "avatar", "dois_fatores_ativo",
         ]
+        widgets = {
+            "nome":          forms.TextInput(attrs={"class": FC, "placeholder": "Nome completo"}),
+            "email":         forms.EmailInput(attrs={"class": FC, "placeholder": "usuario@empresa.com.br"}),
+            "perfil_acesso": forms.Select(attrs={"class": FS}),
+            "telefone":      forms.TextInput(attrs={"class": FC, "placeholder": "(00) 00000-0000"}),
+        }
 
     def __init__(self, *args, empresa=None, **kwargs):
         super().__init__(*args, **kwargs)

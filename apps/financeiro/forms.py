@@ -11,6 +11,9 @@ from apps.sistema.models import (
     Fornecedor, Cliente, ContaBancaria, PlanoContas, CentroCusto
 )
 
+FC = "form-control"
+FS = "form-select"
+
 
 # ══════════════════════════════════════════════
 # TABELAS DE DOMÍNIO
@@ -20,6 +23,9 @@ class TipoDocumentoFinanceiroForm(forms.ModelForm):
     class Meta:
         model = TipoDocumentoFinanceiro
         fields = ["nome", "requer_numero_documento", "ativo"]
+        widgets = {
+            "nome": forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Boleto, Nota Fiscal, Contrato"}),
+        }
 
     def __init__(self, *args, empresa=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -39,6 +45,9 @@ class FormaPagamentoForm(forms.ModelForm):
     class Meta:
         model = FormaPagamento
         fields = ["nome", "gera_arquivo_remessa", "ativo"]
+        widgets = {
+            "nome": forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Boleto, PIX, TED, Cartão"}),
+        }
 
     def __init__(self, *args, empresa=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -58,6 +67,9 @@ class StatusContaPagarForm(forms.ModelForm):
     class Meta:
         model = StatusContaPagar
         fields = ["nome", "finalizado", "ativo"]
+        widgets = {
+            "nome": forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Pendente, Pago, Cancelado"}),
+        }
 
     def clean_nome(self):
         nome = self.cleaned_data["nome"]
@@ -73,6 +85,9 @@ class StatusContaReceberForm(forms.ModelForm):
     class Meta:
         model = StatusContaReceber
         fields = ["nome", "finalizado", "ativo"]
+        widgets = {
+            "nome": forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Aberto, Recebido, Inadimplente"}),
+        }
 
     def clean_nome(self):
         nome = self.cleaned_data["nome"]
@@ -88,6 +103,10 @@ class PeriodicidadeRecorrenciaForm(forms.ModelForm):
     class Meta:
         model = PeriodicidadeRecorrencia
         fields = ["nome", "dias_intervalo", "ativo"]
+        widgets = {
+            "nome":           forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Mensal, Quinzenal, Semanal"}),
+            "dias_intervalo": forms.NumberInput(attrs={"class": FC, "placeholder": "Ex: 30", "min": "1"}),
+        }
 
     def clean_nome(self):
         nome = self.cleaned_data["nome"]
@@ -103,6 +122,10 @@ class TipoEncargoForm(forms.ModelForm):
     class Meta:
         model = TipoEncargo
         fields = ["nome", "natureza", "ativo"]
+        widgets = {
+            "nome":     forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Juros, Multa, Desconto"}),
+            "natureza": forms.Select(attrs={"class": FS}),
+        }
 
     def clean_nome(self):
         nome = self.cleaned_data["nome"]
@@ -118,6 +141,10 @@ class TipoCenarioFluxoForm(forms.ModelForm):
     class Meta:
         model = TipoCenarioFluxo
         fields = ["nome", "percentual_ajuste", "ativo"]
+        widgets = {
+            "nome":               forms.TextInput(attrs={"class": FC, "placeholder": "Ex: Otimista, Realista, Pessimista"}),
+            "percentual_ajuste":  forms.NumberInput(attrs={"class": FC, "placeholder": "Ex: 10.00", "step": "0.01"}),
+        }
 
     def clean_nome(self):
         nome = self.cleaned_data["nome"]
@@ -145,11 +172,24 @@ class ContaPagarForm(forms.ModelForm):
             "requer_aprovacao", "observacoes",
         ]
         widgets = {
-            "data_emissao": forms.DateInput(attrs={"type": "date"}),
-            "data_vencimento": forms.DateInput(attrs={"type": "date"}),
-            "data_competencia": forms.DateInput(attrs={"type": "date"}),
-            "data_fim_recorrencia": forms.DateInput(attrs={"type": "date"}),
-            "observacoes": forms.Textarea(attrs={"rows": 3}),
+            "fornecedor":           forms.Select(attrs={"class": FS}),
+            "tipo_documento":       forms.Select(attrs={"class": FS}),
+            "numero_documento":     forms.TextInput(attrs={"class": FC, "placeholder": "Nº do documento"}),
+            "descricao":            forms.TextInput(attrs={"class": FC, "placeholder": "Descrição da conta a pagar"}),
+            "plano_contas":         forms.Select(attrs={"class": FS}),
+            "centro_custo":         forms.Select(attrs={"class": FS}),
+            "conta_bancaria":       forms.Select(attrs={"class": FS}),
+            "forma_pagamento":      forms.Select(attrs={"class": FS}),
+            "status":               forms.Select(attrs={"class": FS}),
+            "valor_original":       forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+            "data_emissao":         forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "data_vencimento":      forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "data_competencia":     forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "data_fim_recorrencia": forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "numero_parcelas":      forms.NumberInput(attrs={"class": FC, "placeholder": "Ex: 12", "min": "1"}),
+            "numero_parcela_atual": forms.NumberInput(attrs={"class": FC, "placeholder": "Ex: 1", "min": "1"}),
+            "periodicidade":        forms.Select(attrs={"class": FS}),
+            "observacoes":          forms.Textarea(attrs={"class": FC, "rows": 3, "placeholder": "Observações adicionais"}),
         }
 
     def __init__(self, *args, empresa=None, **kwargs):
@@ -173,7 +213,6 @@ class ContaPagarForm(forms.ModelForm):
             self.fields["tipo_documento"].queryset = TipoDocumentoFinanceiro.objects.filter(
                 empresa=empresa, ativo=True
             )
-        # Campos opcionais
         for f in ["fornecedor", "tipo_documento", "numero_documento", "plano_contas",
                   "centro_custo", "conta_bancaria", "forma_pagamento",
                   "data_competencia", "periodicidade", "data_fim_recorrencia"]:
@@ -193,8 +232,11 @@ class EncargoContaPagarForm(forms.ModelForm):
         model = EncargoContaPagar
         fields = ["tipo_encargo", "percentual", "valor", "data_aplicacao", "observacao"]
         widgets = {
-            "data_aplicacao": forms.DateInput(attrs={"type": "date"}),
-            "observacao": forms.Textarea(attrs={"rows": 2}),
+            "tipo_encargo":   forms.Select(attrs={"class": FS}),
+            "percentual":     forms.NumberInput(attrs={"class": FC, "placeholder": "Ex: 2.00", "step": "0.01"}),
+            "valor":          forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+            "data_aplicacao": forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "observacao":     forms.Textarea(attrs={"class": FC, "rows": 2, "placeholder": "Observações sobre o encargo"}),
         }
 
     def __init__(self, *args, empresa=None, **kwargs):
@@ -212,6 +254,9 @@ class DocumentoContaPagarForm(forms.ModelForm):
     class Meta:
         model = DocumentoContaPagar
         fields = ["nome", "arquivo"]
+        widgets = {
+            "nome": forms.TextInput(attrs={"class": FC, "placeholder": "Nome ou descrição do documento"}),
+        }
 
     def clean_arquivo(self):
         arquivo = self.cleaned_data.get("arquivo")
@@ -238,11 +283,25 @@ class ContaReceberForm(forms.ModelForm):
             "nosso_numero", "em_cobranca", "observacoes",
         ]
         widgets = {
-            "data_emissao": forms.DateInput(attrs={"type": "date"}),
-            "data_vencimento": forms.DateInput(attrs={"type": "date"}),
-            "data_competencia": forms.DateInput(attrs={"type": "date"}),
-            "data_fim_recorrencia": forms.DateInput(attrs={"type": "date"}),
-            "observacoes": forms.Textarea(attrs={"rows": 3}),
+            "cliente":              forms.Select(attrs={"class": FS}),
+            "tipo_documento":       forms.Select(attrs={"class": FS}),
+            "numero_documento":     forms.TextInput(attrs={"class": FC, "placeholder": "Nº do documento"}),
+            "descricao":            forms.TextInput(attrs={"class": FC, "placeholder": "Descrição da conta a receber"}),
+            "plano_contas":         forms.Select(attrs={"class": FS}),
+            "centro_custo":         forms.Select(attrs={"class": FS}),
+            "conta_bancaria":       forms.Select(attrs={"class": FS}),
+            "forma_pagamento":      forms.Select(attrs={"class": FS}),
+            "status":               forms.Select(attrs={"class": FS}),
+            "valor_original":       forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+            "data_emissao":         forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "data_vencimento":      forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "data_competencia":     forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "data_fim_recorrencia": forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "numero_parcelas":      forms.NumberInput(attrs={"class": FC, "placeholder": "Ex: 12", "min": "1"}),
+            "numero_parcela_atual": forms.NumberInput(attrs={"class": FC, "placeholder": "Ex: 1", "min": "1"}),
+            "periodicidade":        forms.Select(attrs={"class": FS}),
+            "nosso_numero":         forms.TextInput(attrs={"class": FC, "placeholder": "Nosso número (cobrança bancária)"}),
+            "observacoes":          forms.Textarea(attrs={"class": FC, "rows": 3, "placeholder": "Observações adicionais"}),
         }
 
     def __init__(self, *args, empresa=None, **kwargs):
@@ -285,8 +344,11 @@ class EncargoContaReceberForm(forms.ModelForm):
         model = EncargoContaReceber
         fields = ["tipo_encargo", "percentual", "valor", "data_aplicacao", "observacao"]
         widgets = {
-            "data_aplicacao": forms.DateInput(attrs={"type": "date"}),
-            "observacao": forms.Textarea(attrs={"rows": 2}),
+            "tipo_encargo":   forms.Select(attrs={"class": FS}),
+            "percentual":     forms.NumberInput(attrs={"class": FC, "placeholder": "Ex: 2.00", "step": "0.01"}),
+            "valor":          forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+            "data_aplicacao": forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "observacao":     forms.Textarea(attrs={"class": FC, "rows": 2, "placeholder": "Observações sobre o encargo"}),
         }
 
     def __init__(self, *args, empresa=None, **kwargs):
@@ -304,6 +366,9 @@ class DocumentoContaReceberForm(forms.ModelForm):
     class Meta:
         model = DocumentoContaReceber
         fields = ["nome", "arquivo"]
+        widgets = {
+            "nome": forms.TextInput(attrs={"class": FC, "placeholder": "Nome ou descrição do documento"}),
+        }
 
     def clean_arquivo(self):
         arquivo = self.cleaned_data.get("arquivo")
@@ -326,9 +391,16 @@ class LancamentoFinanceiroForm(forms.ModelForm):
             "numero_documento", "observacoes",
         ]
         widgets = {
-            "data_lancamento": forms.DateInput(attrs={"type": "date"}),
-            "data_competencia": forms.DateInput(attrs={"type": "date"}),
-            "observacoes": forms.Textarea(attrs={"rows": 3}),
+            "conta_bancaria":   forms.Select(attrs={"class": FS}),
+            "tipo_lancamento":  forms.Select(attrs={"class": FS}),
+            "plano_contas":     forms.Select(attrs={"class": FS}),
+            "centro_custo":     forms.Select(attrs={"class": FS}),
+            "descricao":        forms.TextInput(attrs={"class": FC, "placeholder": "Descrição do lançamento"}),
+            "valor":            forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+            "data_lancamento":  forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "data_competencia": forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "numero_documento": forms.TextInput(attrs={"class": FC, "placeholder": "Nº do documento (opcional)"}),
+            "observacoes":      forms.Textarea(attrs={"class": FC, "rows": 3, "placeholder": "Observações adicionais"}),
         }
 
     def __init__(self, *args, empresa=None, **kwargs):
@@ -353,6 +425,10 @@ class LancamentoFinanceiroForm(forms.ModelForm):
         return valor
 
 
+# ══════════════════════════════════════════════
+# TRANSFERÊNCIAS BANCÁRIAS
+# ══════════════════════════════════════════════
+
 class TransferenciaBancariaForm(forms.ModelForm):
     class Meta:
         model = TransferenciaBancaria
@@ -361,23 +437,69 @@ class TransferenciaBancariaForm(forms.ModelForm):
             "valor", "data_transferencia", "descricao",
         ]
         widgets = {
-            "data_transferencia": forms.DateInput(attrs={"type": "date"}),
+            "conta_origem":       forms.Select(attrs={"class": FS}),
+            "conta_destino":      forms.Select(attrs={"class": FS}),
+            "valor":              forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+            "data_transferencia": forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "descricao":          forms.TextInput(attrs={"class": FC, "placeholder": "Descrição da transferência (opcional)"}),
         }
 
     def __init__(self, *args, empresa=None, **kwargs):
         super().__init__(*args, **kwargs)
         if empresa:
-            contas = ContaBancaria.objects.filter(empresa=empresa, ativo=True)
-            self.fields["conta_origem"].queryset = contas
-            self.fields["conta_destino"].queryset = contas
+            qs = ContaBancaria.objects.filter(empresa=empresa, ativo=True)
+            self.fields["conta_origem"].queryset = qs
+            self.fields["conta_destino"].queryset = qs
         self.fields["descricao"].required = False
 
     def clean(self):
         cleaned = super().clean()
-        origem = cleaned.get("conta_origem")
+        origem  = cleaned.get("conta_origem")
         destino = cleaned.get("conta_destino")
         if origem and destino and origem == destino:
-            raise forms.ValidationError(
-                "A conta de origem e destino não podem ser a mesma."
+            raise forms.ValidationError("A conta de origem e destino não podem ser iguais.")
+        valor = cleaned.get("valor")
+        if valor is not None and valor <= 0:
+            raise forms.ValidationError("O valor da transferência deve ser maior que zero.")
+        return cleaned
+
+
+# ══════════════════════════════════════════════
+# PROJEÇÃO DE FLUXO DE CAIXA
+# ══════════════════════════════════════════════
+
+class ProjecaoFluxoCaixaForm(forms.ModelForm):
+    class Meta:
+        model = ProjecaoFluxoCaixa
+        fields = [
+            "conta_bancaria", "cenario", "data_referencia",
+            "entradas_previstas", "saidas_previstas", "saldo_projetado",
+        ]
+        widgets = {
+            "conta_bancaria":     forms.Select(attrs={"class": FS}),
+            "cenario":            forms.Select(attrs={"class": FS}),
+            "data_referencia":    forms.DateInput(attrs={"class": FC, "type": "date"}),
+            "entradas_previstas": forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+            "saidas_previstas":   forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+            "saldo_projetado":    forms.NumberInput(attrs={"class": FC, "placeholder": "0,00", "step": "0.01"}),
+        }
+
+    def __init__(self, *args, empresa=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if empresa:
+            self.fields["conta_bancaria"].queryset = ContaBancaria.objects.filter(
+                empresa=empresa, ativo=True
             )
+            self.fields["cenario"].queryset = TipoCenarioFluxo.objects.filter(ativo=True)
+        self.fields["conta_bancaria"].required = False
+
+    def clean(self):
+        cleaned = super().clean()
+        entradas = cleaned.get("entradas_previstas", 0)
+        saidas   = cleaned.get("saidas_previstas", 0)
+        if entradas is not None and saidas is not None:
+            if entradas < 0:
+                self.add_error("entradas_previstas", "Entradas previstas não podem ser negativas.")
+            if saidas < 0:
+                self.add_error("saidas_previstas", "Saídas previstas não podem ser negativas.")
         return cleaned
