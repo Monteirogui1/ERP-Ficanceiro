@@ -1,0 +1,54 @@
+{% extends "layouts/base.html" %}
+{% block title %}Arquivos de Retorno{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>Arquivos de Retorno</h1>
+    <a href="{% url 'bancario:retorno_create' %}" class="btn btn-primary"><i class="bi bi-upload"></i> Importar Retorno</a>
+  </div>
+  {% include "_includes/messages.html" %}
+  <div class="detail-card" style="padding:0;overflow:hidden">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Conta Bancária</th>
+          <th>Remessa Origem</th>
+          <th>Nome do Arquivo</th>
+          <th class="text-center">Registros</th>
+          <th class="text-center">Processados</th>
+          <th class="text-center">Rejeitados</th>
+          <th class="text-center">Status</th>
+          <th>Importado por</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ret in objetos %}
+        <tr>
+          <td style="white-space:nowrap">{{ ret.criado_em|date:"d/m/Y H:i" }}</td>
+          <td>{{ ret.conta_bancaria.nome }}</td>
+          <td style="font-size:12px;color:var(--txt-3)">{{ ret.arquivo_remessa.nome_arquivo|default:"—"|truncatechars:22 }}</td>
+          <td style="font-size:12px;color:var(--txt-3)">{{ ret.nome_arquivo }}</td>
+          <td class="text-center">{{ ret.total_registros }}</td>
+          <td class="text-center" style="color:#10b981;font-weight:600">{{ ret.total_processados }}</td>
+          <td class="text-center" style="{% if ret.total_rejeitados > 0 %}color:#ef4444;font-weight:600{% else %}color:#aaa{% endif %}">{{ ret.total_rejeitados }}</td>
+          <td class="text-center">
+            {% if ret.processado %}
+              <span style="font-size:11px;background:rgba(16,185,129,.1);color:#10b981;border-radius:20px;padding:2px 10px;font-weight:600">Processado</span>
+            {% else %}
+              <span style="font-size:11px;background:rgba(245,158,11,.1);color:#f59e0b;border-radius:20px;padding:2px 10px;font-weight:600">Pendente</span>
+            {% endif %}
+          </td>
+          <td style="font-size:12px;color:var(--txt-3)">{{ ret.importado_por.nome|default:ret.importado_por.username|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center" style="color:#999;padding:40px">
+          <i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum arquivo de retorno importado.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "_includes/paginacao.html" %}
+</div>
+{% endblock %}

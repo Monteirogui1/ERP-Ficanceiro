@@ -7,35 +7,59 @@
     <a href="{% url 'sistema:cliente_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Cliente</a>
   </div>
   {% include "_includes/messages.html" %}
-  <form method="get" class="filter-form">
-    <div class="form-group"><label>Buscar</label><input type="text" name="q" value="{{ request.GET.q }}" placeholder="Razão social..." class="form-control"></div>
-    <div class="form-group"><label>Inadimplente</label><select name="inadimplente" class="form-control"><option value="">Todos</option><option value="true" {% if request.GET.inadimplente == "true" %}selected{% endif %}>Sim</option><option value="false" {% if request.GET.inadimplente == "false" %}selected{% endif %}>Não</option></select></div>
-    <div class="form-group"><label>Situação</label><select name="ativo" class="form-control"><option value="">Todos</option><option value="true" {% if request.GET.ativo == "true" %}selected{% endif %}>Ativo</option><option value="false" {% if request.GET.ativo == "false" %}selected{% endif %}>Inativo</option></select></div>
-    <div class="filter-buttons"><button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrar</button><a href="{% url 'sistema:cliente_list' %}" class="btn btn-secondary"><i class="bi bi-x-lg"></i> Limpar</a></div>
+  <form method="get" style="margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap">
+    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Nome ou CPF/CNPJ..." class="form-control" style="max-width:300px">
+    <select name="categoria" class="form-control" style="max-width:200px">
+      <option value="">Todas as categorias</option>
+      {% for cat in categorias %}<option value="{{ cat.pk }}" {% if request.GET.categoria == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.nome }}</option>{% endfor %}
+    </select>
+    <select name="inadimplente" class="form-control" style="max-width:160px">
+      <option value="">Todos</option>
+      <option value="false" {% if request.GET.inadimplente == "false" %}selected{% endif %}>Em dia</option>
+      <option value="true" {% if request.GET.inadimplente == "true" %}selected{% endif %}>Inadimplentes</option>
+    </select>
+    <select name="ativo" class="form-control" style="max-width:130px">
+      <option value="">Todos</option>
+      <option value="true" {% if request.GET.ativo == "true" %}selected{% endif %}>Ativos</option>
+      <option value="false" {% if request.GET.ativo == "false" %}selected{% endif %}>Inativos</option>
+    </select>
+    <button type="submit" class="btn btn-secondary"><i class="bi bi-search"></i> Filtrar</button>
+    {% if request.GET.q or request.GET.categoria or request.GET.inadimplente or request.GET.ativo %}
+      <a href="{% url 'sistema:cliente_list' %}" class="btn btn-secondary">Limpar</a>
+    {% endif %}
   </form>
   <div class="detail-card" style="padding:0;overflow:hidden">
     <table class="table">
-      <thead><tr><th>Razão Social</th><th>CPF/CNPJ</th><th>Cidade/UF</th><th>Limite de Crédito</th><th class="text-center">Inadimplente</th><th class="text-center">Ativo</th><th class="text-center">Ações</th></tr></thead>
+      <thead><tr><th>Razão Social</th><th>CPF/CNPJ</th><th>Categoria</th><th>Cidade/UF</th><th class="text-center">Inadimplente</th><th class="text-center">Ativo</th><th class="text-center">Ações</th></tr></thead>
       <tbody>
         {% for c in objetos %}
         <tr>
-          <td><a href="{% url 'sistema:cliente_detail' c.pk %}" style="color:#1a73e8;font-weight:500">{{ c.razao_social }}</a></td>
-          <td style="font-family:monospace;font-size:13px">{{ c.cpf_cnpj|default:"—" }}</td>
-          <td>{{ c.cidade|default:"—" }}{% if c.estado %} / {{ c.estado }}{% endif %}</td>
-          <td>R$ {{ c.limite_credito|floatformat:2 }}</td>
-          <td class="text-center">{% if c.inadimplente %}<span style="color:#dc3545;font-weight:600"><i class="bi bi-exclamation-triangle-fill"></i></span>{% else %}—{% endif %}</td>
-          <td class="text-center">{% if c.ativo %}<span style="color:#28a745"><i class="bi bi-check-circle-fill"></i></span>{% else %}<span style="color:#dc3545"><i class="bi bi-x-circle-fill"></i></span>{% endif %}</td>
+          <td>
+            <a href="{% url 'sistema:cliente_detail' c.pk %}" style="font-weight:600;color:var(--accent)">{{ c.razao_social }}</a>
+            {% if c.nome_fantasia %}<br><small style="color:var(--txt-3)">{{ c.nome_fantasia }}</small>{% endif %}
+          </td>
+          <td style="font-family:monospace;font-size:13px">{{ c.cpf_cnpj }}</td>
+          <td>{{ c.categoria.nome|default:"—" }}</td>
+          <td>{{ c.cidade|default:"—" }}{% if c.estado %}/{{ c.estado }}{% endif %}</td>
+          <td class="text-center">{% if c.inadimplente %}<span class="badge-err">Inadimplente</span>{% else %}—{% endif %}</td>
+          <td class="text-center">{% if c.ativo %}<i class="bi bi-check-circle-fill" style="color:#28a745"></i>{% else %}<i class="bi bi-x-circle-fill" style="color:#dc3545"></i>{% endif %}</td>
           <td class="text-center" style="white-space:nowrap">
             <a href="{% url 'sistema:cliente_detail' c.pk %}" class="btn btn-secondary btn-sm"><i class="bi bi-eye"></i></a>
             <a href="{% url 'sistema:cliente_update' c.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
             <a href="{% url 'sistema:cliente_delete' c.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
           </td>
         </tr>
-        {% empty %}<tr><td colspan="7" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum cliente encontrado.</td></tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center" style="color:#999;padding:40px">
+          <i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum cliente encontrado.
+        </td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
   {% include "_includes/paginacao.html" %}
 </div>
+<style>
+  .badge-err{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(239,68,68,.12);color:#ef4444}
+</style>
 {% endblock %}

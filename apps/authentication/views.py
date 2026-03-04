@@ -1,15 +1,13 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth import login
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import View
 from django.views.generic import (
     ListView, CreateView, UpdateView, DeleteView,
-    DetailView, TemplateView, FormView,
+    TemplateView,
 )
 
 from .forms import (
@@ -30,14 +28,13 @@ from .models import (
 
 
 # ══════════════════════════════════════════════
-# MIXINS LOCAIS
+# MIXINS
 # ══════════════════════════════════════════════
 
 class MensagemSucessoMixin:
-    """Emite mensagem de sucesso após create / update / delete."""
-    mensagem_criado = "Registro criado com sucesso."
+    mensagem_criado    = "Registro criado com sucesso."
     mensagem_atualizado = "Registro atualizado com sucesso."
-    mensagem_excluido = "Registro excluído com sucesso."
+    mensagem_excluido  = "Registro excluído com sucesso."
 
     def form_valid(self, form):
         msg = self.mensagem_criado if not form.instance.pk else self.mensagem_atualizado
@@ -50,8 +47,6 @@ class MensagemSucessoMixin:
 
 
 class SuperuserRequiredMixin(LoginRequiredMixin):
-    """Restringe acesso apenas a superusuários (gestão de empresas)."""
-
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
@@ -62,7 +57,7 @@ class SuperuserRequiredMixin(LoginRequiredMixin):
 
 class EmpresaSessionMixin(LoginRequiredMixin):
     """
-    Disponibiliza `get_empresa()` resolvido pela sessão.
+    Disponibiliza get_empresa() resolvido pela sessão.
     Redireciona para seleção de empresa se nenhuma estiver ativa.
     """
 
@@ -93,14 +88,10 @@ class EmpresaSessionMixin(LoginRequiredMixin):
 
 
 # ══════════════════════════════════════════════
-# SELEÇÃO DE EMPRESA NA SESSÃO
+# SELEÇÃO DE EMPRESA
 # ══════════════════════════════════════════════
 
 class SelecionarEmpresaView(LoginRequiredMixin, TemplateView):
-    """
-    Exibe as empresas às quais o usuário tem acesso ativo e
-    persiste a escolha na sessão como `empresa_ativa_id`.
-    """
     template_name = "authentication/selecionar_empresa.html"
 
     def get_context_data(self, **kwargs):
@@ -120,7 +111,6 @@ class SelecionarEmpresaView(LoginRequiredMixin, TemplateView):
             messages.error(request, "Selecione uma empresa.")
             return self.get(request, *args, **kwargs)
 
-        # Valida que o usuário realmente tem acesso a essa empresa
         ue = UsuarioEmpresa.objects.filter(
             usuario=request.user,
             empresa_id=empresa_id,
@@ -149,12 +139,10 @@ class DashboardView(EmpresaSessionMixin, TemplateView):
         ctx["today"] = today
 
         if empresa:
-            # Lazy imports para evitar importações circulares
             from apps.financeiro.models import ContaPagar, ContaReceber
             from apps.fiscal.models import ObrigacaoFiscal
             from apps.bancario.models import DivergenciaConciliacao
 
-            # ── Métricas ───────────────────────────────────
             proximos_30 = today + timezone.timedelta(days=30)
 
             ctx["total_pagar"] = ContaPagar.objects.filter(
@@ -180,7 +168,6 @@ class DashboardView(EmpresaSessionMixin, TemplateView):
                 resolvida=False,
             ).count()
 
-            # ── Listas resumidas ──────────────────────────
             ctx["ultimas_pagar"] = (
                 ContaPagar.objects
                 .filter(empresa=empresa, data_pagamento__isnull=True)
@@ -195,11 +182,9 @@ class DashboardView(EmpresaSessionMixin, TemplateView):
                 .order_by("data_vencimento")[:8]
             )
 
-            # ── Notificações não lidas ─────────────────────
-            ctx["notificacoes_nao_lidas"] = (
+            ctx["notificacoes"] = (
                 Notificacao.objects
-                .filter(empresa=empresa, usuario=self.request.user, lida=False)
-                .select_related("tipo")
+                .filter(usuario=self.request.user, lida=False)
                 .order_by("-criado_em")[:5]
             )
 
@@ -207,7 +192,7 @@ class DashboardView(EmpresaSessionMixin, TemplateView):
 
 
 # ══════════════════════════════════════════════
-# EMPRESAS  (apenas superusuários)
+# EMPRESAS  (somente superusuário)
 # ══════════════════════════════════════════════
 
 class EmpresaListView(SuperuserRequiredMixin, ListView):
@@ -221,9 +206,6 @@ class EmpresaListView(SuperuserRequiredMixin, ListView):
         q = self.request.GET.get("q")
         if q:
             qs = qs.filter(razao_social__icontains=q)
-        ativo = self.request.GET.get("ativo")
-        if ativo in ("true", "false"):
-            qs = qs.filter(ativo=ativo == "true")
         return qs
 
 
@@ -253,11 +235,10 @@ class EmpresaDeleteView(MensagemSucessoMixin, SuperuserRequiredMixin, DeleteView
 # FILIAIS
 # ══════════════════════════════════════════════
 
-class FilialListView(EmpresaSessionMixin, ListView):
+class FilialListView(SuperuserRequiredMixin, ListView):
     model = FilialEmpresa
     template_name = "authentication/filial_list.html"
     context_object_name = "objetos"
-    paginate_by = 25
 
     def _get_empresa_obj(self):
         return get_object_or_404(Empresa, pk=self.kwargs["empresa_pk"])
@@ -273,17 +254,14 @@ class FilialListView(EmpresaSessionMixin, ListView):
         return ctx
 
 
-class FilialCreateView(MensagemSucessoMixin, EmpresaSessionMixin, CreateView):
+class FilialCreateView(MensagemSucessoMixin, SuperuserRequiredMixin, CreateView):
     model = FilialEmpresa
     form_class = FilialEmpresaForm
     template_name = "authentication/filial_form.html"
     extra_context = {"titulo": "Nova Filial"}
 
     def get_success_url(self):
-        return reverse_lazy(
-            "authentication:filial_list",
-            kwargs={"empresa_pk": self.kwargs["empresa_pk"]},
-        )
+        return reverse_lazy("authentication:filial_list", kwargs={"empresa_pk": self.kwargs["empresa_pk"]})
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -300,17 +278,14 @@ class FilialCreateView(MensagemSucessoMixin, EmpresaSessionMixin, CreateView):
         return ctx
 
 
-class FilialUpdateView(MensagemSucessoMixin, EmpresaSessionMixin, UpdateView):
+class FilialUpdateView(MensagemSucessoMixin, SuperuserRequiredMixin, UpdateView):
     model = FilialEmpresa
     form_class = FilialEmpresaForm
     template_name = "authentication/filial_form.html"
     extra_context = {"titulo": "Editar Filial"}
 
     def get_success_url(self):
-        return reverse_lazy(
-            "authentication:filial_list",
-            kwargs={"empresa_pk": self.object.empresa_id},
-        )
+        return reverse_lazy("authentication:filial_list", kwargs={"empresa_pk": self.object.empresa_id})
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -323,15 +298,12 @@ class FilialUpdateView(MensagemSucessoMixin, EmpresaSessionMixin, UpdateView):
         return ctx
 
 
-class FilialDeleteView(MensagemSucessoMixin, EmpresaSessionMixin, DeleteView):
+class FilialDeleteView(MensagemSucessoMixin, SuperuserRequiredMixin, DeleteView):
     model = FilialEmpresa
     template_name = "authentication/confirmar_exclusao.html"
 
     def get_success_url(self):
-        return reverse_lazy(
-            "authentication:filial_list",
-            kwargs={"empresa_pk": self.object.empresa_id},
-        )
+        return reverse_lazy("authentication:filial_list", kwargs={"empresa_pk": self.object.empresa_id})
 
 
 # ══════════════════════════════════════════════
@@ -413,7 +385,6 @@ class UsuarioListView(EmpresaSessionMixin, ListView):
         empresa = self.get_empresa()
         if not empresa:
             return Usuario.objects.none()
-
         qs = (
             Usuario.objects
             .filter(empresas_acesso__empresa=empresa, empresas_acesso__ativo=True)
@@ -426,7 +397,7 @@ class UsuarioListView(EmpresaSessionMixin, ListView):
             qs = qs.filter(nome__icontains=q)
         ativo = self.request.GET.get("ativo")
         if ativo in ("true", "false"):
-            qs = qs.filter(is_active=ativo == "true")
+            qs = qs.filter(is_active=(ativo == "true"))
         return qs
 
 
@@ -444,16 +415,12 @@ class UsuarioCreateView(MensagemSucessoMixin, EmpresaSessionMixin, CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        # Vincula automaticamente o novo usuário à empresa ativa
         empresa = self.get_empresa()
         if empresa:
             UsuarioEmpresa.objects.get_or_create(
                 usuario=self.object,
                 empresa=empresa,
-                defaults={
-                    "perfil_acesso": self.object.perfil_acesso,
-                    "ativo": True,
-                },
+                defaults={"perfil_acesso": self.object.perfil_acesso, "ativo": True},
             )
         return response
 
@@ -481,10 +448,7 @@ class UsuarioUpdateView(MensagemSucessoMixin, EmpresaSessionMixin, UpdateView):
 
 
 class UsuarioDeleteView(MensagemSucessoMixin, EmpresaSessionMixin, DeleteView):
-    """
-    Não exclui o usuário — apenas desvincula da empresa ativa (soft delete).
-    Isso preserva o histórico de ações do usuário em outros módulos.
-    """
+    """Soft delete — apenas desvincula o usuário da empresa ativa."""
     model = Usuario
     template_name = "authentication/confirmar_exclusao.html"
     success_url = reverse_lazy("authentication:usuario_list")
@@ -506,11 +470,11 @@ class UsuarioDeleteView(MensagemSucessoMixin, EmpresaSessionMixin, DeleteView):
                 usuario=self.object, empresa=empresa
             ).update(ativo=False)
         messages.success(request, "Usuário removido da empresa com sucesso.")
-        return HttpResponseRedirect(self.success_url)
+        return redirect(self.success_url)
 
 
 # ══════════════════════════════════════════════
-# LOGS DE AUDITORIA  (somente leitura)
+# LOGS E NOTIFICAÇÕES
 # ══════════════════════════════════════════════
 
 class LogAuditoriaListView(EmpresaSessionMixin, ListView):
@@ -523,97 +487,33 @@ class LogAuditoriaListView(EmpresaSessionMixin, ListView):
         empresa = self.get_empresa()
         if not empresa:
             return LogAuditoria.objects.none()
-
-        qs = (
-            LogAuditoria.objects
-            .filter(empresa=empresa)
-            .select_related("usuario", "tipo_acao")
-            .order_by("-criado_em")
-        )
-        usuario_id = self.request.GET.get("usuario")
-        if usuario_id:
-            qs = qs.filter(usuario_id=usuario_id)
-        modulo = self.request.GET.get("modulo")
-        if modulo:
-            qs = qs.filter(modulo=modulo)
-        data_de = self.request.GET.get("data_de")
-        if data_de:
-            qs = qs.filter(criado_em__date__gte=data_de)
-        data_ate = self.request.GET.get("data_ate")
-        if data_ate:
-            qs = qs.filter(criado_em__date__lte=data_ate)
+        qs = LogAuditoria.objects.filter(empresa=empresa).select_related("usuario").order_by("-criado_em")
+        q = self.request.GET.get("q")
+        if q:
+            qs = qs.filter(descricao__icontains=q)
         return qs
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        empresa = self.get_empresa()
-        if empresa:
-            ctx["usuarios_empresa"] = (
-                Usuario.objects
-                .filter(empresas_acesso__empresa=empresa, empresas_acesso__ativo=True)
-                .distinct()
-                .order_by("nome")
-            )
-            ctx["modulos_disponiveis"] = (
-                LogAuditoria.objects
-                .filter(empresa=empresa)
-                .values_list("modulo", flat=True)
-                .distinct()
-                .order_by("modulo")
-            )
-        return ctx
-
-
-# ══════════════════════════════════════════════
-# NOTIFICAÇÕES
-# ══════════════════════════════════════════════
 
 class NotificacaoListView(EmpresaSessionMixin, ListView):
     model = Notificacao
     template_name = "authentication/notificacao_list.html"
     context_object_name = "objetos"
-    paginate_by = 25
+    paginate_by = 30
 
     def get_queryset(self):
-        empresa = self.get_empresa()
-        if not empresa:
-            return Notificacao.objects.none()
-        return (
-            Notificacao.objects
-            .filter(empresa=empresa, usuario=self.request.user)
-            .select_related("tipo")
-            .order_by("-criado_em")
-        )
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["total_nao_lidas"] = (
-            Notificacao.objects
-            .filter(empresa=self.get_empresa(), usuario=self.request.user, lida=False)
-            .count()
-        )
-        return ctx
+        return Notificacao.objects.filter(
+            usuario=self.request.user
+        ).order_by("-criado_em")
 
 
-class MarcarNotificacaoLidaView(EmpresaSessionMixin, View):
-    """Marca uma notificação como lida via POST e redireciona."""
-
-    def post(self, request, *args, **kwargs):
-        empresa = self.get_empresa()
-        notif = get_object_or_404(
-            Notificacao,
-            pk=kwargs["pk"],
-            empresa=empresa,
-            usuario=request.user,
-        )
-        notif.lida = True
-        notif.data_leitura = timezone.now()
-        notif.save(update_fields=["lida", "data_leitura"])
-        return redirect(request.POST.get("next", "authentication:notificacao_list"))
+class NotificacaoMarcarLidaView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        Notificacao.objects.filter(pk=pk, usuario=request.user).update(lida=True)
+        return redirect(request.POST.get("next", "authentication:dashboard"))
 
 
 # ══════════════════════════════════════════════
-# TABELAS DE DOMÍNIO — GLOBAIS (superuser)
+# TABELAS DE DOMÍNIO — SUPERUSUÁRIO
 # ══════════════════════════════════════════════
 
 class SegmentoEmpresaListView(SuperuserRequiredMixin, ListView):
@@ -636,10 +536,7 @@ class SegmentoEmpresaCreateView(MensagemSucessoMixin, SuperuserRequiredMixin, Cr
     form_class = SegmentoEmpresaForm
     template_name = "authentication/dominio_form.html"
     success_url = reverse_lazy("authentication:segmento_list")
-    extra_context = {
-        "titulo": "Novo Segmento de Empresa",
-        "list_url": "authentication:segmento_list",
-    }
+    extra_context = {"titulo": "Novo Segmento", "list_url": "authentication:segmento_list"}
 
 
 class SegmentoEmpresaUpdateView(MensagemSucessoMixin, SuperuserRequiredMixin, UpdateView):
@@ -647,10 +544,7 @@ class SegmentoEmpresaUpdateView(MensagemSucessoMixin, SuperuserRequiredMixin, Up
     form_class = SegmentoEmpresaForm
     template_name = "authentication/dominio_form.html"
     success_url = reverse_lazy("authentication:segmento_list")
-    extra_context = {
-        "titulo": "Editar Segmento de Empresa",
-        "list_url": "authentication:segmento_list",
-    }
+    extra_context = {"titulo": "Editar Segmento", "list_url": "authentication:segmento_list"}
 
 
 class SegmentoEmpresaDeleteView(MensagemSucessoMixin, SuperuserRequiredMixin, DeleteView):
@@ -658,8 +552,6 @@ class SegmentoEmpresaDeleteView(MensagemSucessoMixin, SuperuserRequiredMixin, De
     template_name = "authentication/confirmar_exclusao.html"
     success_url = reverse_lazy("authentication:segmento_list")
 
-
-# ── Regime Tributário ─────────────────────────
 
 class RegimeTributarioListView(SuperuserRequiredMixin, ListView):
     model = RegimeTributario
@@ -681,10 +573,7 @@ class RegimeTributarioCreateView(MensagemSucessoMixin, SuperuserRequiredMixin, C
     form_class = RegimeTributarioForm
     template_name = "authentication/dominio_form.html"
     success_url = reverse_lazy("authentication:regime_list")
-    extra_context = {
-        "titulo": "Novo Regime Tributário",
-        "list_url": "authentication:regime_list",
-    }
+    extra_context = {"titulo": "Novo Regime Tributário", "list_url": "authentication:regime_list"}
 
 
 class RegimeTributarioUpdateView(MensagemSucessoMixin, SuperuserRequiredMixin, UpdateView):
@@ -692,10 +581,7 @@ class RegimeTributarioUpdateView(MensagemSucessoMixin, SuperuserRequiredMixin, U
     form_class = RegimeTributarioForm
     template_name = "authentication/dominio_form.html"
     success_url = reverse_lazy("authentication:regime_list")
-    extra_context = {
-        "titulo": "Editar Regime Tributário",
-        "list_url": "authentication:regime_list",
-    }
+    extra_context = {"titulo": "Editar Regime Tributário", "list_url": "authentication:regime_list"}
 
 
 class RegimeTributarioDeleteView(MensagemSucessoMixin, SuperuserRequiredMixin, DeleteView):
@@ -708,12 +594,16 @@ class RegimeTributarioDeleteView(MensagemSucessoMixin, SuperuserRequiredMixin, D
 # TABELAS DE DOMÍNIO — POR EMPRESA
 # ══════════════════════════════════════════════
 
-# ── Tipo de Documento ─────────────────────────
-
 class TipoDocumentoListView(EmpresaSessionMixin, ListView):
     model = TipoDocumento
     template_name = "authentication/dominio_list.html"
     context_object_name = "objetos"
+    extra_context = {
+        "titulo": "Tipos de Documento",
+        "create_url": "authentication:tipo_documento_create",
+        "update_url": "authentication:tipo_documento_update",
+        "delete_url": "authentication:tipo_documento_delete",
+    }
 
     def get_queryset(self):
         empresa = self.get_empresa()
@@ -721,31 +611,13 @@ class TipoDocumentoListView(EmpresaSessionMixin, ListView):
             return TipoDocumento.objects.none()
         return TipoDocumento.objects.filter(empresa=empresa).order_by("nome")
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx.update({
-            "titulo": "Tipos de Documento",
-            "create_url": "authentication:tipo_documento_create",
-            "update_url": "authentication:tipo_documento_update",
-            "delete_url": "authentication:tipo_documento_delete",
-        })
-        return ctx
-
 
 class TipoDocumentoCreateView(MensagemSucessoMixin, EmpresaSessionMixin, CreateView):
     model = TipoDocumento
     form_class = TipoDocumentoForm
     template_name = "authentication/dominio_form.html"
     success_url = reverse_lazy("authentication:tipo_documento_list")
-    extra_context = {
-        "titulo": "Novo Tipo de Documento",
-        "list_url": "authentication:tipo_documento_list",
-    }
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs["empresa"] = self.get_empresa()
-        return kwargs
+    extra_context = {"titulo": "Novo Tipo de Documento", "list_url": "authentication:tipo_documento_list"}
 
     def form_valid(self, form):
         form.instance.empresa = self.get_empresa()
@@ -757,21 +629,11 @@ class TipoDocumentoUpdateView(MensagemSucessoMixin, EmpresaSessionMixin, UpdateV
     form_class = TipoDocumentoForm
     template_name = "authentication/dominio_form.html"
     success_url = reverse_lazy("authentication:tipo_documento_list")
-    extra_context = {
-        "titulo": "Editar Tipo de Documento",
-        "list_url": "authentication:tipo_documento_list",
-    }
+    extra_context = {"titulo": "Editar Tipo de Documento", "list_url": "authentication:tipo_documento_list"}
 
     def get_queryset(self):
         empresa = self.get_empresa()
-        if not empresa:
-            return TipoDocumento.objects.none()
-        return TipoDocumento.objects.filter(empresa=empresa)
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs["empresa"] = self.get_empresa()
-        return kwargs
+        return TipoDocumento.objects.filter(empresa=empresa) if empresa else TipoDocumento.objects.none()
 
 
 class TipoDocumentoDeleteView(MensagemSucessoMixin, EmpresaSessionMixin, DeleteView):
@@ -781,17 +643,19 @@ class TipoDocumentoDeleteView(MensagemSucessoMixin, EmpresaSessionMixin, DeleteV
 
     def get_queryset(self):
         empresa = self.get_empresa()
-        if not empresa:
-            return TipoDocumento.objects.none()
-        return TipoDocumento.objects.filter(empresa=empresa)
+        return TipoDocumento.objects.filter(empresa=empresa) if empresa else TipoDocumento.objects.none()
 
-
-# ── Tipo de Contato ───────────────────────────
 
 class TipoContatoListView(EmpresaSessionMixin, ListView):
     model = TipoContato
     template_name = "authentication/dominio_list.html"
     context_object_name = "objetos"
+    extra_context = {
+        "titulo": "Tipos de Contato",
+        "create_url": "authentication:tipo_contato_create",
+        "update_url": "authentication:tipo_contato_update",
+        "delete_url": "authentication:tipo_contato_delete",
+    }
 
     def get_queryset(self):
         empresa = self.get_empresa()
@@ -799,31 +663,13 @@ class TipoContatoListView(EmpresaSessionMixin, ListView):
             return TipoContato.objects.none()
         return TipoContato.objects.filter(empresa=empresa).order_by("nome")
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx.update({
-            "titulo": "Tipos de Contato",
-            "create_url": "authentication:tipo_contato_create",
-            "update_url": "authentication:tipo_contato_update",
-            "delete_url": "authentication:tipo_contato_delete",
-        })
-        return ctx
-
 
 class TipoContatoCreateView(MensagemSucessoMixin, EmpresaSessionMixin, CreateView):
     model = TipoContato
     form_class = TipoContatoForm
     template_name = "authentication/dominio_form.html"
     success_url = reverse_lazy("authentication:tipo_contato_list")
-    extra_context = {
-        "titulo": "Novo Tipo de Contato",
-        "list_url": "authentication:tipo_contato_list",
-    }
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs["empresa"] = self.get_empresa()
-        return kwargs
+    extra_context = {"titulo": "Novo Tipo de Contato", "list_url": "authentication:tipo_contato_list"}
 
     def form_valid(self, form):
         form.instance.empresa = self.get_empresa()
@@ -835,21 +681,11 @@ class TipoContatoUpdateView(MensagemSucessoMixin, EmpresaSessionMixin, UpdateVie
     form_class = TipoContatoForm
     template_name = "authentication/dominio_form.html"
     success_url = reverse_lazy("authentication:tipo_contato_list")
-    extra_context = {
-        "titulo": "Editar Tipo de Contato",
-        "list_url": "authentication:tipo_contato_list",
-    }
+    extra_context = {"titulo": "Editar Tipo de Contato", "list_url": "authentication:tipo_contato_list"}
 
     def get_queryset(self):
         empresa = self.get_empresa()
-        if not empresa:
-            return TipoContato.objects.none()
-        return TipoContato.objects.filter(empresa=empresa)
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs["empresa"] = self.get_empresa()
-        return kwargs
+        return TipoContato.objects.filter(empresa=empresa) if empresa else TipoContato.objects.none()
 
 
 class TipoContatoDeleteView(MensagemSucessoMixin, EmpresaSessionMixin, DeleteView):
@@ -859,14 +695,10 @@ class TipoContatoDeleteView(MensagemSucessoMixin, EmpresaSessionMixin, DeleteVie
 
     def get_queryset(self):
         empresa = self.get_empresa()
-        if not empresa:
-            return TipoContato.objects.none()
-        return TipoContato.objects.filter(empresa=empresa)
+        return TipoContato.objects.filter(empresa=empresa) if empresa else TipoContato.objects.none()
 
 
-# ── Tipo de Notificação ───────────────────────
-
-class TipoNotificacaoListView(SuperuserRequiredMixin, ListView):
+class TipoNotificacaoListView(EmpresaSessionMixin, ListView):
     model = TipoNotificacao
     template_name = "authentication/dominio_list.html"
     context_object_name = "objetos"
@@ -878,32 +710,78 @@ class TipoNotificacaoListView(SuperuserRequiredMixin, ListView):
     }
 
     def get_queryset(self):
-        return TipoNotificacao.objects.all().order_by("nome")
+        empresa = self.get_empresa()
+        if not empresa:
+            return TipoNotificacao.objects.none()
+        return TipoNotificacao.objects.filter(empresa=empresa).order_by("nome")
 
 
-class TipoNotificacaoCreateView(MensagemSucessoMixin, SuperuserRequiredMixin, CreateView):
+class TipoNotificacaoCreateView(MensagemSucessoMixin, EmpresaSessionMixin, CreateView):
     model = TipoNotificacao
     form_class = TipoNotificacaoForm
     template_name = "authentication/dominio_form.html"
     success_url = reverse_lazy("authentication:tipo_notificacao_list")
-    extra_context = {
-        "titulo": "Novo Tipo de Notificação",
-        "list_url": "authentication:tipo_notificacao_list",
-    }
+    extra_context = {"titulo": "Novo Tipo de Notificação", "list_url": "authentication:tipo_notificacao_list"}
+
+    def form_valid(self, form):
+        form.instance.empresa = self.get_empresa()
+        return super().form_valid(form)
 
 
-class TipoNotificacaoUpdateView(MensagemSucessoMixin, SuperuserRequiredMixin, UpdateView):
+class TipoNotificacaoUpdateView(MensagemSucessoMixin, EmpresaSessionMixin, UpdateView):
     model = TipoNotificacao
     form_class = TipoNotificacaoForm
     template_name = "authentication/dominio_form.html"
     success_url = reverse_lazy("authentication:tipo_notificacao_list")
-    extra_context = {
-        "titulo": "Editar Tipo de Notificação",
-        "list_url": "authentication:tipo_notificacao_list",
-    }
+    extra_context = {"titulo": "Editar Tipo de Notificação", "list_url": "authentication:tipo_notificacao_list"}
+
+    def get_queryset(self):
+        empresa = self.get_empresa()
+        return TipoNotificacao.objects.filter(empresa=empresa) if empresa else TipoNotificacao.objects.none()
 
 
-class TipoNotificacaoDeleteView(MensagemSucessoMixin, SuperuserRequiredMixin, DeleteView):
+class TipoNotificacaoDeleteView(MensagemSucessoMixin, EmpresaSessionMixin, DeleteView):
     model = TipoNotificacao
     template_name = "authentication/confirmar_exclusao.html"
     success_url = reverse_lazy("authentication:tipo_notificacao_list")
+
+    def get_queryset(self):
+        empresa = self.get_empresa()
+        return TipoNotificacao.objects.filter(empresa=empresa) if empresa else TipoNotificacao.objects.none()
+
+
+class TipoAcaoLogListView(SuperuserRequiredMixin, ListView):
+    model = TipoAcaoLog
+    template_name = "authentication/dominio_list.html"
+    context_object_name = "objetos"
+    extra_context = {
+        "titulo": "Tipos de Ação de Log",
+        "create_url": "authentication:tipo_acao_log_create",
+        "update_url": "authentication:tipo_acao_log_update",
+        "delete_url": "authentication:tipo_acao_log_delete",
+    }
+
+    def get_queryset(self):
+        return TipoAcaoLog.objects.all().order_by("nome")
+
+
+class TipoAcaoLogCreateView(MensagemSucessoMixin, SuperuserRequiredMixin, CreateView):
+    model = TipoAcaoLog
+    form_class = TipoAcaoLogForm
+    template_name = "authentication/dominio_form.html"
+    success_url = reverse_lazy("authentication:tipo_acao_log_list")
+    extra_context = {"titulo": "Novo Tipo de Ação", "list_url": "authentication:tipo_acao_log_list"}
+
+
+class TipoAcaoLogUpdateView(MensagemSucessoMixin, SuperuserRequiredMixin, UpdateView):
+    model = TipoAcaoLog
+    form_class = TipoAcaoLogForm
+    template_name = "authentication/dominio_form.html"
+    success_url = reverse_lazy("authentication:tipo_acao_log_list")
+    extra_context = {"titulo": "Editar Tipo de Ação", "list_url": "authentication:tipo_acao_log_list"}
+
+
+class TipoAcaoLogDeleteView(MensagemSucessoMixin, SuperuserRequiredMixin, DeleteView):
+    model = TipoAcaoLog
+    template_name = "authentication/confirmar_exclusao.html"
+    success_url = reverse_lazy("authentication:tipo_acao_log_list")

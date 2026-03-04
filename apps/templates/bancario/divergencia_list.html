@@ -1,0 +1,89 @@
+{% extends "layouts/base.html" %}
+{% block title %}Divergências de Conciliação{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>Divergências de Conciliação</h1>
+    {% if objetos %}<span style="background:rgba(239,68,68,.1);color:#ef4444;border-radius:20px;padding:4px 14px;font-size:13px;font-weight:600">{{ page_obj.paginator.count }} pendente{{ page_obj.paginator.count|pluralize }}</span>{% endif %}
+  </div>
+  {% include "_includes/messages.html" %}
+  <form method="get" style="margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap">
+    <select name="resolvida" class="form-control" style="max-width:180px">
+      <option value="">Todas</option>
+      <option value="false" {% if request.GET.resolvida == "false" %}selected{% endif %}>Pendentes</option>
+      <option value="true"  {% if request.GET.resolvida == "true"  %}selected{% endif %}>Resolvidas</option>
+    </select>
+    <select name="tipo" class="form-control" style="max-width:220px">
+      <option value="">Todos os tipos</option>
+      <option value="SEM_LANCAMENTO"  {% if request.GET.tipo == "SEM_LANCAMENTO"  %}selected{% endif %}>Movimento sem lançamento</option>
+      <option value="SEM_MOVIMENTO"   {% if request.GET.tipo == "SEM_MOVIMENTO"   %}selected{% endif %}>Lançamento sem movimento</option>
+      <option value="VALOR_DIFERENTE" {% if request.GET.tipo == "VALOR_DIFERENTE" %}selected{% endif %}>Valores divergentes</option>
+      <option value="DATA_DIFERENTE"  {% if request.GET.tipo == "DATA_DIFERENTE"  %}selected{% endif %}>Datas divergentes</option>
+    </select>
+    <button type="submit" class="btn btn-secondary"><i class="bi bi-search"></i> Filtrar</button>
+    {% if request.GET.resolvida or request.GET.tipo %}
+      <a href="{% url 'bancario:divergencia_list' %}" class="btn btn-secondary">Limpar</a>
+    {% endif %}
+  </form>
+  <div class="detail-card" style="padding:0;overflow:hidden">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Tipo de Divergência</th>
+          <th>Movimento (Extrato)</th>
+          <th>Lançamento (Sistema)</th>
+          <th style="text-align:right">Valor Extrato</th>
+          <th style="text-align:right">Valor Sistema</th>
+          <th class="text-center">Status</th>
+          <th class="text-center">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for div in objetos %}
+        <tr>
+          <td>
+            {% if div.tipo_divergencia == "SEM_LANCAMENTO" %}<span style="font-size:11px;background:rgba(239,68,68,.1);color:#ef4444;border-radius:4px;padding:2px 8px">Sem Lançamento</span>
+            {% elif div.tipo_divergencia == "SEM_MOVIMENTO" %}<span style="font-size:11px;background:rgba(245,158,11,.1);color:#f59e0b;border-radius:4px;padding:2px 8px">Sem Movimento</span>
+            {% elif div.tipo_divergencia == "VALOR_DIFERENTE" %}<span style="font-size:11px;background:rgba(239,68,68,.1);color:#ef4444;border-radius:4px;padding:2px 8px">Valor Diferente</span>
+            {% else %}<span style="font-size:11px;background:rgba(99,102,241,.1);color:#6366f1;border-radius:4px;padding:2px 8px">Data Diferente</span>{% endif %}
+          </td>
+          <td style="font-size:12px">
+            {% if div.movimento_bancario %}
+              {{ div.movimento_bancario.descricao|truncatechars:28 }}<br>
+              <small style="color:var(--txt-3)">{{ div.movimento_bancario.data_movimento|date:"d/m/Y" }}</small>
+            {% else %}<span style="color:#aaa">—</span>{% endif %}
+          </td>
+          <td style="font-size:12px">
+            {% if div.lancamento %}
+              {{ div.lancamento.descricao|truncatechars:28 }}<br>
+              <small style="color:var(--txt-3)">{{ div.lancamento.data_lancamento|date:"d/m/Y" }}</small>
+            {% else %}<span style="color:#aaa">—</span>{% endif %}
+          </td>
+          <td style="text-align:right;font-family:monospace">{% if div.valor_extrato %}R$ {{ div.valor_extrato|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td style="text-align:right;font-family:monospace">{% if div.valor_sistema %}R$ {{ div.valor_sistema|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td class="text-center">
+            {% if div.resolvida %}
+              <span style="font-size:11px;background:rgba(16,185,129,.1);color:#10b981;border-radius:20px;padding:2px 10px;font-weight:600"><i class="bi bi-check-circle"></i> Resolvida</span>
+            {% else %}
+              <span style="font-size:11px;background:rgba(239,68,68,.1);color:#ef4444;border-radius:20px;padding:2px 10px;font-weight:600"><i class="bi bi-exclamation-circle"></i> Pendente</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if not div.resolvida %}
+            <a href="{% url 'bancario:divergencia_update' div.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-tools"></i> Resolver</a>
+            {% else %}
+            <a href="{% url 'bancario:divergencia_update' div.pk %}" class="btn btn-secondary btn-sm"><i class="bi bi-eye"></i></a>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center" style="color:#999;padding:40px">
+          <i class="bi bi-check-circle" style="font-size:28px;display:block;margin-bottom:10px;color:#10b981"></i>Nenhuma divergência encontrada.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "_includes/paginacao.html" %}
+</div>
+{% endblock %}

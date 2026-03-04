@@ -7,32 +7,75 @@
     <a href="{% url 'fiscal:obrigacao_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nova Obrigação</a>
   </div>
   {% include "_includes/messages.html" %}
-  <form method="get" class="filter-form">
-    <div class="form-group"><label>Status</label><select name="status" class="form-control"><option value="">Todos</option>{% for s in status_list %}<option value="{{ s.pk }}" {% if request.GET.status == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>{% endfor %}</select></div>
-    <div class="form-group"><label>Vencimento de</label><input type="date" name="vencimento_de" value="{{ request.GET.vencimento_de }}" class="form-control"></div>
-    <div class="form-group"><label>Vencimento até</label><input type="date" name="vencimento_ate" value="{{ request.GET.vencimento_ate }}" class="form-control"></div>
-    <div class="filter-buttons"><button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrar</button><a href="{% url 'fiscal:obrigacao_list' %}" class="btn btn-secondary"><i class="bi bi-x-lg"></i> Limpar</a></div>
+  <form method="get" style="margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap">
+    <select name="tipo" class="form-control" style="max-width:200px">
+      <option value="">Todos os tipos</option>
+      {% for t in tipos_list %}<option value="{{ t.pk }}" {% if request.GET.tipo == t.pk|stringformat:"s" %}selected{% endif %}>{% if t.sigla %}{{ t.sigla }} — {% endif %}{{ t.nome }}</option>{% endfor %}
+    </select>
+    <select name="status" class="form-control" style="max-width:180px">
+      <option value="">Todos os status</option>
+      {% for s in status_list %}<option value="{{ s.pk }}" {% if request.GET.status == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>{% endfor %}
+    </select>
+    <input type="date" name="vencimento_de"  value="{{ request.GET.vencimento_de }}"  class="form-control" style="max-width:160px" title="Vencimento de">
+    <input type="date" name="vencimento_ate" value="{{ request.GET.vencimento_ate }}" class="form-control" style="max-width:160px" title="Vencimento até">
+    <button type="submit" class="btn btn-secondary"><i class="bi bi-search"></i> Filtrar</button>
+    {% if request.GET.tipo or request.GET.status or request.GET.vencimento_de %}
+      <a href="{% url 'fiscal:obrigacao_list' %}" class="btn btn-secondary">Limpar</a>
+    {% endif %}
   </form>
   <div class="detail-card" style="padding:0;overflow:hidden">
     <table class="table">
-      <thead><tr><th>Tipo</th><th>Competência</th><th>Vencimento</th><th>Entrega</th><th>Protocolo</th><th>Responsável</th><th>Status</th><th class="text-center">Ações</th></tr></thead>
-      <tbody>
-        {% for ob in objetos %}
+      <thead>
         <tr>
-          <td><a href="{% url 'fiscal:obrigacao_detail' ob.pk %}" style="color:#1a73e8;font-weight:500">{{ ob.tipo.sigla|default:ob.tipo.nome }}</a></td>
-          <td>{{ ob.competencia|date:"m/Y" }}</td>
-          <td><span {% if ob.data_vencimento < today and not ob.data_entrega %}style="color:#dc3545;font-weight:600"{% endif %}>{{ ob.data_vencimento|date:"d/m/Y" }}</span></td>
-          <td>{% if ob.data_entrega %}<span style="color:#28a745">{{ ob.data_entrega|date:"d/m/Y" }}</span>{% else %}—{% endif %}</td>
-          <td style="font-family:monospace;font-size:12px">{{ ob.numero_protocolo|default:"—" }}</td>
-          <td>{{ ob.responsavel.nome|default:"—" }}</td>
-          <td>{% if ob.status %}<span style="background:#e8f0fe;color:#1a73e8;border-radius:4px;padding:3px 8px;font-size:11px">{{ ob.status.nome }}</span>{% endif %}</td>
+          <th>Vencimento</th>
+          <th>Obrigação</th>
+          <th>Competência</th>
+          <th>Responsável</th>
+          <th>Status</th>
+          <th>Entrega</th>
+          <th>Protocolo</th>
+          <th class="text-center">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for obr in objetos %}
+        <tr>
+          <td style="white-space:nowrap;{% if obr.data_vencimento < hoje and not obr.data_entrega %}color:#ef4444;font-weight:600{% endif %}">
+            {{ obr.data_vencimento|date:"d/m/Y" }}
+          </td>
+          <td>
+            <a href="{% url 'fiscal:obrigacao_detail' obr.pk %}" style="color:var(--accent);font-weight:500">
+              {% if obr.tipo.sigla %}<span style="font-family:monospace;font-size:11px;background:rgba(99,102,241,.1);color:#6366f1;padding:2px 7px;border-radius:4px">{{ obr.tipo.sigla }}</span> {% endif %}
+              {{ obr.tipo.nome }}
+            </a>
+          </td>
+          <td style="white-space:nowrap">{{ obr.competencia|date:"d/m/Y" }}</td>
+          <td style="font-size:13px">{{ obr.responsavel.nome|default:"—" }}</td>
+          <td>
+            {% if obr.status %}
+            <span style="font-size:11px;padding:2px 10px;border-radius:20px;
+              {% if 'Entregue' in obr.status.nome %}background:rgba(16,185,129,.1);color:#10b981
+              {% elif 'Atraso' in obr.status.nome or 'Pend' in obr.status.nome and obr.data_vencimento < hoje %}background:rgba(239,68,68,.1);color:#ef4444
+              {% elif 'Retificado' in obr.status.nome %}background:rgba(245,158,11,.1);color:#f59e0b
+              {% else %}background:rgba(99,102,241,.1);color:#6366f1{% endif %};font-weight:600">
+              {{ obr.status.nome }}
+            </span>
+            {% else %}—{% endif %}
+          </td>
+          <td style="white-space:nowrap;{% if obr.data_entrega %}color:#10b981{% else %}color:#aaa{% endif %}">
+            {{ obr.data_entrega|date:"d/m/Y"|default:"—" }}
+          </td>
+          <td style="font-family:monospace;font-size:12px;color:var(--txt-3)">{{ obr.numero_protocolo|default:"—" }}</td>
           <td class="text-center" style="white-space:nowrap">
-            <a href="{% url 'fiscal:obrigacao_detail' ob.pk %}" class="btn btn-secondary btn-sm"><i class="bi bi-eye"></i></a>
-            <a href="{% url 'fiscal:obrigacao_update' ob.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
-            <a href="{% url 'fiscal:obrigacao_delete' ob.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
+            <a href="{% url 'fiscal:obrigacao_detail' obr.pk %}" class="btn btn-secondary btn-sm"><i class="bi bi-eye"></i></a>
+            <a href="{% url 'fiscal:obrigacao_update' obr.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'fiscal:obrigacao_delete' obr.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
           </td>
         </tr>
-        {% empty %}<tr><td colspan="8" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhuma obrigação encontrada.</td></tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center" style="color:#999;padding:40px">
+          <i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhuma obrigação fiscal encontrada.
+        </td></tr>
         {% endfor %}
       </tbody>
     </table>

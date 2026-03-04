@@ -1,81 +1,39 @@
 {% extends "layouts/base.html" %}
-{% load static %}
-
 {% block title %}{{ titulo }}{% endblock %}
-
 {% block conteudo %}
-{#
-  Template genérico reutilizado por todos os cadastros de domínio (tabelas de apoio).
-  Exemplos: TipoConta, TipoChavePix, TipoPlanoContas, TipoCentroCusto,
-            CategoriaFornecedor, CategoriaCliente, StatusContaPagar,
-            StatusContaReceber, FormaPagamento, PeriodicidadeRecorrencia,
-            TipoEncargo, TipoCenarioFluxo, StatusOrcamento, etc.
-
-  Nas views, defina:
-    template_name = "dominio/form.html"    ← aponta para este arquivo
-    extra_context = {"titulo": "...", "list_url": "app:nome_list"}
-#}
 <div class="content">
-
   <div class="page-header">
     <h1>{{ titulo }}</h1>
-    <a href="{% url list_url %}" class="btn btn-secondary">
-      <i class="bi bi-arrow-left"></i> Voltar
-    </a>
+    <a href="{% url list_url %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
   </div>
-
   <div class="detail-card" style="max-width:540px">
-    <form method="post" id="form-dominio">
+    <form method="post">
       {% csrf_token %}
-
       <h2><i class="bi bi-sliders"></i> Dados</h2>
       <div class="form-grid">
-
         {% for field in form %}
           {% if field.field.widget.input_type == 'checkbox' %}
-            <!-- Campos booleanos: exibidos como toggle inline -->
             <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
               {{ field }}
-              <label for="{{ field.id_for_label }}" style="margin:0;font-weight:500">
-                {{ field.label }}
-              </label>
-              {% if field.errors %}
-                <span class="error-message">{{ field.errors|join:", " }}</span>
-              {% endif %}
+              <label for="{{ field.id_for_label }}" style="margin:0;font-weight:500">{{ field.label }}</label>
+              {% if field.errors %}<span class="error-message">{{ field.errors|join:", " }}</span>{% endif %}
             </div>
           {% else %}
             <div class="form-group {% if field.field.widget.attrs.rows %}full-width{% endif %}">
-              <label for="{{ field.id_for_label }}">
-                {{ field.label }}
-                {% if field.field.required %}<span style="color:#dc3545">*</span>{% endif %}
-              </label>
+              <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span style="color:#dc3545">*</span>{% endif %}</label>
               {{ field }}
-              {% if field.help_text %}
-                <small style="color:#666;font-size:12px">{{ field.help_text }}</small>
-              {% endif %}
-              {% if field.errors %}
-                <span class="error-message">{{ field.errors|join:", " }}</span>
-              {% endif %}
+              {% if field.help_text %}<small style="color:var(--txt-3);font-size:12px">{{ field.help_text }}</small>{% endif %}
+              {% if field.errors %}<span class="error-message">{{ field.errors|join:", " }}</span>{% endif %}
             </div>
           {% endif %}
         {% endfor %}
-
       </div>
-
-      {% if form.non_field_errors %}
-        <div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>
-      {% endif %}
-
+      {% if form.non_field_errors %}<div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>{% endif %}
       <div class="form-actions" style="margin-top:28px">
-        <a href="{% url list_url %}" class="btn btn-secondary" style="margin-right:10px">Cancelar</a>
-        <button type="submit" class="btn btn-primary">
-          <i class="bi bi-check-lg"></i>
-          {% if object %}Salvar Alterações{% else %}Cadastrar{% endif %}
-        </button>
+        <a href="{% url list_url %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {% if object %}Salvar{% else %}Cadastrar{% endif %}</button>
       </div>
-
     </form>
   </div>
-
 </div>
 {% endblock %}

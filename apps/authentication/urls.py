@@ -92,5 +92,5 @@ urlpatterns = [
     # ── Logs e Notificações ──────────────────
     path("logs/", views.LogAuditoriaListView.as_view(), name="log_list"),
     path("notificacoes/", views.NotificacaoListView.as_view(), name="notificacao_list"),
-    path("notificacoes/<int:pk>/marcar-lida/", views.MarcarNotificacaoLidaView.as_view(), name="notificacao_marcar_lida"),
+    path("notificacoes/<int:pk>/marcar-lida/", views.NotificacaoMarcarLidaView.as_view(), name="notificacao_marcar_lida"),
 ]

@@ -1,0 +1,35 @@
+{% extends "layouts/base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>{{ titulo }}</h1>
+    <a href="{% url create_url %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo</a>
+  </div>
+  {% include "_includes/messages.html" %}
+  <div class="detail-card" style="padding:0;overflow:hidden">
+    <table class="table">
+      <thead><tr><th>Nome</th><th class="text-center">Ativo</th><th class="text-center">Ações</th></tr></thead>
+      <tbody>
+        {% for obj in objetos %}
+        <tr>
+          <td>{{ obj.nome }}</td>
+          <td class="text-center">
+            {% if obj.ativo %}<i class="bi bi-check-circle-fill" style="color:#28a745"></i>
+            {% else %}<i class="bi bi-x-circle-fill" style="color:#dc3545"></i>{% endif %}
+          </td>
+          <td class="text-center" style="white-space:nowrap">
+            <a href="{% url update_url obj.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
+            <a href="{% url delete_url obj.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="text-center" style="color:#999;padding:36px">
+          <i class="bi bi-inbox" style="font-size:26px;display:block;margin-bottom:8px"></i>Nenhum registro encontrado.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

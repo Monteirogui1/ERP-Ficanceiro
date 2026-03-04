@@ -1,131 +1,62 @@
 {% extends "layouts/base.html" %}
-{% load static %}
-
 {% block title %}Contas a Pagar{% endblock %}
-
 {% block conteudo %}
 <div class="content">
-
   <div class="page-header">
     <h1>Contas a Pagar</h1>
-    <a href="{% url 'financeiro:conta_pagar_create' %}" class="btn btn-primary">
-      <i class="bi bi-plus-lg"></i> Nova Conta
-    </a>
+    <a href="{% url 'financeiro:conta_pagar_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nova Conta</a>
   </div>
-
-  {% if messages %}{% for msg in messages %}
-    <div style="padding:10px 16px;border-radius:5px;margin-bottom:16px;font-size:13px;
-      background:{% if 'success' in msg.tags %}#d4edda{% else %}#f8d7da{% endif %};
-      color:{% if 'success' in msg.tags %}#155724{% else %}#721c24{% endif %};
-      border:1px solid {% if 'success' in msg.tags %}#c3e6cb{% else %}#f5c6cb{% endif %};">
-      {{ msg }}
-    </div>
-  {% endfor %}{% endif %}
-
-  <!-- Filtros -->
-  <form method="get" class="filter-form">
-    <div class="form-group">
-      <label>Buscar</label>
-      <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Descrição..." class="form-control">
-    </div>
-    <div class="form-group">
-      <label>Status</label>
-      <select name="status" class="form-control">
-        <option value="">Todos</option>
-        {% for s in status_list %}
-          <option value="{{ s.pk }}" {% if request.GET.status == s.pk|stringformat:"s" %}selected{% endif %}>
-            {{ s.nome }}
-          </option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Vencimento de</label>
-      <input type="date" name="vencimento_de" value="{{ request.GET.vencimento_de }}" class="form-control">
-    </div>
-    <div class="form-group">
-      <label>Vencimento até</label>
-      <input type="date" name="vencimento_ate" value="{{ request.GET.vencimento_ate }}" class="form-control">
-    </div>
-    <div class="filter-buttons">
-      <button type="submit" class="btn btn-primary">
-        <i class="bi bi-search"></i> Filtrar
-      </button>
-      <a href="{% url 'financeiro:conta_pagar_list' %}" class="btn btn-secondary">
-        <i class="bi bi-x-lg"></i> Limpar
-      </a>
-    </div>
+  {% include "_includes/messages.html" %}
+  <form method="get" style="margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap">
+    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Descrição..." class="form-control" style="max-width:260px">
+    <select name="status" class="form-control" style="max-width:180px">
+      <option value="">Todos os status</option>
+      {% for s in status_list %}<option value="{{ s.pk }}" {% if request.GET.status == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>{% endfor %}
+    </select>
+    <input type="date" name="vencimento_de"  value="{{ request.GET.vencimento_de }}"  class="form-control" style="max-width:160px" title="Vencimento de">
+    <input type="date" name="vencimento_ate" value="{{ request.GET.vencimento_ate }}" class="form-control" style="max-width:160px" title="Vencimento até">
+    <button type="submit" class="btn btn-secondary"><i class="bi bi-search"></i> Filtrar</button>
+    {% if request.GET.q or request.GET.status or request.GET.vencimento_de or request.GET.vencimento_ate %}
+      <a href="{% url 'financeiro:conta_pagar_list' %}" class="btn btn-secondary">Limpar</a>
+    {% endif %}
   </form>
-
-  <!-- Tabela -->
   <div class="detail-card" style="padding:0;overflow:hidden">
     <table class="table">
-      <thead>
-        <tr>
-          <th>Descrição</th>
-          <th>Fornecedor</th>
-          <th>Vencimento</th>
-          <th>Valor Original</th>
-          <th>Valor Pago</th>
-          <th>Status</th>
-          <th>Parcela</th>
-          <th class="text-center">Ações</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Vencimento</th><th>Fornecedor</th><th>Descrição</th><th>Plano de Contas</th><th>Status</th><th style="text-align:right">Valor</th><th style="text-align:right">Pago</th><th class="text-center">Ações</th></tr></thead>
       <tbody>
-        {% for conta in objetos %}
+        {% for cp in objetos %}
         <tr>
-          <td>
-            <a href="{% url 'financeiro:conta_pagar_detail' conta.pk %}" style="color:#1a73e8;font-weight:500">
-              {{ conta.descricao }}
-            </a>
-            {% if conta.requer_aprovacao and not conta.aprovado_por %}
-              <span title="Aguardando aprovação" style="color:#f5a623;margin-left:4px">
-                <i class="bi bi-clock-history"></i>
-              </span>
-            {% endif %}
+          <td style="white-space:nowrap;{% if cp.data_vencimento < hoje and not cp.data_pagamento %}color:#ef4444;font-weight:600{% endif %}">
+            {{ cp.data_vencimento|date:"d/m/Y" }}
+            {% if cp.data_vencimento < hoje and not cp.data_pagamento %}<i class="bi bi-exclamation-circle" title="Vencida"></i>{% endif %}
           </td>
-          <td>{{ conta.fornecedor.razao_social|default:"—" }}</td>
+          <td>{{ cp.fornecedor.razao_social|default:"—"|truncatechars:25 }}</td>
           <td>
-            <span {% if conta.data_vencimento < today and not conta.data_pagamento %}style="color:#dc3545;font-weight:600"{% endif %}>
-              {{ conta.data_vencimento|date:"d/m/Y" }}
+            <a href="{% url 'financeiro:conta_pagar_detail' cp.pk %}" style="color:var(--accent);font-weight:500">{{ cp.descricao|truncatechars:35 }}</a>
+            {% if cp.numero_parcelas > 1 %}<br><small style="color:var(--txt-3)">Parcela {{ cp.numero_parcela_atual }}/{{ cp.numero_parcelas }}</small>{% endif %}
+          </td>
+          <td style="font-size:12px;color:var(--txt-3)">{{ cp.plano_contas.nome|default:"—"|truncatechars:22 }}</td>
+          <td>
+            <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(99,102,241,.1);color:#6366f1">
+              {{ cp.status.nome|default:"—" }}
             </span>
           </td>
-          <td>R$ {{ conta.valor_original|floatformat:2 }}</td>
-          <td>{% if conta.valor_pago %}R$ {{ conta.valor_pago|floatformat:2 }}{% else %}—{% endif %}</td>
-          <td>
-            {% if conta.status %}
-              <span class="badge" style="background:#e8f0fe;color:#1a73e8;border-radius:4px;padding:3px 8px;font-size:11px">
-                {{ conta.status.nome }}
-              </span>
-            {% endif %}
-          </td>
-          <td>{{ conta.numero_parcela_atual }}/{{ conta.numero_parcelas }}</td>
+          <td style="text-align:right;font-family:monospace;color:#ef4444">R$ {{ cp.valor_original|floatformat:2 }}</td>
+          <td style="text-align:right;font-family:monospace;color:#10b981">R$ {{ cp.valor_pago|floatformat:2 }}</td>
           <td class="text-center" style="white-space:nowrap">
-            <a href="{% url 'financeiro:conta_pagar_detail' conta.pk %}" class="btn btn-secondary btn-sm" title="Ver">
-              <i class="bi bi-eye"></i>
-            </a>
-            <a href="{% url 'financeiro:conta_pagar_update' conta.pk %}" class="btn btn-edit btn-sm" title="Editar">
-              <i class="bi bi-pencil"></i>
-            </a>
-            <a href="{% url 'financeiro:conta_pagar_delete' conta.pk %}" class="btn btn-delete btn-sm" title="Excluir">
-              <i class="bi bi-trash3"></i>
-            </a>
+            <a href="{% url 'financeiro:conta_pagar_detail' cp.pk %}" class="btn btn-secondary btn-sm"><i class="bi bi-eye"></i></a>
+            <a href="{% url 'financeiro:conta_pagar_update' cp.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'financeiro:conta_pagar_delete' cp.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
           </td>
         </tr>
         {% empty %}
-        <tr>
-          <td colspan="8" class="text-center" style="color:#999;padding:40px">
-            <i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>
-            Nenhuma conta a pagar encontrada.
-          </td>
-        </tr>
+        <tr><td colspan="8" class="text-center" style="color:#999;padding:40px">
+          <i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhuma conta encontrada.
+        </td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-
   {% include "_includes/paginacao.html" %}
-
 </div>
 {% endblock %}

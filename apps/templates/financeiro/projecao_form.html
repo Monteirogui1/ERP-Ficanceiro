@@ -1,92 +1,29 @@
 {% extends "layouts/base.html" %}
-{% load static %}
-
-{% block title %}{{ titulo }} — Financeiro{% endblock %}
-
+{% block title %}{{ titulo }}{% endblock %}
 {% block conteudo %}
 <div class="content">
-
   <div class="page-header">
     <h1>{{ titulo }}</h1>
-    <a href="{% url 'financeiro:projecao_list' %}" class="btn btn-secondary">
-      <i class="bi bi-arrow-left"></i> Voltar
-    </a>
+    <a href="{% url 'financeiro:projecao_list' %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
   </div>
-
-  <div class="detail-card">
-    <form method="post" id="form-projecao">
+  <div class="detail-card" style="max-width:600px">
+    <form method="post">
       {% csrf_token %}
-
-      <h2><i class="bi bi-graph-up-arrow"></i> Dados da Projeção</h2>
+      <h2><i class="bi bi-graph-up"></i> Dados da Projeção</h2>
       <div class="form-grid">
-
-        <div class="form-group full-width">
-          <label for="{{ form.descricao.id_for_label }}">Descrição <span style="color:#dc3545">*</span></label>
-          {{ form.descricao }}
-          {% if form.descricao.errors %}<span class="error-message">{{ form.descricao.errors|join:", " }}</span>{% endif %}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.cenario.id_for_label }}">Cenário <span style="color:#dc3545">*</span></label>
-          {{ form.cenario }}
-          {% if form.cenario.errors %}<span class="error-message">{{ form.cenario.errors|join:", " }}</span>{% endif %}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.conta_bancaria.id_for_label }}">Conta Bancária</label>
-          {{ form.conta_bancaria }}
-          {% if form.conta_bancaria.errors %}<span class="error-message">{{ form.conta_bancaria.errors|join:", " }}</span>{% endif %}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.tipo_lancamento.id_for_label }}">Tipo (Entrada/Saída) <span style="color:#dc3545">*</span></label>
-          {{ form.tipo_lancamento }}
-          {% if form.tipo_lancamento.errors %}<span class="error-message">{{ form.tipo_lancamento.errors|join:", " }}</span>{% endif %}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.valor_projetado.id_for_label }}">Valor Projetado <span style="color:#dc3545">*</span></label>
-          {{ form.valor_projetado }}
-          {% if form.valor_projetado.errors %}<span class="error-message">{{ form.valor_projetado.errors|join:", " }}</span>{% endif %}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.data_prevista.id_for_label }}">Data Prevista <span style="color:#dc3545">*</span></label>
-          {{ form.data_prevista }}
-          {% if form.data_prevista.errors %}<span class="error-message">{{ form.data_prevista.errors|join:", " }}</span>{% endif %}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.plano_contas.id_for_label }}">Plano de Contas</label>
-          {{ form.plano_contas }}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.centro_custo.id_for_label }}">Centro de Custo</label>
-          {{ form.centro_custo }}
-        </div>
-
-        <div class="form-group full-width">
-          <label for="{{ form.observacoes.id_for_label }}">Observações</label>
-          {{ form.observacoes }}
-        </div>
-
+        <div class="form-group"><label>Cenário <span style="color:#dc3545">*</span></label>{{ form.cenario }}{% if form.cenario.errors %}<span class="error-message">{{ form.cenario.errors|join:", " }}</span>{% endif %}</div>
+        <div class="form-group"><label>Data de Referência <span style="color:#dc3545">*</span></label>{{ form.data_referencia }}</div>
+        <div class="form-group"><label>Conta Bancária</label>{{ form.conta_bancaria }}<small style="color:var(--txt-3);font-size:12px">Deixe em branco para projeção consolidada</small></div>
+        <div class="form-group"><label>Entradas Previstas</label>{{ form.entradas_previstas }}</div>
+        <div class="form-group"><label>Saídas Previstas</label>{{ form.saidas_previstas }}</div>
+        <div class="form-group"><label>Saldo Projetado</label>{{ form.saldo_projetado }}</div>
       </div>
-
-      {% if form.non_field_errors %}
-        <div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>
-      {% endif %}
-
+      {% if form.non_field_errors %}<div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>{% endif %}
       <div class="form-actions" style="margin-top:28px">
-        <a href="{% url 'financeiro:projecao_list' %}" class="btn btn-secondary" style="margin-right:10px">Cancelar</a>
-        <button type="submit" class="btn btn-primary">
-          <i class="bi bi-check-lg"></i>
-          {% if object %}Salvar Alterações{% else %}Criar Projeção{% endif %}
-        </button>
+        <a href="{% url 'financeiro:projecao_list' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salvar</button>
       </div>
-
     </form>
   </div>
-
 </div>
 {% endblock %}

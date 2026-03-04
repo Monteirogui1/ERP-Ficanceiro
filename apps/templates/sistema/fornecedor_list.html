@@ -7,30 +7,46 @@
     <a href="{% url 'sistema:fornecedor_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Fornecedor</a>
   </div>
   {% include "_includes/messages.html" %}
-  <form method="get" class="filter-form">
-    <div class="form-group"><label>Buscar</label><input type="text" name="q" value="{{ request.GET.q }}" placeholder="Razão social..." class="form-control"></div>
-    <div class="form-group"><label>Situação</label><select name="ativo" class="form-control"><option value="">Todos</option><option value="true" {% if request.GET.ativo == "true" %}selected{% endif %}>Ativo</option><option value="false" {% if request.GET.ativo == "false" %}selected{% endif %}>Inativo</option></select></div>
-    <div class="filter-buttons"><button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrar</button><a href="{% url 'sistema:fornecedor_list' %}" class="btn btn-secondary"><i class="bi bi-x-lg"></i> Limpar</a></div>
+  <form method="get" style="margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap">
+    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Nome ou CPF/CNPJ..." class="form-control" style="max-width:320px">
+    <select name="categoria" class="form-control" style="max-width:200px">
+      <option value="">Todas as categorias</option>
+      {% for cat in categorias %}<option value="{{ cat.pk }}" {% if request.GET.categoria == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.nome }}</option>{% endfor %}
+    </select>
+    <select name="ativo" class="form-control" style="max-width:140px">
+      <option value="">Todos</option>
+      <option value="true" {% if request.GET.ativo == "true" %}selected{% endif %}>Ativos</option>
+      <option value="false" {% if request.GET.ativo == "false" %}selected{% endif %}>Inativos</option>
+    </select>
+    <button type="submit" class="btn btn-secondary"><i class="bi bi-search"></i> Filtrar</button>
+    {% if request.GET.q or request.GET.categoria or request.GET.ativo %}
+      <a href="{% url 'sistema:fornecedor_list' %}" class="btn btn-secondary">Limpar</a>
+    {% endif %}
   </form>
   <div class="detail-card" style="padding:0;overflow:hidden">
     <table class="table">
-      <thead><tr><th>Razão Social</th><th>Nome Fantasia</th><th>CPF/CNPJ</th><th>Cidade/UF</th><th>Categoria</th><th class="text-center">Ativo</th><th class="text-center">Ações</th></tr></thead>
+      <thead><tr><th>Razão Social</th><th>CPF/CNPJ</th><th>Categoria</th><th>Cidade/UF</th><th class="text-center">Ativo</th><th class="text-center">Ações</th></tr></thead>
       <tbody>
         {% for f in objetos %}
         <tr>
-          <td><a href="{% url 'sistema:fornecedor_detail' f.pk %}" style="color:#1a73e8;font-weight:500">{{ f.razao_social }}</a></td>
-          <td>{{ f.nome_fantasia|default:"—" }}</td>
-          <td style="font-family:monospace;font-size:13px">{{ f.cpf_cnpj|default:"—" }}</td>
-          <td>{{ f.cidade|default:"—" }}{{ f.estado|default:"" }} {% if f.estado %}/ {{ f.estado }}{% endif %}</td>
+          <td>
+            <a href="{% url 'sistema:fornecedor_detail' f.pk %}" style="font-weight:600;color:var(--accent)">{{ f.razao_social }}</a>
+            {% if f.nome_fantasia %}<br><small style="color:var(--txt-3)">{{ f.nome_fantasia }}</small>{% endif %}
+          </td>
+          <td style="font-family:monospace;font-size:13px">{{ f.cpf_cnpj }}</td>
           <td>{{ f.categoria.nome|default:"—" }}</td>
-          <td class="text-center">{% if f.ativo %}<span style="color:#28a745"><i class="bi bi-check-circle-fill"></i></span>{% else %}<span style="color:#dc3545"><i class="bi bi-x-circle-fill"></i></span>{% endif %}</td>
+          <td>{{ f.cidade|default:"—" }}{% if f.estado %}/{{ f.estado }}{% endif %}</td>
+          <td class="text-center">{% if f.ativo %}<i class="bi bi-check-circle-fill" style="color:#28a745"></i>{% else %}<i class="bi bi-x-circle-fill" style="color:#dc3545"></i>{% endif %}</td>
           <td class="text-center" style="white-space:nowrap">
-            <a href="{% url 'sistema:fornecedor_detail' f.pk %}" class="btn btn-secondary btn-sm"><i class="bi bi-eye"></i></a>
+            <a href="{% url 'sistema:fornecedor_detail' f.pk %}" class="btn btn-secondary btn-sm" title="Detalhes"><i class="bi bi-eye"></i></a>
             <a href="{% url 'sistema:fornecedor_update' f.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
             <a href="{% url 'sistema:fornecedor_delete' f.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
           </td>
         </tr>
-        {% empty %}<tr><td colspan="7" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum fornecedor encontrado.</td></tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center" style="color:#999;padding:40px">
+          <i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum fornecedor encontrado.
+        </td></tr>
         {% endfor %}
       </tbody>
     </table>

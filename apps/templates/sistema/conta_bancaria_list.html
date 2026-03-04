@@ -9,27 +9,29 @@
   {% include "_includes/messages.html" %}
   <div class="detail-card" style="padding:0;overflow:hidden">
     <table class="table">
-      <thead><tr><th>Nome</th><th>Banco</th><th>Agência</th><th>Conta</th><th>Tipo</th><th>Saldo Inicial</th><th class="text-center">Ativo</th><th class="text-center">Ações</th></tr></thead>
+      <thead><tr><th>Nome</th><th>Banco</th><th>Tipo</th><th>Agência</th><th>Conta</th><th style="text-align:right">Saldo Atual</th><th class="text-center">Ativo</th><th class="text-center">Ações</th></tr></thead>
       <tbody>
         {% for cb in objetos %}
         <tr>
           <td><strong>{{ cb.nome }}</strong></td>
-          <td>{{ cb.banco.nome|default:"—" }}</td>
-          <td>{{ cb.agencia }}{% if cb.agencia_dv %}-{{ cb.agencia_dv }}{% endif %}</td>
+          <td>{{ cb.banco.codigo }} — {{ cb.banco.nome|truncatechars:20 }}</td>
+          <td>{{ cb.tipo_conta.nome }}</td>
+          <td style="font-family:monospace">{{ cb.agencia }}{% if cb.agencia_dv %}-{{ cb.agencia_dv }}{% endif %}</td>
           <td style="font-family:monospace">{{ cb.conta }}{% if cb.conta_dv %}-{{ cb.conta_dv }}{% endif %}</td>
-          <td>{{ cb.tipo_conta.nome|default:"—" }}</td>
-          <td>R$ {{ cb.saldo_inicial|floatformat:2 }}</td>
-          <td class="text-center">{% if cb.ativo %}<span style="color:#28a745"><i class="bi bi-check-circle-fill"></i></span>{% else %}<span style="color:#dc3545"><i class="bi bi-x-circle-fill"></i></span>{% endif %}</td>
+          <td style="text-align:right;font-family:monospace;font-weight:600;{% if cb.saldo_atual < 0 %}color:#ef4444{% else %}color:#10b981{% endif %}">
+            R$ {{ cb.saldo_atual|floatformat:2 }}
+          </td>
+          <td class="text-center">{% if cb.ativo %}<i class="bi bi-check-circle-fill" style="color:#28a745"></i>{% else %}<i class="bi bi-x-circle-fill" style="color:#dc3545"></i>{% endif %}</td>
           <td class="text-center" style="white-space:nowrap">
             <a href="{% url 'sistema:conta_bancaria_update' cb.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
             <a href="{% url 'sistema:conta_bancaria_delete' cb.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
           </td>
         </tr>
-        {% empty %}<tr><td colspan="8" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhuma conta cadastrada.</td></tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center" style="color:#999;padding:40px">Nenhuma conta bancária cadastrada.</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-  {% include "_includes/paginacao.html" %}
 </div>
 {% endblock %}

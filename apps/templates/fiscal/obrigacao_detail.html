@@ -3,32 +3,90 @@
 {% block conteudo %}
 <div class="content">
   <div class="page-header">
-    <h1>{{ obrigacao.tipo.nome }} — {{ obrigacao.competencia|date:"m/Y" }}</h1>
+    <div>
+      <h1>
+        {% if obrigacao.tipo.sigla %}
+          <span style="font-family:monospace;font-size:18px;background:rgba(99,102,241,.1);color:#6366f1;padding:3px 12px;border-radius:6px;margin-right:8px">{{ obrigacao.tipo.sigla }}</span>
+        {% endif %}
+        {{ obrigacao.tipo.nome }}
+      </h1>
+      <small style="color:var(--txt-3)">Competência {{ obrigacao.competencia|date:"d/m/Y" }} · Vencimento {{ obrigacao.data_vencimento|date:"d/m/Y" }}</small>
+    </div>
     <div style="display:flex;gap:8px">
       <a href="{% url 'fiscal:obrigacao_list' %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
       <a href="{% url 'fiscal:obrigacao_update' obrigacao.pk %}" class="btn btn-edit"><i class="bi bi-pencil"></i> Editar</a>
-      <a href="{% url 'fiscal:obrigacao_delete' obrigacao.pk %}" class="btn btn-delete"><i class="bi bi-trash3"></i> Excluir</a>
+      <a href="{% url 'fiscal:obrigacao_delete' obrigacao.pk %}" class="btn btn-delete"><i class="bi bi-trash3"></i></a>
     </div>
   </div>
   {% include "_includes/messages.html" %}
-  <div class="detail-card">
-    <h2><i class="bi bi-clipboard2-check"></i> Detalhes da Obrigação</h2>
-    <div class="detail-content">
-      <div class="detail-info" style="flex:1">
-        <div class="detail-row"><span class="detail-label">Tipo</span><span class="detail-value">{{ obrigacao.tipo.nome }}{% if obrigacao.tipo.sigla %} ({{ obrigacao.tipo.sigla }}){% endif %}</span></div>
-        <div class="detail-row"><span class="detail-label">Periodicidade</span><span class="detail-value">{{ obrigacao.tipo.periodicidade }}</span></div>
-        <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span style="background:#e8f0fe;color:#1a73e8;border-radius:4px;padding:3px 10px;font-size:12px">{{ obrigacao.status.nome|default:"—" }}</span></span></div>
-        <div class="detail-row"><span class="detail-label">Responsável</span><span class="detail-value">{{ obrigacao.responsavel.nome|default:"—" }}</span></div>
-        <div class="detail-row"><span class="detail-label">Nº Protocolo</span><span class="detail-value" style="font-family:monospace">{{ obrigacao.numero_protocolo|default:"—" }}</span></div>
-        {% if obrigacao.observacoes %}<div class="detail-row"><span class="detail-label">Observações</span><span class="detail-value">{{ obrigacao.observacoes }}</span></div>{% endif %}
+
+  <div style="display:grid;grid-template-columns:1fr 260px;gap:20px">
+    <div>
+      <div class="detail-card">
+        <h2><i class="bi bi-info-circle"></i> Detalhes</h2>
+        <dl class="info-grid">
+          <dt>Tipo</dt><dd>{{ obrigacao.tipo.nome }}{% if obrigacao.tipo.sigla %} ({{ obrigacao.tipo.sigla }}){% endif %}</dd>
+          <dt>Periodicidade</dt><dd>{{ obrigacao.tipo.get_periodicidade_display }}</dd>
+          <dt>Competência</dt><dd>{{ obrigacao.competencia|date:"d/m/Y" }}</dd>
+          <dt>Vencimento</dt><dd>{{ obrigacao.data_vencimento|date:"d/m/Y" }}</dd>
+          <dt>Responsável</dt><dd>{{ obrigacao.responsavel.nome|default:"—" }}</dd>
+          {% if obrigacao.observacoes %}
+          <dt>Observações</dt><dd>{{ obrigacao.observacoes }}</dd>
+          {% endif %}
+        </dl>
       </div>
-      <div class="metrics" style="flex-direction:column;min-width:200px">
-        <div class="metric-card"><h3>Competência</h3><p style="font-size:18px">{{ obrigacao.competencia|date:"m/Y" }}</p></div>
-        <div class="metric-card"><h3>Vencimento</h3><p style="font-size:16px;{% if obrigacao.data_vencimento < today and not obrigacao.data_entrega %}color:#dc3545{% endif %}">{{ obrigacao.data_vencimento|date:"d/m/Y" }}</p></div>
-        {% if obrigacao.data_entrega %}<div class="metric-card"><h3>Entregue em</h3><p style="font-size:16px;color:#28a745">{{ obrigacao.data_entrega|date:"d/m/Y" }}</p></div>{% endif %}
-        {% if obrigacao.arquivo %}<div class="metric-card"><h3>Arquivo</h3><p><a href="{{ obrigacao.arquivo.url }}" target="_blank" style="color:#1a73e8"><i class="bi bi-download"></i> Download</a></p></div>{% endif %}
+
+      {% if obrigacao.data_entrega or obrigacao.numero_protocolo or obrigacao.arquivo %}
+      <div class="detail-card" style="margin-top:16px">
+        <h2><i class="bi bi-check2-circle"></i> Entrega</h2>
+        <dl class="info-grid">
+          {% if obrigacao.data_entrega %}
+          <dt>Data de Entrega</dt><dd style="color:#10b981;font-weight:600"><i class="bi bi-check-circle-fill"></i> {{ obrigacao.data_entrega|date:"d/m/Y" }}</dd>
+          {% endif %}
+          {% if obrigacao.numero_protocolo %}
+          <dt>Protocolo</dt><dd style="font-family:monospace">{{ obrigacao.numero_protocolo }}</dd>
+          {% endif %}
+          {% if obrigacao.arquivo %}
+          <dt>Arquivo</dt>
+          <dd><a href="{{ obrigacao.arquivo.url }}" target="_blank" style="color:var(--accent)"><i class="bi bi-file-earmark-arrow-down"></i> Baixar comprovante</a></dd>
+          {% endif %}
+        </dl>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Coluna lateral: status card -->
+    <div>
+      <div class="detail-card" style="position:sticky;top:20px;text-align:center;padding:28px 20px">
+        {% if obrigacao.status %}
+        <div style="margin-bottom:14px">
+          <span style="font-size:13px;padding:4px 18px;border-radius:20px;font-weight:600;
+            {% if 'Entregue' in obrigacao.status.nome %}background:rgba(16,185,129,.1);color:#10b981
+            {% elif 'Atraso' in obrigacao.status.nome %}background:rgba(239,68,68,.1);color:#ef4444
+            {% elif 'Retificado' in obrigacao.status.nome %}background:rgba(245,158,11,.1);color:#f59e0b
+            {% else %}background:rgba(99,102,241,.1);color:#6366f1{% endif %}">
+            {{ obrigacao.status.nome }}
+          </span>
+        </div>
+        {% endif %}
+        <p style="font-size:12px;color:var(--txt-3);margin:0 0 6px">Vencimento</p>
+        <p style="font-size:20px;font-weight:700;margin:0 0 16px;color:var(--txt-1)">{{ obrigacao.data_vencimento|date:"d/m/Y" }}</p>
+        {% if obrigacao.data_entrega %}
+        <p style="font-size:12px;color:var(--txt-3);margin:0 0 4px">Entregue em</p>
+        <p style="font-size:16px;font-weight:600;color:#10b981;margin:0"><i class="bi bi-check-circle-fill"></i> {{ obrigacao.data_entrega|date:"d/m/Y" }}</p>
+        {% else %}
+        <p style="font-size:12px;color:#ef4444;margin:0"><i class="bi bi-clock-fill"></i> Não entregue</p>
+        {% endif %}
+        <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
+          <a href="{% url 'fiscal:obrigacao_update' obrigacao.pk %}" class="btn btn-primary" style="width:100%"><i class="bi bi-pencil"></i> Atualizar Status</a>
+        </div>
       </div>
     </div>
   </div>
 </div>
+<style>
+  .info-grid{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:13.5px}
+  .info-grid dt{color:var(--txt-3);font-weight:500;white-space:nowrap}
+  .info-grid dd{color:var(--txt-1);margin:0}
+</style>
 {% endblock %}

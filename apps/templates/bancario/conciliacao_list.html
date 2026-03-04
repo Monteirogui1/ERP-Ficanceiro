@@ -1,31 +1,80 @@
 {% extends "layouts/base.html" %}
-{% block title %}Conciliações Bancárias{% endblock %}
+{% block title %}Conciliação Bancária{% endblock %}
 {% block conteudo %}
 <div class="content">
   <div class="page-header">
-    <h1>Conciliações Bancárias</h1>
+    <h1>Conciliação Bancária</h1>
     <a href="{% url 'bancario:conciliacao_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nova Conciliação</a>
   </div>
   {% include "_includes/messages.html" %}
+  <form method="get" style="margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap">
+    <select name="status" class="form-control" style="max-width:200px">
+      <option value="">Todos os status</option>
+      {% for s in status_list %}<option value="{{ s.pk }}" {% if request.GET.status == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>{% endfor %}
+    </select>
+    <select name="automatica" class="form-control" style="max-width:180px">
+      <option value="">Automática / Manual</option>
+      <option value="true"  {% if request.GET.automatica == "true"  %}selected{% endif %}>Automática</option>
+      <option value="false" {% if request.GET.automatica == "false" %}selected{% endif %}>Manual</option>
+    </select>
+    <button type="submit" class="btn btn-secondary"><i class="bi bi-search"></i> Filtrar</button>
+    {% if request.GET.status or request.GET.automatica %}
+      <a href="{% url 'bancario:conciliacao_list' %}" class="btn btn-secondary">Limpar</a>
+    {% endif %}
+  </form>
   <div class="detail-card" style="padding:0;overflow:hidden">
     <table class="table">
-      <thead><tr><th>Movimento Bancário</th><th>Lançamento</th><th>Status</th><th>Diferença</th><th class="text-center">Automática</th><th>Conciliado por</th><th>Data</th><th class="text-center">Ações</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Movimento (Extrato)</th>
+          <th>Lançamento (Sistema)</th>
+          <th>Status</th>
+          <th style="text-align:right">Diferença</th>
+          <th class="text-center">Tipo</th>
+          <th>Conciliado por</th>
+          <th class="text-center">Ações</th>
+        </tr>
+      </thead>
       <tbody>
         {% for conc in objetos %}
         <tr>
-          <td style="font-size:12px">{{ conc.movimento_bancario.descricao|truncatechars:40 }}</td>
-          <td style="font-size:12px">{{ conc.lancamento.descricao|truncatechars:40 }}</td>
-          <td><span style="background:#e8f0fe;color:#1a73e8;border-radius:4px;padding:3px 8px;font-size:11px">{{ conc.status.nome }}</span></td>
-          <td style="{% if conc.diferenca != 0 %}color:#dc3545;font-weight:600{% endif %}">R$ {{ conc.diferenca|floatformat:2 }}</td>
-          <td class="text-center">{% if conc.automatica %}<i class="bi bi-lightning-fill" style="color:#f5a623" title="Automática"></i>{% else %}—{% endif %}</td>
-          <td>{{ conc.conciliado_por.nome|default:"—" }}</td>
-          <td style="font-size:12px">{{ conc.criado_em|date:"d/m/Y H:i" }}</td>
-          <td class="text-center" style="white-space:nowrap">
-            <a href="{% url 'bancario:conciliacao_update' conc.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
+          <td style="white-space:nowrap">{{ conc.criado_em|date:"d/m/Y" }}</td>
+          <td style="font-size:12px">
+            {{ conc.movimento_bancario.descricao|truncatechars:30 }}<br>
+            <small style="color:var(--txt-3)">{{ conc.movimento_bancario.conta_bancaria.nome }} · {{ conc.movimento_bancario.data_movimento|date:"d/m/Y" }}</small>
+          </td>
+          <td style="font-size:12px">
+            {{ conc.lancamento.descricao|truncatechars:30 }}<br>
+            <small style="color:var(--txt-3)">R$ {{ conc.lancamento.valor|floatformat:2 }} · {{ conc.lancamento.data_lancamento|date:"d/m/Y" }}</small>
+          </td>
+          <td>
+            <span style="font-size:11px;padding:2px 8px;border-radius:20px;
+              {% if 'Conciliada' in conc.status.nome %}background:rgba(16,185,129,.1);color:#10b981
+              {% elif 'Divergente' in conc.status.nome %}background:rgba(239,68,68,.1);color:#ef4444
+              {% else %}background:rgba(245,158,11,.1);color:#f59e0b{% endif %}">
+              {{ conc.status.nome }}
+            </span>
+          </td>
+          <td style="text-align:right;font-family:monospace;{% if conc.diferenca != 0 %}color:#ef4444{% else %}color:#10b981{% endif %}">
+            R$ {{ conc.diferenca|floatformat:2 }}
+          </td>
+          <td class="text-center">
+            {% if conc.automatica %}
+              <span style="font-size:11px;background:rgba(99,102,241,.1);color:#6366f1;border-radius:4px;padding:2px 7px"><i class="bi bi-robot"></i> Auto</span>
+            {% else %}
+              <span style="font-size:11px;background:#f0f0f0;color:var(--txt-2);border-radius:4px;padding:2px 7px"><i class="bi bi-person"></i> Manual</span>
+            {% endif %}
+          </td>
+          <td style="font-size:12px;color:var(--txt-3)">{{ conc.conciliado_por.nome|default:conc.conciliado_por.username|default:"—" }}</td>
+          <td class="text-center">
             <a href="{% url 'bancario:conciliacao_delete' conc.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
           </td>
         </tr>
-        {% empty %}<tr><td colspan="8" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhuma conciliação encontrada.</td></tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center" style="color:#999;padding:40px">
+          <i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhuma conciliação encontrada.
+        </td></tr>
         {% endfor %}
       </tbody>
     </table>

@@ -7,34 +7,52 @@
     <a href="{% url 'financeiro:conta_receber_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Nova Conta</a>
   </div>
   {% include "_includes/messages.html" %}
-  <form method="get" class="filter-form">
-    <div class="form-group"><label>Buscar</label><input type="text" name="q" value="{{ request.GET.q }}" placeholder="Descrição..." class="form-control"></div>
-    <div class="form-group"><label>Status</label><select name="status" class="form-control"><option value="">Todos</option>{% for s in status_list %}<option value="{{ s.pk }}" {% if request.GET.status == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>{% endfor %}</select></div>
-    <div class="form-group"><label>Vencimento de</label><input type="date" name="vencimento_de" value="{{ request.GET.vencimento_de }}" class="form-control"></div>
-    <div class="form-group"><label>Vencimento até</label><input type="date" name="vencimento_ate" value="{{ request.GET.vencimento_ate }}" class="form-control"></div>
-    <div class="form-group"><label>Inadimplente</label><select name="inadimplente" class="form-control"><option value="">Todos</option><option value="true" {% if request.GET.inadimplente == "true" %}selected{% endif %}>Sim</option><option value="false" {% if request.GET.inadimplente == "false" %}selected{% endif %}>Não</option></select></div>
-    <div class="filter-buttons"><button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrar</button><a href="{% url 'financeiro:conta_receber_list' %}" class="btn btn-secondary"><i class="bi bi-x-lg"></i> Limpar</a></div>
+  <form method="get" style="margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap">
+    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Descrição..." class="form-control" style="max-width:260px">
+    <select name="status" class="form-control" style="max-width:180px">
+      <option value="">Todos os status</option>
+      {% for s in status_list %}<option value="{{ s.pk }}" {% if request.GET.status == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.nome }}</option>{% endfor %}
+    </select>
+    <input type="date" name="vencimento_de"  value="{{ request.GET.vencimento_de }}"  class="form-control" style="max-width:160px" title="Vencimento de">
+    <input type="date" name="vencimento_ate" value="{{ request.GET.vencimento_ate }}" class="form-control" style="max-width:160px" title="Vencimento até">
+    <select name="inadimplente" class="form-control" style="max-width:160px">
+      <option value="">Todos</option>
+      <option value="true" {% if request.GET.inadimplente == "true" %}selected{% endif %}>Inadimplentes</option>
+    </select>
+    <button type="submit" class="btn btn-secondary"><i class="bi bi-search"></i> Filtrar</button>
+    {% if request.GET.q or request.GET.status or request.GET.vencimento_de or request.GET.inadimplente %}
+      <a href="{% url 'financeiro:conta_receber_list' %}" class="btn btn-secondary">Limpar</a>
+    {% endif %}
   </form>
   <div class="detail-card" style="padding:0;overflow:hidden">
     <table class="table">
-      <thead><tr><th>Descrição</th><th>Cliente</th><th>Vencimento</th><th>Valor</th><th>Valor Recebido</th><th>Status</th><th>Parcela</th><th class="text-center">Ações</th></tr></thead>
+      <thead><tr><th>Vencimento</th><th>Cliente</th><th>Descrição</th><th>Status</th><th style="text-align:right">Valor</th><th style="text-align:right">Recebido</th><th class="text-center">Ações</th></tr></thead>
       <tbody>
-        {% for conta in objetos %}
+        {% for cr in objetos %}
         <tr>
-          <td><a href="{% url 'financeiro:conta_receber_detail' conta.pk %}" style="color:#1a73e8;font-weight:500">{{ conta.descricao }}</a></td>
-          <td>{{ conta.cliente.razao_social|default:"—" }}</td>
-          <td><span {% if conta.data_vencimento < today and not conta.data_recebimento %}style="color:#dc3545;font-weight:600"{% endif %}>{{ conta.data_vencimento|date:"d/m/Y" }}</span></td>
-          <td>R$ {{ conta.valor_original|floatformat:2 }}</td>
-          <td>{% if conta.valor_recebido %}R$ {{ conta.valor_recebido|floatformat:2 }}{% else %}—{% endif %}</td>
-          <td>{% if conta.status %}<span style="background:#e8f0fe;color:#1a73e8;border-radius:4px;padding:3px 8px;font-size:11px">{{ conta.status.nome }}</span>{% endif %}</td>
-          <td>{{ conta.numero_parcela_atual }}/{{ conta.numero_parcelas }}</td>
+          <td style="white-space:nowrap;{% if cr.data_vencimento < hoje and not cr.data_pagamento %}color:#ef4444;font-weight:600{% endif %}">
+            {{ cr.data_vencimento|date:"d/m/Y" }}
+          </td>
+          <td>{{ cr.cliente.razao_social|default:"—"|truncatechars:25 }}
+            {% if cr.cliente.inadimplente %}<br><small style="color:#ef4444;font-size:11px">Inadimplente</small>{% endif %}
+          </td>
+          <td>
+            <a href="{% url 'financeiro:conta_receber_detail' cr.pk %}" style="color:var(--accent);font-weight:500">{{ cr.descricao|truncatechars:35 }}</a>
+            {% if cr.numero_parcelas > 1 %}<br><small style="color:var(--txt-3)">Parcela {{ cr.numero_parcela_atual }}/{{ cr.numero_parcelas }}</small>{% endif %}
+          </td>
+          <td><span style="font-size:11px;padding:2px 8px;border-radius:20px;background:rgba(16,185,129,.1);color:#10b981">{{ cr.status.nome|default:"—" }}</span></td>
+          <td style="text-align:right;font-family:monospace;color:#6366f1">R$ {{ cr.valor_original|floatformat:2 }}</td>
+          <td style="text-align:right;font-family:monospace;color:#10b981">R$ {{ cr.valor_pago|floatformat:2 }}</td>
           <td class="text-center" style="white-space:nowrap">
-            <a href="{% url 'financeiro:conta_receber_detail' conta.pk %}" class="btn btn-secondary btn-sm"><i class="bi bi-eye"></i></a>
-            <a href="{% url 'financeiro:conta_receber_update' conta.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
-            <a href="{% url 'financeiro:conta_receber_delete' conta.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
+            <a href="{% url 'financeiro:conta_receber_detail' cr.pk %}" class="btn btn-secondary btn-sm"><i class="bi bi-eye"></i></a>
+            <a href="{% url 'financeiro:conta_receber_update' cr.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'financeiro:conta_receber_delete' cr.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
           </td>
         </tr>
-        {% empty %}<tr><td colspan="8" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhuma conta encontrada.</td></tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center" style="color:#999;padding:40px">
+          <i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhuma conta encontrada.
+        </td></tr>
         {% endfor %}
       </tbody>
     </table>

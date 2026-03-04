@@ -1,0 +1,86 @@
+{% extends "layouts/base.html" %}
+{% block title %}Alertas de Estouro de Orçamento{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>Alertas de Estouro</h1>
+    {% if objetos %}<span style="background:rgba(239,68,68,.1);color:#ef4444;border-radius:20px;padding:4px 14px;font-size:13px;font-weight:600"><i class="bi bi-exclamation-triangle"></i> {{ page_obj.paginator.count }} alerta{{ page_obj.paginator.count|pluralize }}</span>{% endif %}
+  </div>
+  {% include "_includes/messages.html" %}
+  <form method="get" style="margin-bottom:18px;display:flex;gap:10px">
+    <select name="notificacao" class="form-control" style="max-width:220px">
+      <option value="">Todos</option>
+      <option value="false" {% if request.GET.notificacao == "false" %}selected{% endif %}>Notificação Pendente</option>
+      <option value="true"  {% if request.GET.notificacao == "true"  %}selected{% endif %}>Notificação Enviada</option>
+    </select>
+    <button type="submit" class="btn btn-secondary"><i class="bi bi-search"></i> Filtrar</button>
+    {% if request.GET.notificacao %}
+      <a href="{% url 'orcamento:alerta_list' %}" class="btn btn-secondary">Limpar</a>
+    {% endif %}
+  </form>
+  <div class="detail-card" style="padding:0;overflow:hidden">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Orçamento</th>
+          <th>Plano de Contas</th>
+          <th>Centro de Custo</th>
+          <th>Mês</th>
+          <th style="text-align:right">Previsto</th>
+          <th style="text-align:right">Realizado</th>
+          <th style="text-align:right">% Exec.</th>
+          <th class="text-center">Notificação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for alerta in objetos %}
+        <tr>
+          <td style="white-space:nowrap">{{ alerta.criado_em|date:"d/m/Y H:i" }}</td>
+          <td>
+            <a href="{% url 'orcamento:orcamento_detail' alerta.item_orcamento.orcamento.pk %}" style="color:var(--accent)">
+              {{ alerta.item_orcamento.orcamento.nome }} ({{ alerta.item_orcamento.orcamento.ano }})
+            </a>
+          </td>
+          <td style="font-size:13px">
+            <span style="font-family:monospace;font-size:11px;color:var(--txt-3)">{{ alerta.item_orcamento.plano_contas.codigo }}</span><br>
+            {{ alerta.item_orcamento.plano_contas.nome|truncatechars:30 }}
+          </td>
+          <td style="font-size:12px;color:var(--txt-3)">{{ alerta.item_orcamento.centro_custo.nome|default:"—" }}</td>
+          <td style="text-align:center">
+            {% with m=alerta.item_orcamento.mes %}
+              {% if m == 1 %}Jan{% elif m == 2 %}Fev{% elif m == 3 %}Mar{% elif m == 4 %}Abr
+              {% elif m == 5 %}Mai{% elif m == 6 %}Jun{% elif m == 7 %}Jul{% elif m == 8 %}Ago
+              {% elif m == 9 %}Set{% elif m == 10 %}Out{% elif m == 11 %}Nov{% else %}Dez{% endif %}
+            {% endwith %}
+          </td>
+          <td style="text-align:right;font-family:monospace">R$ {{ alerta.valor_previsto|floatformat:2 }}</td>
+          <td style="text-align:right;font-family:monospace;color:#ef4444;font-weight:600">R$ {{ alerta.valor_realizado|floatformat:2 }}</td>
+          <td style="text-align:right">
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px">
+              <div style="width:56px;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden">
+                <div style="height:100%;width:100%;background:#ef4444"></div>
+              </div>
+              <span style="color:#ef4444;font-weight:700;font-size:13px">{{ alerta.percentual_execucao_no_alerta|floatformat:1 }}%</span>
+            </div>
+          </td>
+          <td class="text-center">
+            {% if alerta.notificacao_enviada %}
+              <span style="font-size:11px;background:rgba(16,185,129,.1);color:#10b981;border-radius:20px;padding:2px 10px;font-weight:600"><i class="bi bi-bell-fill"></i> Enviada</span>
+            {% else %}
+              <span style="font-size:11px;background:rgba(239,68,68,.1);color:#ef4444;border-radius:20px;padding:2px 10px;font-weight:600"><i class="bi bi-bell-slash"></i> Pendente</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center" style="color:#999;padding:48px">
+          <i class="bi bi-check-circle" style="font-size:36px;display:block;margin-bottom:12px;color:#10b981"></i>
+          Nenhum alerta de estouro no momento.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "_includes/paginacao.html" %}
+</div>
+{% endblock %}

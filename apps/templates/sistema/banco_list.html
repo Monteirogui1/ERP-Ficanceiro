@@ -1,0 +1,31 @@
+{% extends "layouts/base.html" %}
+{% block title %}Bancos{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header"><h1>Bancos</h1></div>
+  {% include "_includes/messages.html" %}
+  <form method="get" style="margin-bottom:18px;display:flex;gap:10px">
+    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Código ou nome..." class="form-control" style="max-width:320px">
+    <button type="submit" class="btn btn-secondary"><i class="bi bi-search"></i> Buscar</button>
+    {% if request.GET.q %}<a href="{% url 'sistema:banco_list' %}" class="btn btn-secondary">Limpar</a>{% endif %}
+  </form>
+  <div class="detail-card" style="padding:0;overflow:hidden">
+    <table class="table">
+      <thead><tr><th>Código</th><th>Nome</th><th>ISPB</th><th class="text-center">Ativo</th></tr></thead>
+      <tbody>
+        {% for b in objetos %}
+        <tr>
+          <td style="font-family:monospace;font-weight:600">{{ b.codigo }}</td>
+          <td>{{ b.nome }}</td>
+          <td style="font-family:monospace;font-size:12px">{{ b.ispb|default:"—" }}</td>
+          <td class="text-center">{% if b.ativo %}<i class="bi bi-check-circle-fill" style="color:#28a745"></i>{% else %}<i class="bi bi-x-circle-fill" style="color:#dc3545"></i>{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center" style="color:#999;padding:40px">Nenhum banco encontrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "_includes/paginacao.html" %}
+</div>
+{% endblock %}

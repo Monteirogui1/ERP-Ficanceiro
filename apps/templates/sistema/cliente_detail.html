@@ -3,45 +3,69 @@
 {% block conteudo %}
 <div class="content">
   <div class="page-header">
-    <h1>{{ cliente.razao_social }}</h1>
+    <div>
+      <h1>{{ cliente.razao_social }}</h1>
+      {% if cliente.nome_fantasia %}<small style="color:var(--txt-3)">{{ cliente.nome_fantasia }}</small>{% endif %}
+    </div>
     <div style="display:flex;gap:8px">
       <a href="{% url 'sistema:cliente_list' %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
       <a href="{% url 'sistema:cliente_update' cliente.pk %}" class="btn btn-edit"><i class="bi bi-pencil"></i> Editar</a>
-      <a href="{% url 'sistema:cliente_delete' cliente.pk %}" class="btn btn-delete"><i class="bi bi-trash3"></i> Excluir</a>
     </div>
   </div>
   {% include "_includes/messages.html" %}
-  <div class="detail-card">
-    <h2><i class="bi bi-person-vcard"></i> Dados Cadastrais</h2>
-    <div class="detail-content">
-      <div class="detail-info" style="flex:1">
-        <div class="detail-row"><span class="detail-label">Nome Fantasia</span><span class="detail-value">{{ cliente.nome_fantasia|default:"—" }}</span></div>
-        <div class="detail-row"><span class="detail-label">CPF/CNPJ</span><span class="detail-value" style="font-family:monospace">{{ cliente.cpf_cnpj|default:"—" }}</span></div>
-        <div class="detail-row"><span class="detail-label">Tipo de Pessoa</span><span class="detail-value">{{ cliente.tipo_pessoa.nome|default:"—" }}</span></div>
-        <div class="detail-row"><span class="detail-label">Categoria</span><span class="detail-value">{{ cliente.categoria.nome|default:"—" }}</span></div>
-        <div class="detail-row"><span class="detail-label">Limite de Crédito</span><span class="detail-value">R$ {{ cliente.limite_credito|floatformat:2 }}</span></div>
-        <div class="detail-row"><span class="detail-label">Score de Crédito</span><span class="detail-value">{{ cliente.score_credito|default:"—" }}</span></div>
-        <div class="detail-row"><span class="detail-label">Prazo Padrão Receb.</span><span class="detail-value">{{ cliente.prazo_padrao_recebimento }} dias</span></div>
-        <div class="detail-row"><span class="detail-label">Inadimplente</span><span class="detail-value">{% if cliente.inadimplente %}<span style="color:#dc3545;font-weight:600"><i class="bi bi-exclamation-triangle-fill"></i> Sim</span>{% else %}Não{% endif %}</span></div>
-        <div class="detail-row"><span class="detail-label">Situação</span><span class="detail-value">{% if cliente.ativo %}<span style="color:#28a745"><i class="bi bi-check-circle-fill"></i> Ativo</span>{% else %}<span style="color:#dc3545">Inativo</span>{% endif %}</span></div>
-        {% if cliente.observacoes %}<div class="detail-row"><span class="detail-label">Observações</span><span class="detail-value">{{ cliente.observacoes }}</span></div>{% endif %}
-      </div>
-      <div class="detail-info" style="flex:1">
-        <div class="detail-row"><span class="detail-label">CEP</span><span class="detail-value">{{ cliente.cep|default:"—" }}</span></div>
-        <div class="detail-row"><span class="detail-label">Endereço</span><span class="detail-value">{{ cliente.logradouro|default:"—" }} {{ cliente.numero }} {{ cliente.complemento }}</span></div>
-        <div class="detail-row"><span class="detail-label">Bairro</span><span class="detail-value">{{ cliente.bairro|default:"—" }}</span></div>
-        <div class="detail-row"><span class="detail-label">Cidade/UF</span><span class="detail-value">{{ cliente.cidade|default:"—" }} / {{ cliente.estado|default:"—" }}</span></div>
-      </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="detail-card">
+      <h2><i class="bi bi-person"></i> Dados Gerais</h2>
+      <dl class="info-grid">
+        <dt>CPF/CNPJ</dt><dd style="font-family:monospace">{{ cliente.cpf_cnpj }}</dd>
+        <dt>Tipo de Pessoa</dt><dd>{{ cliente.tipo_pessoa.nome|default:"—" }}</dd>
+        <dt>Categoria</dt><dd>{{ cliente.categoria.nome|default:"—" }}</dd>
+        <dt>Limite de Crédito</dt><dd>R$ {{ cliente.limite_credito|floatformat:2 }}</dd>
+        <dt>Prazo Rec. (dias)</dt><dd>{{ cliente.prazo_padrao_recebimento }}</dd>
+        <dt>Score de Crédito</dt><dd>{{ cliente.score_credito|default:"—" }}</dd>
+        <dt>Inadimplente</dt><dd>{% if cliente.inadimplente %}<span class="badge-err">Sim</span>{% else %}Não{% endif %}</dd>
+        <dt>Status</dt><dd>{% if cliente.ativo %}<span class="badge-ok">Ativo</span>{% else %}<span class="badge-err">Inativo</span>{% endif %}</dd>
+      </dl>
+    </div>
+    <div class="detail-card">
+      <h2><i class="bi bi-geo-alt"></i> Endereço</h2>
+      <dl class="info-grid">
+        <dt>CEP</dt><dd>{{ cliente.cep|default:"—" }}</dd>
+        <dt>Logradouro</dt><dd>{{ cliente.logradouro|default:"—" }}{% if cliente.numero %}, {{ cliente.numero }}{% endif %}</dd>
+        <dt>Bairro</dt><dd>{{ cliente.bairro|default:"—" }}</dd>
+        <dt>Cidade/UF</dt><dd>{{ cliente.cidade|default:"—" }}{% if cliente.estado %}/{{ cliente.estado }}{% endif %}</dd>
+      </dl>
     </div>
   </div>
-  <div class="detail-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <h2 style="margin:0;border:none;padding:0"><i class="bi bi-telephone"></i> Contatos</h2>
-      <a href="{% url 'sistema:contato_cliente_create' cliente.pk %}" class="btn btn-secondary btn-sm"><i class="bi bi-plus-lg"></i> Adicionar</a>
+  <div class="detail-card" style="margin-top:20px;padding:0;overflow:hidden">
+    <div class="card-hdr">
+      <h3><i class="bi bi-telephone"></i> Contatos</h3>
+      <a href="{% url 'sistema:contato_cliente_create' cliente.pk %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Adicionar</a>
     </div>
-    {% if contatos %}<table class="table"><thead><tr><th>Tipo</th><th>Valor</th><th>Responsável</th><th>Principal</th><th></th></tr></thead>
-    <tbody>{% for c in contatos %}<tr><td>{{ c.tipo.nome }}</td><td>{{ c.valor }}</td><td>{{ c.responsavel|default:"—" }}</td><td class="text-center">{% if c.principal %}<span style="color:#28a745"><i class="bi bi-check-circle-fill"></i></span>{% else %}—{% endif %}</td><td><a href="{% url 'sistema:contato_cliente_delete' c.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a></td></tr>{% endfor %}</tbody></table>
-    {% else %}<p style="color:#999;font-size:13px">Nenhum contato cadastrado.</p>{% endif %}
+    <table class="table">
+      <thead><tr><th>Tipo</th><th>Contato</th><th>Responsável</th><th class="text-center">Principal</th><th class="text-center">Ações</th></tr></thead>
+      <tbody>
+        {% for c in contatos %}
+        <tr>
+          <td>{{ c.tipo.nome }}</td><td><strong>{{ c.valor }}</strong></td>
+          <td>{{ c.responsavel|default:"—" }}</td>
+          <td class="text-center">{% if c.principal %}<i class="bi bi-star-fill" style="color:#f59e0b"></i>{% else %}—{% endif %}</td>
+          <td class="text-center"><a href="{% url 'sistema:contato_cliente_delete' c.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center" style="color:#999;padding:24px">Nenhum contato.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
+<style>
+  .info-grid{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13.5px}
+  .info-grid dt{color:var(--txt-3);font-weight:500;white-space:nowrap}
+  .info-grid dd{color:var(--txt-1);margin:0}
+  .card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .card-hdr h3{font-size:13.5px;font-weight:600;color:var(--txt-1);display:flex;align-items:center;gap:6px}
+  .badge-ok{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(16,185,129,.12);color:#10b981}
+  .badge-err{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(239,68,68,.12);color:#ef4444}
+</style>
 {% endblock %}

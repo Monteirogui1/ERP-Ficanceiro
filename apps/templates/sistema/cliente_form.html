@@ -1,176 +1,56 @@
 {% extends "layouts/base.html" %}
-{% load static %}
-
-{% block title %}{{ titulo }} — Sistema{% endblock %}
-
+{% block title %}{{ titulo }}{% endblock %}
 {% block conteudo %}
 <div class="content">
-
   <div class="page-header">
     <h1>{{ titulo }}</h1>
-    <a href="{% url 'sistema:cliente_list' %}" class="btn btn-secondary">
-      <i class="bi bi-arrow-left"></i> Voltar
-    </a>
+    <a href="{% url 'sistema:cliente_list' %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
   </div>
-
   <div class="detail-card">
-    <form method="post" id="form-cliente">
+    <form method="post">
       {% csrf_token %}
-
-      <!-- ── Dados Cadastrais ────────────────────────── -->
-      <h2><i class="bi bi-person-circle"></i> Dados Cadastrais</h2>
+      <h2><i class="bi bi-person"></i> Identificação</h2>
       <div class="form-grid">
-
-        <div class="form-group">
-          <label for="{{ form.tipo_pessoa.id_for_label }}">Tipo de Pessoa <span style="color:#dc3545">*</span></label>
-          {{ form.tipo_pessoa }}
-          {% if form.tipo_pessoa.errors %}<span class="error-message">{{ form.tipo_pessoa.errors|join:", " }}</span>{% endif %}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.categoria.id_for_label }}">Categoria</label>
-          {{ form.categoria }}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.razao_social.id_for_label }}">Razão Social / Nome <span style="color:#dc3545">*</span></label>
-          {{ form.razao_social }}
-          {% if form.razao_social.errors %}<span class="error-message">{{ form.razao_social.errors|join:", " }}</span>{% endif %}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.nome_fantasia.id_for_label }}">Nome Fantasia</label>
-          {{ form.nome_fantasia }}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.cpf_cnpj.id_for_label }}">CPF / CNPJ <span style="color:#dc3545">*</span></label>
-          {{ form.cpf_cnpj }}
-          {% if form.cpf_cnpj.errors %}<span class="error-message">{{ form.cpf_cnpj.errors|join:", " }}</span>{% endif %}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.inscricao_estadual.id_for_label }}">Inscrição Estadual</label>
-          {{ form.inscricao_estadual }}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.data_nascimento.id_for_label }}">Data de Nascimento</label>
-          {{ form.data_nascimento }}
-        </div>
-
+        <div class="form-group"><label>Tipo de Pessoa</label>{{ form.tipo_pessoa }}</div>
+        <div class="form-group"><label>Categoria</label>{{ form.categoria }}</div>
+        <div class="form-group"><label>Razão Social <span style="color:#dc3545">*</span></label>{{ form.razao_social }}{% if form.razao_social.errors %}<span class="error-message">{{ form.razao_social.errors|join:", " }}</span>{% endif %}</div>
+        <div class="form-group"><label>Nome Fantasia</label>{{ form.nome_fantasia }}</div>
+        <div class="form-group"><label>CPF/CNPJ <span style="color:#dc3545">*</span></label>{{ form.cpf_cnpj }}{% if form.cpf_cnpj.errors %}<span class="error-message">{{ form.cpf_cnpj.errors|join:", " }}</span>{% endif %}</div>
+        <div class="form-group"><label>Inscrição Estadual</label>{{ form.inscricao_estadual }}</div>
+        <div class="form-group"><label>Data de Nascimento</label>{{ form.data_nascimento }}</div>
       </div>
-
-      <!-- ── Endereço ────────────────────────────────── -->
       <h2 style="margin-top:24px"><i class="bi bi-geo-alt"></i> Endereço</h2>
       <div class="form-grid">
-
-        <div class="form-group">
-          <label for="{{ form.cep.id_for_label }}">CEP</label>
-          {{ form.cep }}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.logradouro.id_for_label }}">Logradouro</label>
-          {{ form.logradouro }}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.numero.id_for_label }}">Número</label>
-          {{ form.numero }}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.complemento.id_for_label }}">Complemento</label>
-          {{ form.complemento }}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.bairro.id_for_label }}">Bairro</label>
-          {{ form.bairro }}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.cidade.id_for_label }}">Cidade</label>
-          {{ form.cidade }}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.estado.id_for_label }}">Estado</label>
-          {{ form.estado }}
-        </div>
-
+        <div class="form-group"><label>CEP</label>{{ form.cep }}</div>
+        <div class="form-group full-width"><label>Logradouro</label>{{ form.logradouro }}</div>
+        <div class="form-group"><label>Número</label>{{ form.numero }}</div>
+        <div class="form-group"><label>Complemento</label>{{ form.complemento }}</div>
+        <div class="form-group"><label>Bairro</label>{{ form.bairro }}</div>
+        <div class="form-group"><label>Cidade</label>{{ form.cidade }}</div>
+        <div class="form-group"><label>Estado</label>{{ form.estado }}</div>
       </div>
-
-      <!-- ── Comercial ───────────────────────────────── -->
-      <h2 style="margin-top:24px"><i class="bi bi-briefcase"></i> Dados Comerciais</h2>
+      <h2 style="margin-top:24px"><i class="bi bi-cash-stack"></i> Dados Financeiros</h2>
       <div class="form-grid">
-
-        <div class="form-group">
-          <label for="{{ form.limite_credito.id_for_label }}">Limite de Crédito</label>
-          {{ form.limite_credito }}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.prazo_pagamento_padrao.id_for_label }}">Prazo de Pagamento (dias)</label>
-          {{ form.prazo_pagamento_padrao }}
-        </div>
-
-        <div class="form-group">
-          <label for="{{ form.vendedor_responsavel.id_for_label }}">Vendedor Responsável</label>
-          {{ form.vendedor_responsavel }}
-        </div>
-
-        <div class="form-group full-width">
-          <label for="{{ form.observacoes.id_for_label }}">Observações</label>
-          {{ form.observacoes }}
-        </div>
-
+        <div class="form-group"><label>Limite de Crédito</label>{{ form.limite_credito }}</div>
+        <div class="form-group"><label>Prazo de Recebimento (dias)</label>{{ form.prazo_padrao_recebimento }}</div>
+        <div class="form-group"><label>Score de Crédito</label>{{ form.score_credito }}</div>
         <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
-          {{ form.ativo }}
-          <label for="{{ form.ativo.id_for_label }}" style="margin:0;font-weight:500">Cliente Ativo</label>
+          {{ form.inadimplente }}<label for="{{ form.inadimplente.id_for_label }}" style="margin:0;font-weight:500;color:#ef4444">Inadimplente</label>
         </div>
-
       </div>
-
-      {% if form.non_field_errors %}
-        <div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>
-      {% endif %}
-
+      <h2 style="margin-top:24px"><i class="bi bi-info-circle"></i> Informações Adicionais</h2>
+      <div class="form-grid">
+        <div class="form-group full-width"><label>Observações</label>{{ form.observacoes }}</div>
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
+          {{ form.ativo }}<label for="{{ form.ativo.id_for_label }}" style="margin:0;font-weight:500">Cliente Ativo</label>
+        </div>
+      </div>
+      {% if form.non_field_errors %}<div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>{% endif %}
       <div class="form-actions" style="margin-top:28px">
-        <a href="{% url 'sistema:cliente_list' %}" class="btn btn-secondary" style="margin-right:10px">Cancelar</a>
-        <button type="submit" class="btn btn-primary">
-          <i class="bi bi-check-lg"></i>
-          {% if object %}Salvar Alterações{% else %}Cadastrar Cliente{% endif %}
-        </button>
+        <a href="{% url 'sistema:cliente_list' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {% if object %}Salvar{% else %}Cadastrar{% endif %}</button>
       </div>
-
     </form>
   </div>
-
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-  // Auto-preenchimento de endereço via CEP
-  (function () {
-    const cepInput = document.getElementById('{{ form.cep.id_for_label }}');
-    if (!cepInput) return;
-    cepInput.addEventListener('blur', function () {
-      const cep = this.value.replace(/\D/g, '');
-      if (cep.length !== 8) return;
-      fetch(`https://viacep.com.br/ws/${cep}/json/`)
-        .then(r => r.json())
-        .then(data => {
-          if (data.erro) return;
-          const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-          set('{{ form.logradouro.id_for_label }}', data.logradouro || '');
-          set('{{ form.bairro.id_for_label }}',    data.bairro     || '');
-          set('{{ form.cidade.id_for_label }}',    data.localidade || '');
-          set('{{ form.estado.id_for_label }}',    data.uf         || '');
-        }).catch(() => {});
-    });
-  })();
-</script>
 {% endblock %}

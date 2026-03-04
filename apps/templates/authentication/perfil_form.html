@@ -1,0 +1,57 @@
+{% extends "layouts/base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>{{ titulo }}</h1>
+    <a href="{% url 'authentication:perfil_list' %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+  </div>
+  <div class="detail-card">
+    <form method="post" id="form-perfil">
+      {% csrf_token %}
+      <h2><i class="bi bi-person-lock"></i> Identificação do Perfil</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="{{ form.nome.id_for_label }}">Nome <span style="color:#dc3545">*</span></label>
+          {{ form.nome }}
+          {% if form.nome.errors %}<span class="error-message">{{ form.nome.errors|join:", " }}</span>{% endif %}
+        </div>
+        <div class="form-group full-width">
+          <label for="{{ form.descricao.id_for_label }}">Descrição</label>
+          {{ form.descricao }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.nivel_aprovacao.id_for_label }}">Nível de Aprovação</label>
+          {{ form.nivel_aprovacao }}
+          <small style="color:var(--txt-3);font-size:12px">Nível na cadeia de aprovação de pagamentos</small>
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
+          {{ form.pode_aprovar_pagamentos }}
+          <label for="{{ form.pode_aprovar_pagamentos.id_for_label }}" style="margin:0;font-weight:500">Pode Aprovar Pagamentos</label>
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
+          {{ form.ativo }}
+          <label for="{{ form.ativo.id_for_label }}" style="margin:0;font-weight:500">Perfil Ativo</label>
+        </div>
+      </div>
+      <h2 style="margin-top:28px"><i class="bi bi-shield-lock"></i> Permissões por Módulo</h2>
+      <p style="color:var(--txt-3);font-size:13px;margin-bottom:16px">
+        Configure as permissões em formato JSON. Exemplo:<br>
+        <code style="font-size:12px;background:var(--bg);padding:2px 6px;border-radius:4px">{"contas_pagar": {"ver": true, "criar": true, "editar": false, "excluir": false}}</code>
+      </p>
+      <div class="form-group">
+        <label for="{{ form.permissoes.id_for_label }}">JSON de Permissões</label>
+        {{ form.permissoes }}
+        {% if form.permissoes.errors %}<span class="error-message">{{ form.permissoes.errors|join:", " }}</span>{% endif %}
+      </div>
+      {% if form.non_field_errors %}
+        <div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url 'authentication:perfil_list' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {% if object %}Salvar{% else %}Cadastrar{% endif %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

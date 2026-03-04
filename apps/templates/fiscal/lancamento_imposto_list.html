@@ -7,32 +7,75 @@
     <a href="{% url 'fiscal:lancamento_imposto_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Lançamento</a>
   </div>
   {% include "_includes/messages.html" %}
-  <form method="get" class="filter-form">
-    <div class="form-group"><label>Tipo de Imposto</label><select name="tipo_imposto" class="form-control"><option value="">Todos</option>{% for t in tipos_imposto %}<option value="{{ t.pk }}" {% if request.GET.tipo_imposto == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.sigla }}</option>{% endfor %}</select></div>
-    <div class="form-group"><label>Vencimento de</label><input type="date" name="vencimento_de" value="{{ request.GET.vencimento_de }}" class="form-control"></div>
-    <div class="form-group"><label>Vencimento até</label><input type="date" name="vencimento_ate" value="{{ request.GET.vencimento_ate }}" class="form-control"></div>
-    <div class="filter-buttons"><button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrar</button><a href="{% url 'fiscal:lancamento_imposto_list' %}" class="btn btn-secondary"><i class="bi bi-x-lg"></i> Limpar</a></div>
+  <form method="get" style="margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap">
+    <select name="tipo_imposto" class="form-control" style="max-width:180px">
+      <option value="">Todos os impostos</option>
+      {% for t in tipos_imposto %}<option value="{{ t.pk }}" {% if request.GET.tipo_imposto == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.sigla }} — {{ t.nome }}</option>{% endfor %}
+    </select>
+    <input type="date" name="vencimento_de"  value="{{ request.GET.vencimento_de }}"  class="form-control" style="max-width:160px" title="Vencimento de">
+    <input type="date" name="vencimento_ate" value="{{ request.GET.vencimento_ate }}" class="form-control" style="max-width:160px" title="Vencimento até">
+    <select name="pago" class="form-control" style="max-width:150px">
+      <option value="">Todos</option>
+      <option value="true"  {% if request.GET.pago == "true"  %}selected{% endif %}>Pagos</option>
+      <option value="false" {% if request.GET.pago == "false" %}selected{% endif %}>Em Aberto</option>
+    </select>
+    <button type="submit" class="btn btn-secondary"><i class="bi bi-search"></i> Filtrar</button>
+    {% if request.GET.tipo_imposto or request.GET.vencimento_de or request.GET.pago %}
+      <a href="{% url 'fiscal:lancamento_imposto_list' %}" class="btn btn-secondary">Limpar</a>
+    {% endif %}
   </form>
   <div class="detail-card" style="padding:0;overflow:hidden">
     <table class="table">
-      <thead><tr><th>Imposto</th><th>Competência</th><th>Vencimento</th><th>Base de Cálculo</th><th>Alíquota</th><th>Valor Calculado</th><th>Valor Pago</th><th>Nº Guia</th><th class="text-center">Ações</th></tr></thead>
-      <tbody>
-        {% for li in objetos %}
+      <thead>
         <tr>
-          <td><strong>{{ li.tipo_imposto.sigla }}</strong></td>
-          <td>{{ li.competencia|date:"m/Y" }}</td>
-          <td><span {% if li.data_vencimento < today and not li.data_pagamento %}style="color:#dc3545;font-weight:600"{% endif %}>{{ li.data_vencimento|date:"d/m/Y" }}</span></td>
-          <td>R$ {{ li.base_calculo|floatformat:2 }}</td>
-          <td>{{ li.aliquota_aplicada }}%</td>
-          <td style="font-weight:600">R$ {{ li.valor_calculado|floatformat:2 }}</td>
-          <td>{% if li.valor_pago %}R$ {{ li.valor_pago|floatformat:2 }}{% else %}—{% endif %}</td>
-          <td style="font-family:monospace;font-size:12px">{{ li.numero_guia|default:"—" }}</td>
+          <th>Vencimento</th>
+          <th>Imposto</th>
+          <th>Competência</th>
+          <th>Nº Guia</th>
+          <th style="text-align:right">Base Cálculo</th>
+          <th style="text-align:right">Alíquota</th>
+          <th style="text-align:right">Valor Calc.</th>
+          <th style="text-align:right">Valor Pago</th>
+          <th class="text-center">Status</th>
+          <th class="text-center">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lanc in objetos %}
+        <tr>
+          <td style="white-space:nowrap;{% if lanc.data_vencimento < hoje and not lanc.valor_pago %}color:#ef4444;font-weight:600{% endif %}">
+            {{ lanc.data_vencimento|date:"d/m/Y" }}
+            {% if lanc.data_vencimento < hoje and not lanc.valor_pago %}<i class="bi bi-exclamation-circle" title="Vencido"></i>{% endif %}
+          </td>
+          <td>
+            <span style="font-family:monospace;font-size:11px;background:rgba(99,102,241,.1);color:#6366f1;padding:2px 8px;border-radius:4px;font-weight:600">{{ lanc.tipo_imposto.sigla }}</span>
+          </td>
+          <td style="white-space:nowrap">{{ lanc.competencia|date:"d/m/Y" }}</td>
+          <td style="font-family:monospace;font-size:12px;color:var(--txt-3)">{{ lanc.numero_guia|default:"—" }}</td>
+          <td style="text-align:right;font-family:monospace">R$ {{ lanc.base_calculo|floatformat:2 }}</td>
+          <td style="text-align:right;font-family:monospace">{{ lanc.aliquota_aplicada|floatformat:4 }}%</td>
+          <td style="text-align:right;font-family:monospace;font-weight:600">R$ {{ lanc.valor_calculado|floatformat:2 }}</td>
+          <td style="text-align:right;font-family:monospace;{% if lanc.valor_pago > 0 %}color:#10b981{% else %}color:#aaa{% endif %}">
+            R$ {{ lanc.valor_pago|floatformat:2 }}
+          </td>
+          <td class="text-center">
+            {% if lanc.valor_pago > 0 %}
+              <span style="font-size:11px;background:rgba(16,185,129,.1);color:#10b981;border-radius:20px;padding:2px 10px;font-weight:600"><i class="bi bi-check-circle"></i> Pago</span>
+            {% elif lanc.data_vencimento < hoje %}
+              <span style="font-size:11px;background:rgba(239,68,68,.1);color:#ef4444;border-radius:20px;padding:2px 10px;font-weight:600"><i class="bi bi-exclamation-triangle"></i> Vencido</span>
+            {% else %}
+              <span style="font-size:11px;background:rgba(245,158,11,.1);color:#f59e0b;border-radius:20px;padding:2px 10px;font-weight:600"><i class="bi bi-clock"></i> A Pagar</span>
+            {% endif %}
+          </td>
           <td class="text-center" style="white-space:nowrap">
-            <a href="{% url 'fiscal:lancamento_imposto_update' li.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
-            <a href="{% url 'fiscal:lancamento_imposto_delete' li.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
+            <a href="{% url 'fiscal:lancamento_imposto_update' lanc.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'fiscal:lancamento_imposto_delete' lanc.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
           </td>
         </tr>
-        {% empty %}<tr><td colspan="9" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum lançamento encontrado.</td></tr>
+        {% empty %}
+        <tr><td colspan="10" class="text-center" style="color:#999;padding:40px">
+          <i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum lançamento encontrado.
+        </td></tr>
         {% endfor %}
       </tbody>
     </table>

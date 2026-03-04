@@ -7,24 +7,34 @@
     <a href="{% url 'authentication:usuario_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Usuário</a>
   </div>
   {% include "_includes/messages.html" %}
+  <form method="get" style="margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap">
+    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Buscar por nome..." class="form-control" style="max-width:300px">
+    <select name="ativo" class="form-control" style="max-width:160px">
+      <option value="">Todos</option>
+      <option value="true" {% if request.GET.ativo == "true" %}selected{% endif %}>Ativos</option>
+      <option value="false" {% if request.GET.ativo == "false" %}selected{% endif %}>Inativos</option>
+    </select>
+    <button type="submit" class="btn btn-secondary"><i class="bi bi-search"></i> Filtrar</button>
+    {% if request.GET.q or request.GET.ativo %}<a href="{% url 'authentication:usuario_list' %}" class="btn btn-secondary">Limpar</a>{% endif %}
+  </form>
   <div class="detail-card" style="padding:0;overflow:hidden">
     <table class="table">
-      <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil de Acesso</th><th>Empresa Principal</th><th class="text-center">2FA</th><th class="text-center">Ativo</th><th class="text-center">Ações</th></tr></thead>
+      <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil de Acesso</th><th class="text-center">2FA</th><th class="text-center">Ativo</th><th class="text-center">Ações</th></tr></thead>
       <tbody>
         {% for u in objetos %}
         <tr>
           <td><strong>{{ u.nome }}</strong></td>
           <td>{{ u.email }}</td>
           <td>{{ u.perfil_acesso.nome|default:"—" }}</td>
-          <td>{{ u.empresa_principal.razao_social|default:"—" }}</td>
           <td class="text-center">{% if u.dois_fatores_ativo %}<i class="bi bi-shield-lock-fill" style="color:#28a745" title="2FA ativo"></i>{% else %}—{% endif %}</td>
           <td class="text-center">{% if u.is_active %}<i class="bi bi-check-circle-fill" style="color:#28a745"></i>{% else %}<i class="bi bi-x-circle-fill" style="color:#dc3545"></i>{% endif %}</td>
           <td class="text-center" style="white-space:nowrap">
             <a href="{% url 'authentication:usuario_update' u.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
-            <a href="{% url 'authentication:usuario_delete' u.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
+            <a href="{% url 'authentication:usuario_delete' u.pk %}" class="btn btn-delete btn-sm" title="Remover da empresa"><i class="bi bi-trash3"></i></a>
           </td>
         </tr>
-        {% empty %}<tr><td colspan="7" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum usuário encontrado.</td></tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum usuário encontrado.</td></tr>
         {% endfor %}
       </tbody>
     </table>

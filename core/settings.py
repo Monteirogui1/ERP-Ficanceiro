@@ -24,7 +24,7 @@ ALLOWED_HOSTS = []
 AUTH_USER_MODEL = "authentication.Usuario"
 
 LOGIN_URL = "authentication:login"
-LOGIN_REDIRECT_URL = "authentication:dashboard"
+LOGIN_REDIRECT_URL = "home:dashboard"
 LOGOUT_REDIRECT_URL = "authentication:login"
 
 

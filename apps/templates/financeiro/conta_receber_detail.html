@@ -1,64 +1,120 @@
 {% extends "layouts/base.html" %}
-{% block title %}{{ conta.descricao }} — Conta a Receber{% endblock %}
+{% block title %}{{ conta.descricao }}{% endblock %}
 {% block conteudo %}
 <div class="content">
   <div class="page-header">
-    <h1>{{ conta.descricao }}</h1>
+    <div>
+      <h1>{{ conta.descricao|truncatechars:60 }}</h1>
+      <small style="color:var(--txt-3)">Conta a Receber #{{ conta.pk }}</small>
+    </div>
     <div style="display:flex;gap:8px">
       <a href="{% url 'financeiro:conta_receber_list' %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
       <a href="{% url 'financeiro:conta_receber_update' conta.pk %}" class="btn btn-edit"><i class="bi bi-pencil"></i> Editar</a>
-      <a href="{% url 'financeiro:conta_receber_delete' conta.pk %}" class="btn btn-delete"><i class="bi bi-trash3"></i> Excluir</a>
+      <a href="{% url 'financeiro:conta_receber_delete' conta.pk %}" class="btn btn-delete"><i class="bi bi-trash3"></i></a>
     </div>
   </div>
   {% include "_includes/messages.html" %}
-  <div class="detail-card">
-    <h2><i class="bi bi-file-text"></i> Identificação</h2>
-    <div class="detail-content">
-      <div class="detail-info" style="flex:1">
-        <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span style="background:#e8f0fe;color:#1a73e8;border-radius:4px;padding:3px 10px;font-size:12px">{{ conta.status.nome|default:"—" }}</span></span></div>
-        <div class="detail-row"><span class="detail-label">Cliente</span><span class="detail-value">{{ conta.cliente.razao_social|default:"—" }}</span></div>
-        <div class="detail-row"><span class="detail-label">Tipo de Documento</span><span class="detail-value">{{ conta.tipo_documento.nome|default:"—" }}</span></div>
-        <div class="detail-row"><span class="detail-label">Nº do Documento</span><span class="detail-value">{{ conta.numero_documento|default:"—" }}</span></div>
-        <div class="detail-row"><span class="detail-label">Forma de Recebimento</span><span class="detail-value">{{ conta.forma_recebimento.nome|default:"—" }}</span></div>
-        <div class="detail-row"><span class="detail-label">Plano de Contas</span><span class="detail-value">{{ conta.plano_contas.nome|default:"—" }}</span></div>
-        <div class="detail-row"><span class="detail-label">Centro de Custo</span><span class="detail-value">{{ conta.centro_custo.nome|default:"—" }}</span></div>
-        <div class="detail-row"><span class="detail-label">Conta Bancária</span><span class="detail-value">{{ conta.conta_bancaria.nome|default:"—" }}</span></div>
-        {% if conta.nosso_numero %}<div class="detail-row"><span class="detail-label">Nosso Número</span><span class="detail-value">{{ conta.nosso_numero }}</span></div>{% endif %}
-        {% if conta.linha_digitavel %}<div class="detail-row"><span class="detail-label">Linha Digitável</span><span class="detail-value" style="font-family:monospace">{{ conta.linha_digitavel }}</span></div>{% endif %}
-        {% if conta.observacoes %}<div class="detail-row"><span class="detail-label">Observações</span><span class="detail-value">{{ conta.observacoes }}</span></div>{% endif %}
-        <div class="detail-row"><span class="detail-label">Criado por</span><span class="detail-value">{{ conta.criado_por.nome|default:"—" }} em {{ conta.criado_em|date:"d/m/Y H:i" }}</span></div>
+
+  <div style="display:grid;grid-template-columns:1fr 280px;gap:20px">
+    <div>
+      <div class="detail-card">
+        <h2><i class="bi bi-file-text"></i> Identificação</h2>
+        <dl class="info-grid">
+          <dt>Status</dt><dd><span class="badge-status-green">{{ conta.status.nome|default:"—" }}</span></dd>
+          <dt>Cliente</dt><dd>{{ conta.cliente.razao_social|default:"—" }}</dd>
+          <dt>Tipo de Documento</dt><dd>{{ conta.tipo_documento.nome|default:"—" }}</dd>
+          <dt>Nº Documento</dt><dd style="font-family:monospace">{{ conta.numero_documento|default:"—" }}</dd>
+          <dt>Forma de Recebimento</dt><dd>{{ conta.forma_pagamento.nome|default:"—" }}</dd>
+          <dt>Plano de Contas</dt><dd>{{ conta.plano_contas.nome|default:"—" }}</dd>
+          <dt>Centro de Custo</dt><dd>{{ conta.centro_custo.nome|default:"—" }}</dd>
+          <dt>Conta Bancária</dt><dd>{{ conta.conta_bancaria.nome|default:"—" }}</dd>
+          {% if conta.nosso_numero %}<dt>Nosso Número</dt><dd style="font-family:monospace">{{ conta.nosso_numero }}</dd>{% endif %}
+          {% if conta.em_cobranca %}<dt>Em Cobrança</dt><dd><span style="color:#f59e0b;font-weight:600"><i class="bi bi-exclamation-circle"></i> Sim</span></dd>{% endif %}
+        </dl>
+        {% if conta.observacoes %}
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+          <small style="color:var(--txt-3)">Observações</small>
+          <p style="margin:4px 0;font-size:13.5px;color:var(--txt-2)">{{ conta.observacoes }}</p>
+        </div>
+        {% endif %}
       </div>
-      <div class="metrics" style="flex-direction:column;min-width:220px">
-        <div class="metric-card"><h3>Valor Original</h3><p>R$ {{ conta.valor_original|floatformat:2 }}</p></div>
-        <div class="metric-card"><h3>Valor Recebido</h3><p>R$ {{ conta.valor_recebido|floatformat:2 }}</p></div>
-        <div class="metric-card"><h3>Emissão</h3><p style="font-size:16px">{{ conta.data_emissao|date:"d/m/Y" }}</p></div>
-        <div class="metric-card"><h3>Vencimento</h3><p style="font-size:16px;{% if conta.data_vencimento < today and not conta.data_recebimento %}color:#dc3545{% endif %}">{{ conta.data_vencimento|date:"d/m/Y" }}</p></div>
-        {% if conta.data_recebimento %}<div class="metric-card"><h3>Recebido em</h3><p style="font-size:16px;color:#28a745">{{ conta.data_recebimento|date:"d/m/Y" }}</p></div>{% endif %}
-        <div class="metric-card"><h3>Parcela</h3><p style="font-size:16px">{{ conta.numero_parcela_atual }}/{{ conta.numero_parcelas }}</p></div>
+
+      <!-- Encargos -->
+      <div class="detail-card" style="margin-top:16px;padding:0;overflow:hidden">
+        <div class="card-hdr">
+          <h3><i class="bi bi-percent"></i> Encargos</h3>
+          <a href="{% url 'financeiro:encargo_conta_receber_create' conta.pk %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Adicionar</a>
+        </div>
+        <table class="table">
+          <thead><tr><th>Tipo</th><th>Data</th><th style="text-align:right">%</th><th style="text-align:right">Valor</th><th class="text-center">Ações</th></tr></thead>
+          <tbody>
+            {% for enc in encargos %}
+            <tr>
+              <td>{{ enc.tipo_encargo.nome }}</td>
+              <td>{{ enc.data_aplicacao|date:"d/m/Y" }}</td>
+              <td style="text-align:right">{% if enc.percentual %}{{ enc.percentual }}%{% else %}—{% endif %}</td>
+              <td style="text-align:right;font-family:monospace">R$ {{ enc.valor|floatformat:2 }}</td>
+              <td class="text-center"><a href="{% url 'financeiro:encargo_conta_receber_delete' enc.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center" style="color:#999;padding:20px">Nenhum encargo.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Documentos -->
+      <div class="detail-card" style="margin-top:16px;padding:0;overflow:hidden">
+        <div class="card-hdr">
+          <h3><i class="bi bi-paperclip"></i> Documentos Anexados</h3>
+          <a href="{% url 'financeiro:documento_conta_receber_create' conta.pk %}" class="btn btn-primary btn-sm"><i class="bi bi-upload"></i> Anexar</a>
+        </div>
+        <table class="table">
+          <thead><tr><th>Nome</th><th>Tipo</th><th class="text-center">Ações</th></tr></thead>
+          <tbody>
+            {% for doc in documentos %}
+            <tr>
+              <td><a href="{{ doc.arquivo.url }}" target="_blank" style="color:var(--accent)"><i class="bi bi-file-earmark"></i> {{ doc.nome }}</a></td>
+              <td><span style="font-size:11px;background:#f0f0f0;padding:2px 6px;border-radius:4px">{{ doc.tipo_arquivo|default:"?" }}</span></td>
+              <td class="text-center"><a href="{% url 'financeiro:documento_conta_receber_delete' doc.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center" style="color:#999;padding:20px">Nenhum documento.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
-  </div>
-  {% if parcelas %}<div class="detail-card">
-    <h2><i class="bi bi-calendar3-range"></i> Parcelas</h2>
-    <table class="table"><thead><tr><th>Parcela</th><th>Vencimento</th><th>Valor</th><th>Status</th><th></th></tr></thead>
-    <tbody>{% for p in parcelas %}<tr><td>{{ p.numero_parcela_atual }}/{{ p.numero_parcelas }}</td><td>{{ p.data_vencimento|date:"d/m/Y" }}</td><td>R$ {{ p.valor_original|floatformat:2 }}</td><td>{{ p.status.nome|default:"—" }}</td><td><a href="{% url 'financeiro:conta_receber_detail' p.pk %}" class="btn btn-secondary btn-sm"><i class="bi bi-eye"></i></a></td></tr>{% endfor %}</tbody>
-    </table>
-  </div>{% endif %}
-  <div class="detail-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <h2 style="margin:0;border:none;padding:0"><i class="bi bi-percent"></i> Encargos</h2>
-      <a href="{% url 'financeiro:encargo_conta_receber_create' conta.pk %}" class="btn btn-secondary btn-sm"><i class="bi bi-plus-lg"></i> Adicionar</a>
+
+    <!-- Coluna lateral -->
+    <div>
+      <div class="detail-card" style="position:sticky;top:20px">
+        <h3 style="font-size:13px;font-weight:600;color:var(--txt-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px">Resumo Financeiro</h3>
+        <div class="metric-mini"><span>Valor Original</span><strong style="color:#6366f1">R$ {{ conta.valor_original|floatformat:2 }}</strong></div>
+        <div class="metric-mini"><span>Valor Recebido</span><strong style="color:#10b981">R$ {{ conta.valor_pago|floatformat:2 }}</strong></div>
+        <div class="metric-mini" style="border-top:1px solid var(--border);margin-top:8px;padding-top:12px">
+          <span>Emissão</span><strong>{{ conta.data_emissao|date:"d/m/Y" }}</strong>
+        </div>
+        <div class="metric-mini">
+          <span>Vencimento</span>
+          <strong {% if conta.data_vencimento < hoje and not conta.data_pagamento %}style="color:#ef4444"{% endif %}>{{ conta.data_vencimento|date:"d/m/Y" }}</strong>
+        </div>
+        {% if conta.data_pagamento %}
+        <div class="metric-mini"><span>Recebido em</span><strong style="color:#10b981">{{ conta.data_pagamento|date:"d/m/Y" }}</strong></div>
+        {% endif %}
+        <div class="metric-mini"><span>Parcela</span><strong>{{ conta.numero_parcela_atual }}/{{ conta.numero_parcelas }}</strong></div>
+      </div>
     </div>
-    {% if encargos %}<table class="table"><thead><tr><th>Tipo</th><th>%</th><th>Valor</th><th>Data</th><th></th></tr></thead><tbody>{% for e in encargos %}<tr><td>{{ e.tipo_encargo.nome }}</td><td>{% if e.percentual %}{{ e.percentual }}%{% else %}—{% endif %}</td><td>R$ {{ e.valor|floatformat:2 }}</td><td>{{ e.data_aplicacao|date:"d/m/Y" }}</td><td><a href="{% url 'financeiro:encargo_conta_receber_delete' e.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a></td></tr>{% endfor %}</tbody></table>
-    {% else %}<p style="color:#999;font-size:13px">Nenhum encargo registrado.</p>{% endif %}
-  </div>
-  <div class="detail-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <h2 style="margin:0;border:none;padding:0"><i class="bi bi-paperclip"></i> Documentos</h2>
-      <a href="{% url 'financeiro:documento_conta_receber_create' conta.pk %}" class="btn btn-secondary btn-sm"><i class="bi bi-plus-lg"></i> Anexar</a>
-    </div>
-    {% if documentos %}<table class="table"><thead><tr><th>Nome</th><th>Tipo</th><th>Data</th><th></th></tr></thead><tbody>{% for d in documentos %}<tr><td><a href="{{ d.arquivo.url }}" target="_blank" style="color:#1a73e8"><i class="bi bi-download"></i> {{ d.nome }}</a></td><td>{{ d.tipo_arquivo|upper|default:"—" }}</td><td>{{ d.criado_em|date:"d/m/Y" }}</td><td><a href="{% url 'financeiro:documento_conta_receber_delete' d.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a></td></tr>{% endfor %}</tbody></table>
-    {% else %}<p style="color:#999;font-size:13px">Nenhum documento anexado.</p>{% endif %}
   </div>
 </div>
+<style>
+  .info-grid{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13.5px}
+  .info-grid dt{color:var(--txt-3);font-weight:500;white-space:nowrap}
+  .info-grid dd{color:var(--txt-1);margin:0}
+  .card-hdr{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .card-hdr h3{font-size:13px;font-weight:600;color:var(--txt-1);display:flex;align-items:center;gap:6px;margin:0}
+  .badge-status-green{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(16,185,129,.1);color:#10b981}
+  .metric-mini{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:13px}
+  .metric-mini span{color:var(--txt-3)}
+</style>
 {% endblock %}

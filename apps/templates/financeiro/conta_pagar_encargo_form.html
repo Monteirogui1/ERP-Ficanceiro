@@ -1,0 +1,30 @@
+{% extends "layouts/base.html" %}
+{% block title %}Adicionar Encargo{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <div>
+      <h1>Adicionar Encargo</h1>
+      <small style="color:var(--txt-3)">{{ conta.descricao|truncatechars:50 }}</small>
+    </div>
+    <a href="{% url 'financeiro:conta_pagar_detail' conta.pk %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+  </div>
+  <div class="detail-card" style="max-width:560px">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="form-group"><label>Tipo de Encargo <span style="color:#dc3545">*</span></label>{{ form.tipo_encargo }}{% if form.tipo_encargo.errors %}<span class="error-message">{{ form.tipo_encargo.errors|join:", " }}</span>{% endif %}</div>
+        <div class="form-group"><label>Data de Aplicação <span style="color:#dc3545">*</span></label>{{ form.data_aplicacao }}</div>
+        <div class="form-group"><label>Percentual (%)</label>{{ form.percentual }}</div>
+        <div class="form-group"><label>Valor <span style="color:#dc3545">*</span></label>{{ form.valor }}</div>
+        <div class="form-group full-width"><label>Observação</label>{{ form.observacao }}</div>
+      </div>
+      {% if form.non_field_errors %}<div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url 'financeiro:conta_pagar_detail' conta.pk %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

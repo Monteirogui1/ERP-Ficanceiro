@@ -7,36 +7,70 @@
     <a href="{% url 'financeiro:lancamento_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Lançamento</a>
   </div>
   {% include "_includes/messages.html" %}
-  <form method="get" class="filter-form">
-    <div class="form-group"><label>Buscar</label><input type="text" name="q" value="{{ request.GET.q }}" placeholder="Descrição..." class="form-control"></div>
-    <div class="form-group"><label>Conta Bancária</label><select name="conta_bancaria" class="form-control"><option value="">Todas</option>{% for cb in contas_bancarias %}<option value="{{ cb.pk }}" {% if request.GET.conta_bancaria == cb.pk|stringformat:"s" %}selected{% endif %}>{{ cb.nome }}</option>{% endfor %}</select></div>
-    <div class="form-group"><label>Tipo</label><select name="tipo_lancamento" class="form-control"><option value="">Todos</option>{% for t in tipos_lancamento %}<option value="{{ t.pk }}" {% if request.GET.tipo_lancamento == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.nome }}</option>{% endfor %}</select></div>
-    <div class="form-group"><label>Data de</label><input type="date" name="data_de" value="{{ request.GET.data_de }}" class="form-control"></div>
-    <div class="form-group"><label>Data até</label><input type="date" name="data_ate" value="{{ request.GET.data_ate }}" class="form-control"></div>
-    <div class="form-group"><label>Conciliado</label><select name="conciliado" class="form-control"><option value="">Todos</option><option value="true" {% if request.GET.conciliado == "true" %}selected{% endif %}>Sim</option><option value="false" {% if request.GET.conciliado == "false" %}selected{% endif %}>Não</option></select></div>
-    <div class="filter-buttons"><button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrar</button><a href="{% url 'financeiro:lancamento_list' %}" class="btn btn-secondary"><i class="bi bi-x-lg"></i> Limpar</a></div>
+  <form method="get" style="margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap">
+    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Descrição..." class="form-control" style="max-width:240px">
+    <select name="conta_bancaria" class="form-control" style="max-width:200px">
+      <option value="">Todas as contas</option>
+      {% for cb in contas_bancarias %}<option value="{{ cb.pk }}" {% if request.GET.conta_bancaria == cb.pk|stringformat:"s" %}selected{% endif %}>{{ cb.nome }}</option>{% endfor %}
+    </select>
+    <input type="date" name="data_de"  value="{{ request.GET.data_de }}"  class="form-control" style="max-width:160px" title="Data de">
+    <input type="date" name="data_ate" value="{{ request.GET.data_ate }}" class="form-control" style="max-width:160px" title="Data até">
+    <select name="conciliado" class="form-control" style="max-width:150px">
+      <option value="">Conciliação</option>
+      <option value="true"  {% if request.GET.conciliado == "true"  %}selected{% endif %}>Conciliado</option>
+      <option value="false" {% if request.GET.conciliado == "false" %}selected{% endif %}>Não conciliado</option>
+    </select>
+    <button type="submit" class="btn btn-secondary"><i class="bi bi-search"></i> Filtrar</button>
+    {% if request.GET.q or request.GET.conta_bancaria or request.GET.data_de or request.GET.conciliado %}
+      <a href="{% url 'financeiro:lancamento_list' %}" class="btn btn-secondary">Limpar</a>
+    {% endif %}
   </form>
   <div class="detail-card" style="padding:0;overflow:hidden">
     <table class="table">
-      <thead><tr><th>Data</th><th>Descrição</th><th>Conta Bancária</th><th>Tipo</th><th>Plano de Contas</th><th>Valor</th><th>Conciliado</th><th class="text-center">Ações</th></tr></thead>
-      <tbody>
-        {% for l in objetos %}
+      <thead>
         <tr>
-          <td>{{ l.data_lancamento|date:"d/m/Y" }}</td>
-          <td>{{ l.descricao }}</td>
-          <td>{{ l.conta_bancaria.nome }}</td>
-          <td><span style="background:{% if l.tipo_lancamento.natureza == 'E' %}#d4edda;color:#155724{% else %}#f8d7da;color:#721c24{% endif %};border-radius:4px;padding:3px 8px;font-size:11px">{{ l.tipo_lancamento.nome }}</span></td>
-          <td>{{ l.plano_contas.nome|default:"—" }}</td>
-          <td style="font-weight:600;{% if l.tipo_lancamento.natureza == 'E' %}color:#28a745{% else %}color:#dc3545{% endif %}">
-            {% if l.tipo_lancamento.natureza == 'S' %}−{% endif %}R$ {{ l.valor|floatformat:2 }}
+          <th>Data</th>
+          <th>Descrição</th>
+          <th>Conta Bancária</th>
+          <th>Tipo</th>
+          <th>Plano de Contas</th>
+          <th class="text-center">Conc.</th>
+          <th style="text-align:right">Valor</th>
+          <th class="text-center">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lanc in objetos %}
+        <tr>
+          <td style="white-space:nowrap">{{ lanc.data_lancamento|date:"d/m/Y" }}</td>
+          <td>{{ lanc.descricao|truncatechars:40 }}</td>
+          <td style="font-size:12px">{{ lanc.conta_bancaria.nome|default:"—" }}</td>
+          <td>
+            {% if lanc.tipo_lancamento %}
+              {% if lanc.tipo_lancamento.natureza == "C" %}
+                <span style="font-size:11px;background:rgba(16,185,129,.1);color:#10b981;border-radius:4px;padding:2px 7px">{{ lanc.tipo_lancamento.nome }}</span>
+              {% else %}
+                <span style="font-size:11px;background:rgba(239,68,68,.1);color:#ef4444;border-radius:4px;padding:2px 7px">{{ lanc.tipo_lancamento.nome }}</span>
+              {% endif %}
+            {% else %}—{% endif %}
           </td>
-          <td class="text-center">{% if l.conciliado %}<span style="color:#28a745"><i class="bi bi-check-circle-fill"></i></span>{% else %}<span style="color:#ccc"><i class="bi bi-circle"></i></span>{% endif %}</td>
+          <td style="font-size:12px;color:var(--txt-3)">{{ lanc.plano_contas.nome|default:"—"|truncatechars:22 }}</td>
+          <td class="text-center">
+            {% if lanc.conciliado %}<i class="bi bi-check-circle-fill" style="color:#10b981" title="Conciliado"></i>
+            {% else %}<i class="bi bi-circle" style="color:#aaa" title="Não conciliado"></i>{% endif %}
+          </td>
+          <td style="text-align:right;font-family:monospace;font-weight:600;{% if lanc.tipo_lancamento and lanc.tipo_lancamento.natureza == 'C' %}color:#10b981{% else %}color:#ef4444{% endif %}">
+            R$ {{ lanc.valor|floatformat:2 }}
+          </td>
           <td class="text-center" style="white-space:nowrap">
-            <a href="{% url 'financeiro:lancamento_update' l.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
-            <a href="{% url 'financeiro:lancamento_delete' l.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
+            <a href="{% url 'financeiro:lancamento_update' lanc.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
+            <a href="{% url 'financeiro:lancamento_delete' lanc.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
           </td>
         </tr>
-        {% empty %}<tr><td colspan="8" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum lançamento encontrado.</td></tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center" style="color:#999;padding:40px">
+          <i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum lançamento encontrado.
+        </td></tr>
         {% endfor %}
       </tbody>
     </table>

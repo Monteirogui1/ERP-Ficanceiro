@@ -1,0 +1,66 @@
+{% extends "layouts/base.html" %}
+{% block title %}Arquivos de Remessa{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>Arquivos de Remessa</h1>
+    <a href="{% url 'bancario:remessa_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Gerar Remessa</a>
+  </div>
+  {% include "_includes/messages.html" %}
+  <div class="detail-card" style="padding:0;overflow:hidden">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Conta Bancária</th>
+          <th>Tipo</th>
+          <th>Nome do Arquivo</th>
+          <th>Seq.</th>
+          <th class="text-center">Registros</th>
+          <th style="text-align:right">Valor Total</th>
+          <th class="text-center">Enviado</th>
+          <th>Gerado por</th>
+          <th class="text-center">Download</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rem in objetos %}
+        <tr>
+          <td style="white-space:nowrap">{{ rem.criado_em|date:"d/m/Y H:i" }}</td>
+          <td>{{ rem.conta_bancaria.nome }}</td>
+          <td>
+            {% if rem.tipo == "PAGAMENTO" %}
+              <span style="font-size:11px;background:rgba(239,68,68,.1);color:#ef4444;border-radius:4px;padding:2px 7px">Pagamento</span>
+            {% else %}
+              <span style="font-size:11px;background:rgba(16,185,129,.1);color:#10b981;border-radius:4px;padding:2px 7px">Cobrança</span>
+            {% endif %}
+          </td>
+          <td style="font-size:12px;color:var(--txt-3)">{{ rem.nome_arquivo|default:"—" }}</td>
+          <td class="text-center" style="font-family:monospace">{{ rem.numero_sequencial }}</td>
+          <td class="text-center">{{ rem.total_registros }}</td>
+          <td style="text-align:right;font-family:monospace">R$ {{ rem.valor_total|floatformat:2 }}</td>
+          <td class="text-center">
+            {% if rem.enviado %}
+              <i class="bi bi-check-circle-fill" style="color:#10b981" title="Enviado em {{ rem.data_envio|date:'d/m/Y' }}"></i>
+            {% else %}
+              <i class="bi bi-clock" style="color:#f59e0b" title="Não enviado"></i>
+            {% endif %}
+          </td>
+          <td style="font-size:12px;color:var(--txt-3)">{{ rem.gerado_por.nome|default:rem.gerado_por.username|default:"—" }}</td>
+          <td class="text-center">
+            {% if rem.arquivo %}
+            <a href="{{ rem.arquivo.url }}" class="btn btn-secondary btn-sm" download><i class="bi bi-download"></i></a>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="10" class="text-center" style="color:#999;padding:40px">
+          <i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum arquivo de remessa gerado.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "_includes/paginacao.html" %}
+</div>
+{% endblock %}

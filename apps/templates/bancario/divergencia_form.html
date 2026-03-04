@@ -1,0 +1,53 @@
+{% extends "layouts/base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>{{ titulo }}</h1>
+    <a href="{% url 'bancario:divergencia_list' %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+  </div>
+  <div class="detail-card" style="max-width:600px">
+    <!-- Resumo da divergência (somente leitura) -->
+    <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:16px;margin-bottom:24px">
+      <h3 style="font-size:13px;font-weight:600;color:#ef4444;margin:0 0 12px"><i class="bi bi-exclamation-triangle"></i> Detalhes da Divergência</h3>
+      <dl style="display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:13px;margin:0">
+        <dt style="color:var(--txt-3)">Tipo</dt>
+        <dd style="margin:0">{{ object.get_tipo_divergencia_display }}</dd>
+        {% if object.movimento_bancario %}
+        <dt style="color:var(--txt-3)">Movimento</dt>
+        <dd style="margin:0">{{ object.movimento_bancario.descricao|truncatechars:50 }} — {{ object.movimento_bancario.data_movimento|date:"d/m/Y" }}</dd>
+        {% endif %}
+        {% if object.lancamento %}
+        <dt style="color:var(--txt-3)">Lançamento</dt>
+        <dd style="margin:0">{{ object.lancamento.descricao|truncatechars:50 }} — {{ object.lancamento.data_lancamento|date:"d/m/Y" }}</dd>
+        {% endif %}
+        {% if object.valor_extrato %}
+        <dt style="color:var(--txt-3)">Valor Extrato</dt><dd style="margin:0;font-family:monospace">R$ {{ object.valor_extrato|floatformat:2 }}</dd>
+        {% endif %}
+        {% if object.valor_sistema %}
+        <dt style="color:var(--txt-3)">Valor Sistema</dt><dd style="margin:0;font-family:monospace">R$ {{ object.valor_sistema|floatformat:2 }}</dd>
+        {% endif %}
+      </dl>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <h2><i class="bi bi-tools"></i> Resolução</h2>
+      <div class="form-grid">
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
+          {{ form.resolvida }}<label for="{{ form.resolvida.id_for_label }}" style="margin:0;font-weight:500">Marcar como Resolvida</label>
+        </div>
+        <div class="form-group full-width">
+          <label>Descrição da Resolução</label>
+          {{ form.resolucao }}
+          <small style="color:var(--txt-3);font-size:12px">Descreva como a divergência foi tratada (ajuste, estorno, desconsideração, etc.)</small>
+        </div>
+      </div>
+      {% if form.non_field_errors %}<div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url 'bancario:divergencia_list' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salvar Resolução</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

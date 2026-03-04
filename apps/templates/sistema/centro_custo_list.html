@@ -4,27 +4,31 @@
 <div class="content">
   <div class="page-header">
     <h1>Centros de Custo</h1>
-    <a href="{% url 'sistema:centro_custo_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Centro</a>
+    <a href="{% url 'sistema:centro_custo_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo</a>
   </div>
   {% include "_includes/messages.html" %}
+  <form method="get" style="margin-bottom:18px;display:flex;gap:10px">
+    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Código ou nome..." class="form-control" style="max-width:320px">
+    <button type="submit" class="btn btn-secondary"><i class="bi bi-search"></i> Filtrar</button>
+    {% if request.GET.q %}<a href="{% url 'sistema:centro_custo_list' %}" class="btn btn-secondary">Limpar</a>{% endif %}
+  </form>
   <div class="detail-card" style="padding:0;overflow:hidden">
     <table class="table">
-      <thead><tr><th>Código</th><th>Nome</th><th>Tipo</th><th>Centro Pai</th><th>Filial</th><th class="text-center">Ativo</th><th class="text-center">Ações</th></tr></thead>
+      <thead><tr><th>Código</th><th>Nome</th><th>Tipo</th><th class="text-center">Ativo</th><th class="text-center">Ações</th></tr></thead>
       <tbody>
         {% for cc in objetos %}
         <tr>
-          <td style="font-family:monospace">{{ cc.codigo }}</td>
-          <td><strong>{{ cc.nome }}</strong></td>
+          <td style="font-family:monospace;font-weight:600">{{ cc.codigo }}</td>
+          <td>{{ cc.nome }}</td>
           <td>{{ cc.tipo.nome|default:"—" }}</td>
-          <td>{{ cc.centro_pai.nome|default:"—" }}</td>
-          <td>{{ cc.filial.nome|default:"—" }}</td>
           <td class="text-center">{% if cc.ativo %}<i class="bi bi-check-circle-fill" style="color:#28a745"></i>{% else %}<i class="bi bi-x-circle-fill" style="color:#dc3545"></i>{% endif %}</td>
           <td class="text-center" style="white-space:nowrap">
             <a href="{% url 'sistema:centro_custo_update' cc.pk %}" class="btn btn-edit btn-sm"><i class="bi bi-pencil"></i></a>
             <a href="{% url 'sistema:centro_custo_delete' cc.pk %}" class="btn btn-delete btn-sm"><i class="bi bi-trash3"></i></a>
           </td>
         </tr>
-        {% empty %}<tr><td colspan="7" class="text-center" style="color:#999;padding:40px"><i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px"></i>Nenhum centro de custo cadastrado.</td></tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center" style="color:#999;padding:40px">Nenhum centro de custo cadastrado.</td></tr>
         {% endfor %}
       </tbody>
     </table>

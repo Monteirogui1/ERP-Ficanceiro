@@ -1,0 +1,42 @@
+{% extends "layouts/base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <div>
+      <h1>{{ titulo }}</h1>
+      <small style="color:var(--txt-3)">{{ orcamento.nome }} — {{ orcamento.ano }}</small>
+    </div>
+    <a href="{% url 'orcamento:orcamento_detail' orcamento.pk %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+  </div>
+  <div class="detail-card" style="max-width:660px">
+    <form method="post">
+      {% csrf_token %}
+
+      <h2><i class="bi bi-diagram-3"></i> Classificação</h2>
+      <div class="form-grid">
+        <div class="form-group"><label>Plano de Contas <span style="color:#dc3545">*</span></label>{{ form.plano_contas }}{% if form.plano_contas.errors %}<span class="error-message">{{ form.plano_contas.errors|join:", " }}</span>{% endif %}</div>
+        <div class="form-group"><label>Centro de Custo</label>{{ form.centro_custo }}</div>
+        <div class="form-group"><label>Mês <span style="color:#dc3545">*</span></label>{{ form.mes }}{% if form.mes.errors %}<span class="error-message">{{ form.mes.errors|join:", " }}</span>{% endif %}</div>
+      </div>
+
+      <h2 style="margin-top:24px"><i class="bi bi-currency-dollar"></i> Valores</h2>
+      <div class="form-grid">
+        <div class="form-group"><label>Valor Previsto <span style="color:#dc3545">*</span></label>{{ form.valor_previsto }}{% if form.valor_previsto.errors %}<span class="error-message">{{ form.valor_previsto.errors|join:", " }}</span>{% endif %}</div>
+        <div class="form-group">
+          <label>Valor Revisado</label>
+          {{ form.valor_revisado }}
+          <small style="color:var(--txt-3);font-size:12px">Preencha caso o previsto tenha sido revisado no ano</small>
+        </div>
+        <div class="form-group full-width"><label>Observações</label>{{ form.observacoes }}</div>
+      </div>
+
+      {% if form.non_field_errors %}<div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url 'orcamento:orcamento_detail' orcamento.pk %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {% if object %}Salvar{% else %}Adicionar{% endif %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

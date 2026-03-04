@@ -1,10 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+{% extends "layouts/base.html" %}
+{% block title %}{{ titulo }} — {{ empresa_mae.razao_social }}{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <div>
+      <h1>{{ titulo }}</h1>
+      <small style="color:var(--txt-3)">{{ empresa_mae.razao_social }}</small>
+    </div>
+    <a href="{% url 'authentication:filial_list' empresa_mae.pk %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+  </div>
+  <div class="detail-card" style="max-width:680px">
+    <form method="post">
+      {% csrf_token %}
+      <h2><i class="bi bi-diagram-3"></i> Dados da Filial</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="{{ form.nome.id_for_label }}">Nome <span style="color:#dc3545">*</span></label>
+          {{ form.nome }}
+          {% if form.nome.errors %}<span class="error-message">{{ form.nome.errors|join:", " }}</span>{% endif %}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.cnpj.id_for_label }}">CNPJ</label>
+          {{ form.cnpj }}
+          {% if form.cnpj.errors %}<span class="error-message">{{ form.cnpj.errors|join:", " }}</span>{% endif %}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.cep.id_for_label }}">CEP</label>{{ form.cep }}
+        </div>
+        <div class="form-group full-width">
+          <label for="{{ form.logradouro.id_for_label }}">Logradouro</label>{{ form.logradouro }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.numero.id_for_label }}">Número</label>{{ form.numero }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.cidade.id_for_label }}">Cidade</label>{{ form.cidade }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.estado.id_for_label }}">Estado</label>{{ form.estado }}
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
+          {{ form.ativo }}<label for="{{ form.ativo.id_for_label }}" style="margin:0;font-weight:500">Filial Ativa</label>
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url 'authentication:filial_list' empresa_mae.pk %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {% if object %}Salvar{% else %}Cadastrar{% endif %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

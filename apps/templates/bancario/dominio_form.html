@@ -1,0 +1,37 @@
+{% extends "layouts/base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <h1>{{ titulo }}</h1>
+    <a href="{% url list_url %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+  </div>
+  <div class="detail-card" style="max-width:540px">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-grid">
+        {% for field in form %}
+          {% if field.field.widget.input_type == 'checkbox' %}
+            <div class="form-group" style="display:flex;align-items:center;gap:10px;padding-top:22px">
+              {{ field }}<label for="{{ field.id_for_label }}" style="margin:0;font-weight:500">{{ field.label }}</label>
+              {% if field.errors %}<span class="error-message">{{ field.errors|join:", " }}</span>{% endif %}
+            </div>
+          {% else %}
+            <div class="form-group">
+              <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span style="color:#dc3545">*</span>{% endif %}</label>
+              {{ field }}
+              {% if field.help_text %}<small style="color:var(--txt-3);font-size:12px">{{ field.help_text }}</small>{% endif %}
+              {% if field.errors %}<span class="error-message">{{ field.errors|join:", " }}</span>{% endif %}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% if form.non_field_errors %}<div class="error-message" style="margin-top:12px">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="form-actions" style="margin-top:28px">
+        <a href="{% url list_url %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> {% if object %}Salvar{% else %}Cadastrar{% endif %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% extends "layouts/base.html" %}
+{% block title %}Extrato — {{ importacao.conta_bancaria.nome }}{% endblock %}
+{% block conteudo %}
+<div class="content">
+  <div class="page-header">
+    <div>
+      <h1>Extrato — {{ importacao.conta_bancaria.nome }}</h1>
+      <small style="color:var(--txt-3)">
+        {{ importacao.nome_arquivo }} · Importado em {{ importacao.criado_em|date:"d/m/Y H:i" }}
+        {% if importacao.importado_por %} por {{ importacao.importado_por.nome|default:importacao.importado_por.username }}{% endif %}
+      </small>
+    </div>
+    <a href="{% url 'bancario:importacao_list' %}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Voltar</a>
+  </div>
+  {% include "_includes/messages.html" %}
+
+  <!-- Métricas -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px">
+    <div class="detail-card" style="padding:18px;text-align:center">
+      <p style="color:var(--txt-3);font-size:12px;margin:0">Total Registros</p>
+      <p style="font-size:28px;font-weight:700;margin:4px 0;color:var(--txt-1)">{{ importacao.total_registros }}</p>
+    </div>
+    <div class="detail-card" style="padding:18px;text-align:center">
+      <p style="color:var(--txt-3);font-size:12px;margin:0">Conciliados</p>
+      <p style="font-size:28px;font-weight:700;margin:4px 0;color:#10b981">{{ importacao.total_conciliados }}</p>
+    </div>
+    <div class="detail-card" style="padding:18px;text-align:center">
+      <p style="color:var(--txt-3);font-size:12px;margin:0">Divergentes</p>
+      <p style="font-size:28px;font-weight:700;margin:4px 0;{% if importacao.total_divergentes > 0 %}color:#ef4444{% else %}color:#aaa{% endif %}">{{ importacao.total_divergentes }}</p>
+    </div>
+    <div class="detail-card" style="padding:18px;text-align:center">
+      <p style="color:var(--txt-3);font-size:12px;margin:0">Status</p>
+      <p style="font-size:14px;font-weight:700;margin:4px 0">
+        {% if importacao.processado %}
+          <span style="color:#10b981"><i class="bi bi-check-circle-fill"></i> Processado</span>
+        {% else %}
+          <span style="color:#f59e0b"><i class="bi bi-clock-fill"></i> Pendente</span>
+        {% endif %}
+      </p>
+    </div>
+    {% if importacao.data_inicio_extrato %}
+    <div class="detail-card" style="padding:18px;text-align:center">
+      <p style="color:var(--txt-3);font-size:12px;margin:0">Período</p>
+      <p style="font-size:13px;font-weight:600;margin:4px 0">{{ importacao.data_inicio_extrato|date:"d/m/Y" }}<br>{{ importacao.data_fim_extrato|date:"d/m/Y" }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Log de processamento -->
+  {% if importacao.log_processamento %}
+  <div class="detail-card" style="margin-bottom:16px">
+    <h3 style="font-size:13px;font-weight:600;color:var(--txt-3);text-transform:uppercase;margin-bottom:10px"><i class="bi bi-terminal"></i> Log de Processamento</h3>
+    <pre style="font-size:12px;color:var(--txt-2);background:var(--surface);padding:12px;border-radius:6px;overflow-x:auto;margin:0">{{ importacao.log_processamento }}</pre>
+  </div>
+  {% endif %}
+
+  <!-- Movimentos -->
+  <div class="detail-card" style="padding:0;overflow:hidden">
+    <div style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <h3 style="font-size:13px;font-weight:600;color:var(--txt-1);display:flex;align-items:center;gap:6px;margin:0"><i class="bi bi-list-ul"></i> Movimentos do Extrato</h3>
+      <a href="{% url 'bancario:conciliacao_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Conciliar</a>
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Descrição</th>
+          <th>Documento</th>
+          <th>Tipo</th>
+          <th style="text-align:right">Valor</th>
+          <th style="text-align:right">Saldo Após</th>
+          <th class="text-center">Conciliação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mov in movimentos %}
+        <tr>
+          <td style="white-space:nowrap">{{ mov.data_movimento|date:"d/m/Y" }}</td>
+          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ mov.descricao }}">{{ mov.descricao }}</td>
+          <td style="font-size:12px;font-family:monospace;color:var(--txt-3)">{{ mov.documento|default:"—" }}</td>
+          <td>
+            {% if mov.tipo_movimento %}
+              {% if mov.tipo_movimento.natureza == "C" %}
+                <span style="font-size:11px;background:rgba(16,185,129,.1);color:#10b981;border-radius:4px;padding:2px 7px">{{ mov.tipo_movimento.nome }}</span>
+              {% else %}
+                <span style="font-size:11px;background:rgba(239,68,68,.1);color:#ef4444;border-radius:4px;padding:2px 7px">{{ mov.tipo_movimento.nome }}</span>
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td style="text-align:right;font-family:monospace;font-weight:600;{% if mov.valor >= 0 %}color:#10b981{% else %}color:#ef4444{% endif %}">
+            R$ {{ mov.valor|floatformat:2 }}
+          </td>
+          <td style="text-align:right;font-family:monospace;color:var(--txt-3)">
+            {% if mov.saldo_apos %}R$ {{ mov.saldo_apos|floatformat:2 }}{% else %}—{% endif %}
+          </td>
+          <td class="text-center">
+            {% if mov.status_conciliacao %}
+              <span style="font-size:11px;padding:2px 8px;border-radius:20px;
+                {% if mov.status_conciliacao.nome == 'Conciliada' %}background:rgba(16,185,129,.1);color:#10b981
+                {% elif mov.status_conciliacao.nome == 'Divergente' %}background:rgba(239,68,68,.1);color:#ef4444
+                {% else %}background:rgba(245,158,11,.1);color:#f59e0b{% endif %}">
+                {{ mov.status_conciliacao.nome }}
+              </span>
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center" style="color:#999;padding:30px">Nenhum movimento registrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

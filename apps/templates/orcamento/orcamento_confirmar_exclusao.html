@@ -1,0 +1,23 @@
+{% extends "layouts/base.html" %}
+{% block title %}Excluir Orçamento{% endblock %}
+{% block conteudo %}
+<div class="content" style="max-width:540px;margin:0 auto">
+  <div class="detail-card" style="text-align:center;padding:40px 32px">
+    <div style="width:56px;height:56px;border-radius:50%;background:rgba(239,68,68,.12);display:inline-flex;align-items:center;justify-content:center;font-size:24px;color:#ef4444;margin-bottom:16px">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+    </div>
+    <h2 style="font-size:18px;font-weight:600;margin-bottom:8px">Excluir Orçamento</h2>
+    <p style="color:var(--txt-2);font-size:14px;margin-bottom:6px">
+      Tem certeza que deseja excluir <strong>{{ object.nome }} ({{ object.ano }})</strong>?
+    </p>
+    <p style="color:#ef4444;font-size:13px;margin-bottom:24px">
+      <i class="bi bi-exclamation-circle"></i> Todos os itens e alertas vinculados também serão excluídos.
+    </p>
+    <form method="post" style="display:inline-flex;gap:12px">
+      {% csrf_token %}
+      <a href="{% url 'orcamento:orcamento_detail' object.pk %}" class="btn btn-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-delete"><i class="bi bi-trash3"></i> Confirmar Exclusão</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

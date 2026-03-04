@@ -3,104 +3,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — ERP</title>
+  <title>Login — FinanceERP</title>
   {% load static %}
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
-  <link rel="shortcut icon" href="{% static 'assets/img/favicon.png' %}" type="image/x-icon"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .login-wrap { display: flex; width: 100%; max-width: 900px; min-height: 520px; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.4); }
+    .login-side { flex: 1; background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: #fff; }
+    .login-side-icon { font-size: 56px; margin-bottom: 20px; opacity: .9; }
+    .login-side h2 { font-size: 28px; font-weight: 700; letter-spacing: -.5px; }
+    .login-side p { margin-top: 10px; font-size: 14px; opacity: .8; text-align: center; max-width: 220px; }
+    .login-box { flex: 1; background: #1e293b; padding: 48px 40px; display: flex; flex-direction: column; justify-content: center; }
+    .login-box h1 { font-size: 22px; font-weight: 700; color: #f1f5f9; margin-bottom: 6px; }
+    .login-box .subtitle { color: #94a3b8; font-size: 13.5px; margin-bottom: 32px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 12.5px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+    .form-group input { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #f1f5f9; font-size: 14px; outline: none; transition: border-color .2s; }
+    .form-group input:focus { border-color: #10b981; }
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 40px; }
+    .pw-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; font-size: 16px; padding: 0; }
+    .pw-toggle:hover { color: #10b981; }
+    .alert-err { background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3); color: #fca5a5; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .alert-ok { background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.3); color: #6ee7b7; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 20px; }
+    .btn-login { width: 100%; padding: 12px; background: #10b981; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background .2s; margin-top: 8px; }
+    .btn-login:hover { background: #059669; }
+    .forgot { display: block; text-align: center; margin-top: 16px; color: #64748b; font-size: 13px; text-decoration: none; }
+    .forgot:hover { color: #10b981; }
+    @media (max-width: 640px) { .login-side { display: none; } .login-wrap { max-width: 420px; } }
+  </style>
 </head>
 <body>
 
-<div class="login-page">
+<div class="login-wrap">
 
-  <!-- Imagem lateral -->
-  <div class="login-image"></div>
+  <div class="login-side">
+    <div class="login-side-icon"><i class="bi bi-graph-up-arrow"></i></div>
+    <h2>FinanceERP</h2>
+    <p>Gestão financeira completa para a sua empresa</p>
+  </div>
 
-  <!-- Formulário -->
-  <div class="login-form">
-    <div class="login-container">
+  <div class="login-box">
+    <h1>Bem-vindo de volta</h1>
+    <p class="subtitle">Informe suas credenciais para continuar</p>
 
-      <div class="logo" style="margin-bottom:8px">
-        <h2>TI <span>ERP</span></h2>
+    {% if form.errors %}
+      <div class="alert-err">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        E-mail ou senha incorretos. Tente novamente.
       </div>
-      <p class="login-subtitle">Acesse sua conta para continuar</p>
+    {% endif %}
 
-      {% if form.errors %}
-        <div class="error-message" style="margin-bottom:16px;text-align:center">
-          <i class="bi bi-exclamation-circle"></i>
-          E-mail ou senha incorretos. Tente novamente.
-        </div>
-      {% endif %}
+    {% for msg in messages %}
+      <div class="{% if msg.tags == 'success' %}alert-ok{% else %}alert-err{% endif %}">
+        {{ msg }}
+      </div>
+    {% endfor %}
 
-      {% if messages %}
-        {% for msg in messages %}
-          <div class="error-message" style="margin-bottom:16px;text-align:center;
-            {% if msg.tags == 'success' %}color:#28a745{% endif %}">
-            {{ msg }}
-          </div>
-        {% endfor %}
-      {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
 
-      <form method="post">
-        {% csrf_token %}
+      <div class="form-group">
+        <label for="{{ form.username.id_for_label }}">E-mail</label>
+        <input type="email" name="{{ form.username.html_name }}"
+               id="{{ form.username.id_for_label }}"
+               value="{{ form.username.value|default:'' }}"
+               placeholder="seu@email.com" autocomplete="email" autofocus>
+        {% if form.username.errors %}
+          <small style="color:#fca5a5;font-size:12px">{{ form.username.errors|join:", " }}</small>
+        {% endif %}
+      </div>
 
-        <div class="form-group">
-          <label for="{{ form.username.id_for_label }}">E-mail</label>
-          {{ form.username }}
-          {% if form.username.errors %}
-            <span class="error-message">{{ form.username.errors|join:", " }}</span>
-          {% endif %}
-        </div>
-
-        <div class="form-group password-field">
-          <label for="{{ form.password.id_for_label }}">Senha</label>
-          {{ form.password }}
-          <span class="password-toggle" onclick="togglePassword()">
-            <i class="bi bi-eye" id="toggleIcon"></i>
-          </span>
-          {% if form.password.errors %}
-            <span class="error-message">{{ form.password.errors|join:", " }}</span>
-          {% endif %}
-        </div>
-
-        <input type="hidden" name="next" value="{{ next }}">
-
-        <div class="form-group" style="margin-top:24px">
-          <button type="submit" class="btn btn-primary" style="width:100%;padding:12px">
-            <i class="bi bi-box-arrow-in-right"></i> Entrar
+      <div class="form-group">
+        <label for="{{ form.password.id_for_label }}">Senha</label>
+        <div class="pw-wrap">
+          <input type="password" name="{{ form.password.html_name }}"
+                 id="{{ form.password.id_for_label }}"
+                 placeholder="••••••••" autocomplete="current-password">
+          <button type="button" class="pw-toggle" onclick="toggleSenha()" title="Mostrar/ocultar senha">
+            <i class="bi bi-eye" id="pwIcon"></i>
           </button>
         </div>
+      </div>
 
-        <a href="{% url 'authentication:password_change' %}" class="forgot-password">
-          Esqueci minha senha
-        </a>
+      <button type="submit" class="btn-login">
+        <i class="bi bi-box-arrow-in-right"></i> Entrar
+      </button>
+    </form>
 
-      </form>
-
-    </div>
+    <a href="{% url 'authentication:password_change' %}" class="forgot">
+      Esqueci minha senha
+    </a>
   </div>
 
 </div>
 
-<script src="{% static 'assets/js/script.js' %}"></script>
 <script>
-  // Aplica a classe form-control nos campos do LoginForm do Django
-  document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.login-form input').forEach(function (el) {
-      el.classList.add('form-control');
-    });
-  });
-
-  function togglePassword() {
-    const field = document.getElementById('{{ form.password.id_for_label }}');
-    const icon  = document.getElementById('toggleIcon');
-    if (field.type === 'password') {
-      field.type = 'text';
-      icon.classList.replace('bi-eye', 'bi-eye-slash');
-    } else {
-      field.type = 'password';
-      icon.classList.replace('bi-eye-slash', 'bi-eye');
-    }
+  function toggleSenha() {
+    const f = document.getElementById('{{ form.password.id_for_label }}');
+    const i = document.getElementById('pwIcon');
+    if (f.type === 'password') { f.type = 'text'; i.className = 'bi bi-eye-slash'; }
+    else { f.type = 'password'; i.className = 'bi bi-eye'; }
   }
 </script>
 </body>
